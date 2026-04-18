@@ -6,69 +6,25 @@ A TypeScript tool that scrapes posts from `r/sonyalpha` and `r/photography`, det
 
 ---
 
-## Steps Taken
+## Journal
 
-### 1. Defined scope
-- **Subreddits:** r/sonyalpha, r/photography
-- **Data:** Posts only (no comments for now)
-- **Output:** JSON
-- **API:** Reddit OAuth (client credentials — no user login needed for public data)
-- **Language:** TypeScript
+### 2026-04-16
 
-### 2. Decided on lens data structure
-Canonical name + model code + aliases to handle the many ways people refer to the same lens in post titles (e.g. "85GM", "85 1.4 GM", "SEL85F14GM").
+Kicked off the project. Defined scope, designed the lens data structure, and built out `lenses.json` with ~93 lenses across Sony, Sigma, and Tamron. Decided to use Reddit's public JSON endpoints (no OAuth needed). Built the core pipeline:
 
-```json
-{
-  "id": "sony-fe-85-1.4-gm",
-  "brand": "Sony",
-  "name": "FE 85mm f/1.4 GM",
-  "model": "SEL-85F14GM",
-  "focalLength": "85mm",
-  "maxAperture": "f/1.4",
-  "mount": "FE (Full-Frame)",
-  "aliases": ["85GM", "85 1.4 GM", "SEL85F14GM", "85mm GM"]
-}
-```
+- **`src/scraper.ts`** — `fetchPosts` (bulk, up to 500) and `fetchBatch` (single page with cursor) for paginated post fetching.
+- **`src/matcher.ts`** — normalizes text (lowercase, strip punctuation) and does substring matching against each lens's name, model, and aliases. Pre-computes normalized tokens at startup.
+- **`src/index.ts`** — main run: fetches posts, matches lenses, aggregates per-lens stats (post count, avg score, avg upvote ratio, total weight), writes `output/results.json`.
+- **`src/test.ts`** — pagination-driven test run that stops once each subreddit hits a match target, writes matched posts with formula breakdown to `output/test.json`.
 
-### 3. Built `lenses.json`
-Sourced from:
-- [Wikipedia — List of Sony E-mount lenses](https://en.wikipedia.org/wiki/List_of_Sony_E-mount_lenses)
-- [Wikipedia — List of third-party Sony E-mount lenses](https://en.wikipedia.org/wiki/List_of_third-party_Sony_E-mount_lenses)
-
-Covers ~120 lenses across:
-- **Sony** — APS-C primes, APS-C zooms, FE primes, FE zooms (including GM, G, Zeiss/ZA lines)
-- **Sigma** — APS-C DC DN and full-frame DG DN primes and zooms
-- **Tamron** — APS-C Di III-A and full-frame Di III primes and zooms
+Post weighting uses an 80/20 split: `engagementScore * 0.8 + discussionScore * 0.2`.
 
 ---
 
-## Next Steps
+### 2026-04-17
 
-### Step 4 — Project scaffold
-- `npm init` + TypeScript config
-- Folder structure: `src/`, `data/`, `output/`
-- Dependencies: none beyond built-in `fetch` (Node 18+)
+Expanded the tool to support comment fetching and alias discovery.
 
-### Step 5 — Reddit OAuth setup
-- Create a Reddit app at reddit.com/prefs/apps (script type)
-- Store `CLIENT_ID`, `CLIENT_SECRET` in `.env`
-- Implement `getAccessToken()` using client credentials flow
-
-### Step 6 — Scraper
-- `fetchPosts(subreddit, sort, limit)` — paginate via `after` cursor, up to configurable limit
-- Fields to capture per post: `id`, `title`, `score`, `upvote_ratio`, `num_comments`, `created_utc`, `url`, `subreddit`
-
-### Step 7 — Lens matcher
-- Normalize post title (lowercase, strip punctuation)
-- Check against each lens's `name` and `aliases` (case-insensitive)
-- Return matched lens ID(s) — a post can mention multiple lenses
-
-### Step 8 — Output
-- Write matched posts to `output/results.json`
-- Aggregate popularity per lens: total posts, avg score, avg upvote ratio
-
-### Step 9 — Iteration
-- Tune aliases based on missed/false matches
-- Consider fuzzy matching for common misspellings
-- Potentially expand to comments
+- **`brands.json`** — extracted unique brand names (Sony, Sigma, Tamron) to a standalone file; user extended it with TTArtisan, Laowa, Viltrox, Zeiss, Samyang for broader third-party coverage.
+- **`src/scraper.ts`** — added `fetchComments(subreddit, postId)` which hits Reddit's comments endpoint and recursively walks the reply tree, returning a flat array of comment objects (id, body, score, parent_id). Added `redditFetch` wrapper with 429 retry logic — reads the `Retry-After` header, logs a wait message, and retries up to 5 times.
+- **`src/alias.ts`** — new standalone script (`npx tsx src/alias.ts`) that scans comments on lens-matched posts for unknown lens references. Per-comment flow: skip if already matches a known lens, then try brand name → combined focal+aperture patterns → focal range → single focal → aperture alone (first match wins). Writes candidates to `output/aliases.json` with full context for manual review.

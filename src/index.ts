@@ -3,7 +3,8 @@ import { fetchPosts, type Post } from "./scraper.js";
 import { matchLenses } from "./matcher.js";
 
 const SUBREDDITS = ["sonyalpha", "photography"];
-const SORT = "hot" as const;
+const SORT = "top" as const;
+const TIMEFRAME = "year" as const;
 const LIMIT = 500;
 
 interface MatchedPost extends Post {
@@ -16,6 +17,7 @@ interface LensStats {
   avgScore: number;
   avgUpvoteRatio: number;
   avgComments: number;
+  totalWeight: number;
 }
 
 async function main() {
@@ -23,11 +25,11 @@ async function main() {
 
   for (const sub of SUBREDDITS) {
     console.log(`Fetching r/${sub}...`);
-    const posts = await fetchPosts(sub, SORT, LIMIT);
+    const posts = await fetchPosts(sub, SORT, LIMIT, TIMEFRAME);
     console.log(`  ${posts.length} posts fetched`);
 
     for (const post of posts) {
-      const lensIds = matchLenses(post.title);
+      const lensIds = matchLenses(post.title + " " + post.selftext);
       if (lensIds.length > 0) allMatched.push({ ...post, lensIds });
     }
   }
@@ -35,15 +37,19 @@ async function main() {
   console.log(`\nMatched ${allMatched.length} posts mentioning at least one lens.`);
 
   // Aggregate stats per lens
-  const statsMap = new Map<string, { scores: number[]; ratios: number[]; comments: number[] }>();
+  const statsMap = new Map<string, { scores: number[]; ratios: number[]; comments: number[]; weights: number[] }>();
 
   for (const post of allMatched) {
+    const engagementScore = post.score * post.upvote_ratio;
+    const discussionScore = Math.log(1 + post.num_comments);
+    const weight = engagementScore * 0.8 + discussionScore * 0.2;
     for (const id of post.lensIds) {
-      if (!statsMap.has(id)) statsMap.set(id, { scores: [], ratios: [], comments: [] });
+      if (!statsMap.has(id)) statsMap.set(id, { scores: [], ratios: [], comments: [], weights: [] });
       const s = statsMap.get(id)!;
       s.scores.push(post.score);
       s.ratios.push(post.upvote_ratio);
       s.comments.push(post.num_comments);
+      s.weights.push(weight);
     }
   }
 
@@ -56,8 +62,9 @@ async function main() {
       avgScore: Math.round(avg(s.scores)),
       avgUpvoteRatio: parseFloat(avg(s.ratios).toFixed(3)),
       avgComments: Math.round(avg(s.comments)),
+      totalWeight: Math.round(s.weights.reduce((a, b) => a + b, 0)),
     }))
-    .sort((a, b) => b.postCount - a.postCount);
+    .sort((a, b) => b.totalWeight - a.totalWeight);
 
   const output = { fetchedAt: new Date().toISOString(), subreddits: SUBREDDITS, stats, posts: allMatched };
   writeFileSync("output/results.json", JSON.stringify(output, null, 2));

@@ -1,5 +1,4 @@
 [
-  // ─── Sony FE Full-Frame Primes ────────────────────────────────────────────
   {
     "id": "sony-fe-14-1.8-gm",
     "brand": "Sony",
@@ -8,7 +7,15 @@
     "focalLength": "14mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["14GM", "14mm GM", "14 1.8 GM", "SEL14F18GM"]
+    "aliases": [
+      "14GM",
+      "14mm GM",
+      "14 1.8 GM",
+      "SEL14F18GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-16-1.8-g",
@@ -18,7 +25,14 @@
     "focalLength": "16mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["16mm 1.8 G", "SEL16F18G", "16 1.8 G"]
+    "aliases": [
+      "16mm 1.8 G",
+      "SEL16F18G",
+      "16 1.8 G"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-20-1.8-g",
@@ -28,7 +42,15 @@
     "focalLength": "20mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["20mm 1.8 G", "SEL20F18G", "20 1.8 G", "20G"]
+    "aliases": [
+      "20mm 1.8 G",
+      "SEL20F18G",
+      "20 1.8 G",
+      "20G"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-24-1.4-gm",
@@ -38,7 +60,15 @@
     "focalLength": "24mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["24GM", "24mm GM", "24 1.4 GM", "SEL24F14GM"]
+    "aliases": [
+      "24GM",
+      "24mm GM",
+      "24 1.4 GM",
+      "SEL24F14GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-24-2.8-g",
@@ -48,7 +78,14 @@
     "focalLength": "24mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["24mm 2.8 G", "SEL24F28G", "24 2.8 G"]
+    "aliases": [
+      "24mm 2.8 G",
+      "SEL24F28G",
+      "24 2.8 G"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-28-2",
@@ -58,7 +95,15 @@
     "focalLength": "28mm",
     "maxAperture": "f/2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["28mm f2", "SEL28F20", "28 f2", "28 2.0"]
+    "aliases": [
+      "28mm f2",
+      "SEL28F20",
+      "28 f2",
+      "28 2.0"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-35-1.4-gm",
@@ -68,7 +113,15 @@
     "focalLength": "35mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["35GM", "35mm GM", "35 1.4 GM", "SEL35F14GM"]
+    "aliases": [
+      "35GM",
+      "35mm GM",
+      "35 1.4 GM",
+      "SEL35F14GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-35-1.4-z",
@@ -78,7 +131,15 @@
     "focalLength": "35mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["35mm ZA", "SEL35F14Z", "35 Zeiss 1.4", "35 ZA"]
+    "aliases": [
+      "35mm ZA",
+      "SEL35F14Z",
+      "35 Zeiss 1.4",
+      "35 ZA"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-35-2.8-z",
@@ -88,7 +149,15 @@
     "focalLength": "35mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["35mm 2.8 ZA", "SEL35F28Z", "35 2.8 Zeiss", "Sonnar 35"]
+    "aliases": [
+      "35mm 2.8 ZA",
+      "SEL35F28Z",
+      "35 2.8 Zeiss",
+      "Sonnar 35"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-35-1.8",
@@ -98,7 +167,14 @@
     "focalLength": "35mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["35mm 1.8 FE", "SEL35F18F", "35 1.8 full frame"]
+    "aliases": [
+      "35mm 1.8 FE",
+      "SEL35F18F",
+      "35 1.8 full frame"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-40-2.5-g",
@@ -108,7 +184,15 @@
     "focalLength": "40mm",
     "maxAperture": "f/2.5",
     "mount": "FE (Full-Frame)",
-    "aliases": ["40mm 2.5 G", "SEL40F25G", "40 G", "40G"]
+    "aliases": [
+      "40mm 2.5 G",
+      "SEL40F25G",
+      "40 G",
+      "40G"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-50-1.2-gm",
@@ -118,7 +202,16 @@
     "focalLength": "50mm",
     "maxAperture": "f/1.2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["50GM", "50 1.2 GM", "50mm GM", "SEL50F12GM", "50 f1.2 GM"]
+    "aliases": [
+      "50GM",
+      "50 1.2 GM",
+      "50mm GM",
+      "SEL50F12GM",
+      "50 f1.2 GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-50-1.4-gm",
@@ -128,7 +221,14 @@
     "focalLength": "50mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["50 1.4 GM", "SEL50F14GM", "50mm 1.4 GM"]
+    "aliases": [
+      "50 1.4 GM",
+      "SEL50F14GM",
+      "50mm 1.4 GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-50-1.4-z",
@@ -138,7 +238,15 @@
     "focalLength": "50mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["50mm ZA", "SEL50F14Z", "Planar 50", "50 Zeiss"]
+    "aliases": [
+      "50mm ZA",
+      "SEL50F14Z",
+      "Planar 50",
+      "50 Zeiss"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-50-1.8",
@@ -148,7 +256,14 @@
     "focalLength": "50mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["50mm 1.8 FE", "SEL50F18F", "50 1.8 full frame"]
+    "aliases": [
+      "50mm 1.8 FE",
+      "SEL50F18F",
+      "50 1.8 full frame"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-50-2.5-g",
@@ -158,7 +273,14 @@
     "focalLength": "50mm",
     "maxAperture": "f/2.5",
     "mount": "FE (Full-Frame)",
-    "aliases": ["50mm 2.5 G", "SEL50F25G", "50 2.5 G"]
+    "aliases": [
+      "50mm 2.5 G",
+      "SEL50F25G",
+      "50 2.5 G"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-50-2.8-macro",
@@ -168,7 +290,14 @@
     "focalLength": "50mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["50mm macro", "SEL50M28", "50 macro"]
+    "aliases": [
+      "50mm macro",
+      "SEL50M28",
+      "50 macro"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-55-1.8-z",
@@ -178,7 +307,16 @@
     "focalLength": "55mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["55mm 1.8 ZA", "SEL55F18Z", "Sonnar 55", "55 Zeiss", "55ZA"]
+    "aliases": [
+      "55mm 1.8 ZA",
+      "SEL55F18Z",
+      "Sonnar 55",
+      "55 Zeiss",
+      "55ZA"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-85-1.4-gm",
@@ -188,7 +326,15 @@
     "focalLength": "85mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["85GM", "85 1.4 GM", "SEL85F14GM", "85mm GM"]
+    "aliases": [
+      "85GM",
+      "85 1.4 GM",
+      "SEL85F14GM",
+      "85mm GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-85-1.4-gm2",
@@ -198,7 +344,15 @@
     "focalLength": "85mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["85GM2", "85 GM II", "SEL85F14GM2", "85mm GM2"]
+    "aliases": [
+      "85GM2",
+      "85 GM II",
+      "SEL85F14GM2",
+      "85mm GM2"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-85-1.8",
@@ -208,7 +362,14 @@
     "focalLength": "85mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["85mm 1.8", "SEL85F18", "85 1.8"]
+    "aliases": [
+      "85mm 1.8",
+      "SEL85F18",
+      "85 1.8"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-90-2.8-macro-g",
@@ -218,7 +379,15 @@
     "focalLength": "90mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["90mm macro G", "SEL90M28G", "90 macro", "90G macro"]
+    "aliases": [
+      "90mm macro G",
+      "SEL90M28G",
+      "90 macro",
+      "90G macro"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-100-2.8-macro-gm",
@@ -228,7 +397,15 @@
     "focalLength": "100mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["100mm macro GM", "SEL100M28GM", "100 macro GM", "100GM macro"]
+    "aliases": [
+      "100mm macro GM",
+      "SEL100M28GM",
+      "100 macro GM",
+      "100GM macro"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-100-2.8-stf-gm",
@@ -238,7 +415,15 @@
     "focalLength": "100mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["100mm STF", "SEL100F28GM", "100 STF GM", "STF 100"]
+    "aliases": [
+      "100mm STF",
+      "SEL100F28GM",
+      "100 STF GM",
+      "STF 100"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-135-1.8-gm",
@@ -248,7 +433,15 @@
     "focalLength": "135mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["135GM", "135 1.8 GM", "SEL135F18GM", "135mm GM"]
+    "aliases": [
+      "135GM",
+      "135 1.8 GM",
+      "SEL135F18GM",
+      "135mm GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-300-2.8-gm",
@@ -258,7 +451,14 @@
     "focalLength": "300mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["300GM", "300 2.8 GM", "SEL300F28GM"]
+    "aliases": [
+      "300GM",
+      "300 2.8 GM",
+      "SEL300F28GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-400-2.8-gm",
@@ -268,7 +468,14 @@
     "focalLength": "400mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["400GM", "400 2.8 GM", "SEL400F28GM"]
+    "aliases": [
+      "400GM",
+      "400 2.8 GM",
+      "SEL400F28GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
   {
     "id": "sony-fe-600-4-gm",
@@ -278,10 +485,15 @@
     "focalLength": "600mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["600GM", "600 f4 GM", "SEL600F40GM"]
+    "aliases": [
+      "600GM",
+      "600 f4 GM",
+      "SEL600F40GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Primes"
+    ]
   },
-
-  // ─── Sony FE Full-Frame Zooms ─────────────────────────────────────────────
   {
     "id": "sony-fe-12-24-2.8-gm",
     "brand": "Sony",
@@ -290,7 +502,15 @@
     "focalLength": "12-24mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["1224GM", "12-24 GM", "12-24 2.8 GM", "SEL1224GM"]
+    "aliases": [
+      "1224GM",
+      "12-24 GM",
+      "12-24 2.8 GM",
+      "SEL1224GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-12-24-4-g",
@@ -300,7 +520,15 @@
     "focalLength": "12-24mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["1224G", "12-24 G", "12-24 f4 G", "SEL1224G"]
+    "aliases": [
+      "1224G",
+      "12-24 G",
+      "12-24 f4 G",
+      "SEL1224G"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-16-25-2.8-g",
@@ -310,7 +538,15 @@
     "focalLength": "16-25mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["16-25 G", "1625G", "SEL1625G", "16-25 2.8"]
+    "aliases": [
+      "16-25 G",
+      "1625G",
+      "SEL1625G",
+      "16-25 2.8"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-16-35-2.8-gm",
@@ -320,7 +556,15 @@
     "focalLength": "16-35mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["1635GM", "16-35 GM", "16-35 2.8 GM", "SEL1635GM"]
+    "aliases": [
+      "1635GM",
+      "16-35 GM",
+      "16-35 2.8 GM",
+      "SEL1635GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-16-35-2.8-gm2",
@@ -330,7 +574,15 @@
     "focalLength": "16-35mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["1635GM2", "16-35 GM II", "SEL1635GM2", "16-35 GM2"]
+    "aliases": [
+      "1635GM2",
+      "16-35 GM II",
+      "SEL1635GM2",
+      "16-35 GM2"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-16-35-4-z",
@@ -340,7 +592,15 @@
     "focalLength": "16-35mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["1635Z", "16-35 Zeiss", "16-35 ZA", "SEL1635Z"]
+    "aliases": [
+      "1635Z",
+      "16-35 Zeiss",
+      "16-35 ZA",
+      "SEL1635Z"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-20-70-4-g",
@@ -350,7 +610,15 @@
     "focalLength": "20-70mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["20-70 G", "2070G", "SEL2070G", "20-70 f4"]
+    "aliases": [
+      "20-70 G",
+      "2070G",
+      "SEL2070G",
+      "20-70 f4"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-24-50-2.8-g",
@@ -360,7 +628,15 @@
     "focalLength": "24-50mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["24-50 G", "2450G", "SEL2450G", "24-50 2.8"]
+    "aliases": [
+      "24-50 G",
+      "2450G",
+      "SEL2450G",
+      "24-50 2.8"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-24-70-2.8-gm",
@@ -370,7 +646,15 @@
     "focalLength": "24-70mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["2470GM", "24-70 GM", "24-70 2.8 GM", "SEL2470GM"]
+    "aliases": [
+      "2470GM",
+      "24-70 GM",
+      "24-70 2.8 GM",
+      "SEL2470GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-24-70-2.8-gm2",
@@ -380,7 +664,15 @@
     "focalLength": "24-70mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["2470GM2", "24-70 GM II", "SEL2470GM2", "24-70 GM2"]
+    "aliases": [
+      "2470GM2",
+      "24-70 GM II",
+      "SEL2470GM2",
+      "24-70 GM2"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-24-70-4-z",
@@ -390,7 +682,15 @@
     "focalLength": "24-70mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["2470Z", "24-70 Zeiss", "24-70 ZA", "SEL2470Z"]
+    "aliases": [
+      "2470Z",
+      "24-70 Zeiss",
+      "24-70 ZA",
+      "SEL2470Z"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-24-105-4-g",
@@ -400,7 +700,15 @@
     "focalLength": "24-105mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["24-105 G", "24105G", "SEL24105G", "24-105 f4"]
+    "aliases": [
+      "24-105 G",
+      "24105G",
+      "SEL24105G",
+      "24-105 f4"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-28-60-4-5.6",
@@ -410,7 +718,14 @@
     "focalLength": "28-60mm",
     "maxAperture": "f/4-5.6",
     "mount": "FE (Full-Frame)",
-    "aliases": ["28-60mm", "SEL2860", "28-60"]
+    "aliases": [
+      "28-60mm",
+      "SEL2860",
+      "28-60"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-28-70-2-gm",
@@ -420,7 +735,15 @@
     "focalLength": "28-70mm",
     "maxAperture": "f/2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["28-70 f2 GM", "2870GM", "SEL2870GM", "28-70 GM"]
+    "aliases": [
+      "28-70 f2 GM",
+      "2870GM",
+      "SEL2870GM",
+      "28-70 GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-50-150-2-gm",
@@ -430,7 +753,15 @@
     "focalLength": "50-150mm",
     "maxAperture": "f/2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["50-150 GM", "50150GM", "SEL50150GM", "50-150 f2"]
+    "aliases": [
+      "50-150 GM",
+      "50150GM",
+      "SEL50150GM",
+      "50-150 f2"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-70-200-2.8-gm",
@@ -440,7 +771,15 @@
     "focalLength": "70-200mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["70-200 GM", "70200GM", "SEL70200GM", "70-200 2.8 GM"]
+    "aliases": [
+      "70-200 GM",
+      "70200GM",
+      "SEL70200GM",
+      "70-200 2.8 GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-70-200-2.8-gm2",
@@ -450,7 +789,15 @@
     "focalLength": "70-200mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["70-200 GM II", "70200GM2", "SEL70200GM2", "70-200 GM2"]
+    "aliases": [
+      "70-200 GM II",
+      "70200GM2",
+      "SEL70200GM2",
+      "70-200 GM2"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-70-200-4-g",
@@ -460,7 +807,15 @@
     "focalLength": "70-200mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["70-200 G", "70200G", "SEL70200G", "70-200 f4"]
+    "aliases": [
+      "70-200 G",
+      "70200G",
+      "SEL70200G",
+      "70-200 f4"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-70-200-4-g2",
@@ -470,7 +825,15 @@
     "focalLength": "70-200mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["70-200 G II", "70200G2", "SEL70200G2", "70-200 f4 G2"]
+    "aliases": [
+      "70-200 G II",
+      "70200G2",
+      "SEL70200G2",
+      "70-200 f4 G2"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-70-300-4.5-5.6-g",
@@ -480,7 +843,15 @@
     "focalLength": "70-300mm",
     "maxAperture": "f/4.5-5.6",
     "mount": "FE (Full-Frame)",
-    "aliases": ["70-300 G", "70300G", "SEL70300G", "70-300mm G"]
+    "aliases": [
+      "70-300 G",
+      "70300G",
+      "SEL70300G",
+      "70-300mm G"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-100-400-4.5-5.6-gm",
@@ -490,7 +861,15 @@
     "focalLength": "100-400mm",
     "maxAperture": "f/4.5-5.6",
     "mount": "FE (Full-Frame)",
-    "aliases": ["100-400 GM", "100400GM", "SEL100400GM", "100-400mm GM"]
+    "aliases": [
+      "100-400 GM",
+      "100400GM",
+      "SEL100400GM",
+      "100-400mm GM"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-200-600-5.6-6.3-g",
@@ -500,7 +879,15 @@
     "focalLength": "200-600mm",
     "maxAperture": "f/5.6-6.3",
     "mount": "FE (Full-Frame)",
-    "aliases": ["200-600 G", "200600G", "SEL200600G", "200-600mm"]
+    "aliases": [
+      "200-600 G",
+      "200600G",
+      "SEL200600G",
+      "200-600mm"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
   {
     "id": "sony-fe-400-800-6.3-8-g",
@@ -510,10 +897,16 @@
     "focalLength": "400-800mm",
     "maxAperture": "f/6.3-8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["400-800 G", "400800G", "SEL400800G", "400-800mm"]
+    "aliases": [
+      "400-800 G",
+      "400800G",
+      "SEL400800G",
+      "400-800mm"
+    ],
+    "tags": [
+      "Sony FE Full-Frame Zooms"
+    ]
   },
-
-  // ─── Sigma Full-Frame Lenses ──────────────────────────────────────────────
   {
     "id": "sigma-14-1.4-dg-dn",
     "brand": "Sigma",
@@ -522,7 +915,14 @@
     "focalLength": "14mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 14mm 1.4", "Sigma 14 1.4", "14mm f1.4 Sigma"]
+    "aliases": [
+      "Sigma 14mm 1.4",
+      "Sigma 14 1.4",
+      "14mm f1.4 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-20-1.4-dg-dn",
@@ -532,7 +932,14 @@
     "focalLength": "20mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 20mm 1.4", "Sigma 20 1.4", "20mm f1.4 Sigma"]
+    "aliases": [
+      "Sigma 20mm 1.4",
+      "Sigma 20 1.4",
+      "20mm f1.4 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-20-2-dg-dn",
@@ -542,7 +949,14 @@
     "focalLength": "20mm",
     "maxAperture": "f/2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 20mm f2", "Sigma 20 f2", "20mm f2 Sigma"]
+    "aliases": [
+      "Sigma 20mm f2",
+      "Sigma 20 f2",
+      "20mm f2 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-24-1.4-dg-dn",
@@ -552,7 +966,14 @@
     "focalLength": "24mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 24mm 1.4", "Sigma 24 1.4", "24mm f1.4 Sigma"]
+    "aliases": [
+      "Sigma 24mm 1.4",
+      "Sigma 24 1.4",
+      "24mm f1.4 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-24-3.5-dg-dn",
@@ -562,7 +983,13 @@
     "focalLength": "24mm",
     "maxAperture": "f/3.5",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 24mm 3.5", "Sigma 24 3.5"]
+    "aliases": [
+      "Sigma 24mm 3.5",
+      "Sigma 24 3.5"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-35-1.2-dg-dn",
@@ -572,7 +999,14 @@
     "focalLength": "35mm",
     "maxAperture": "f/1.2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 35mm 1.2", "Sigma 35 1.2", "35mm f1.2 Sigma"]
+    "aliases": [
+      "Sigma 35mm 1.2",
+      "Sigma 35 1.2",
+      "35mm f1.2 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-35-1.4-dg-dn",
@@ -582,7 +1016,16 @@
     "focalLength": "35mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 35mm 1.4", "Sigma 35 1.4", "35 Art", "Sigma 35 Art", "35mm Art"]
+    "aliases": [
+      "Sigma 35mm 1.4",
+      "Sigma 35 1.4",
+      "35 Art",
+      "Sigma 35 Art",
+      "35mm Art"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-35-2-dg-dn",
@@ -592,7 +1035,14 @@
     "focalLength": "35mm",
     "maxAperture": "f/2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 35mm f2", "Sigma 35 f2", "35mm f2 Sigma"]
+    "aliases": [
+      "Sigma 35mm f2",
+      "Sigma 35 f2",
+      "35mm f2 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-45-2.8-dg-dn",
@@ -602,7 +1052,13 @@
     "focalLength": "45mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 45mm 2.8", "Sigma 45 2.8"]
+    "aliases": [
+      "Sigma 45mm 2.8",
+      "Sigma 45 2.8"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-50-1.2-dg-dn",
@@ -612,7 +1068,14 @@
     "focalLength": "50mm",
     "maxAperture": "f/1.2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 50mm 1.2", "Sigma 50 1.2", "50mm f1.2 Sigma"]
+    "aliases": [
+      "Sigma 50mm 1.2",
+      "Sigma 50 1.2",
+      "50mm f1.2 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-50-1.4-dg-dn",
@@ -622,7 +1085,15 @@
     "focalLength": "50mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 50mm 1.4", "Sigma 50 1.4", "50 Art Sigma", "Sigma 50 Art"]
+    "aliases": [
+      "Sigma 50mm 1.4",
+      "Sigma 50 1.4",
+      "50 Art Sigma",
+      "Sigma 50 Art"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-50-2-dg-dn",
@@ -632,7 +1103,13 @@
     "focalLength": "50mm",
     "maxAperture": "f/2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 50mm f2", "Sigma 50 f2"]
+    "aliases": [
+      "Sigma 50mm f2",
+      "Sigma 50 f2"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-65-2-dg-dn",
@@ -642,7 +1119,13 @@
     "focalLength": "65mm",
     "maxAperture": "f/2",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 65mm f2", "Sigma 65 f2"]
+    "aliases": [
+      "Sigma 65mm f2",
+      "Sigma 65 f2"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-85-1.4-dg-dn",
@@ -652,7 +1135,15 @@
     "focalLength": "85mm",
     "maxAperture": "f/1.4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 85mm 1.4", "Sigma 85 1.4", "85 Art Sigma", "Sigma 85 Art"]
+    "aliases": [
+      "Sigma 85mm 1.4",
+      "Sigma 85 1.4",
+      "85 Art Sigma",
+      "Sigma 85 Art"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-105-2.8-dg-dn-macro",
@@ -662,7 +1153,14 @@
     "focalLength": "105mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 105mm macro", "Sigma 105 macro", "105mm macro Sigma"]
+    "aliases": [
+      "Sigma 105mm macro",
+      "Sigma 105 macro",
+      "105mm macro Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-135-1.8-dg-dn",
@@ -672,7 +1170,15 @@
     "focalLength": "135mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 135mm 1.8", "Sigma 135 1.8", "135 Art Sigma", "Sigma 135 Art"]
+    "aliases": [
+      "Sigma 135mm 1.8",
+      "Sigma 135 1.8",
+      "135 Art Sigma",
+      "Sigma 135 Art"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-14-24-2.8-dg-dn",
@@ -682,7 +1188,14 @@
     "focalLength": "14-24mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 14-24 2.8", "Sigma 14-24mm", "14-24 Sigma"]
+    "aliases": [
+      "Sigma 14-24 2.8",
+      "Sigma 14-24mm",
+      "14-24 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-16-28-2.8-dg-dn",
@@ -692,7 +1205,14 @@
     "focalLength": "16-28mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 16-28 2.8", "Sigma 16-28mm", "16-28 Sigma"]
+    "aliases": [
+      "Sigma 16-28 2.8",
+      "Sigma 16-28mm",
+      "16-28 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-24-70-2.8-dg-dn",
@@ -702,7 +1222,14 @@
     "focalLength": "24-70mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 24-70 2.8", "Sigma 24-70mm", "24-70 Sigma"]
+    "aliases": [
+      "Sigma 24-70 2.8",
+      "Sigma 24-70mm",
+      "24-70 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-28-45-1.8-dg-dn",
@@ -712,7 +1239,14 @@
     "focalLength": "28-45mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 28-45 1.8", "Sigma 28-45mm", "28-45 Sigma"]
+    "aliases": [
+      "Sigma 28-45 1.8",
+      "Sigma 28-45mm",
+      "28-45 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-28-70-2.8-dg-dn",
@@ -722,7 +1256,14 @@
     "focalLength": "28-70mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 28-70 2.8", "Sigma 28-70mm", "28-70 Sigma"]
+    "aliases": [
+      "Sigma 28-70 2.8",
+      "Sigma 28-70mm",
+      "28-70 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-70-200-2.8-dg-dn",
@@ -732,7 +1273,14 @@
     "focalLength": "70-200mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 70-200 2.8", "Sigma 70-200mm", "70-200 Sigma"]
+    "aliases": [
+      "Sigma 70-200 2.8",
+      "Sigma 70-200mm",
+      "70-200 Sigma"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-100-400-5-6.3-dg-dn",
@@ -742,7 +1290,14 @@
     "focalLength": "100-400mm",
     "maxAperture": "f/5-6.3",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 100-400mm", "100-400 Sigma", "Sigma 100-400"]
+    "aliases": [
+      "Sigma 100-400mm",
+      "100-400 Sigma",
+      "Sigma 100-400"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
   {
     "id": "sigma-150-600-5-6.3-dg-dn",
@@ -752,10 +1307,15 @@
     "focalLength": "150-600mm",
     "maxAperture": "f/5-6.3",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Sigma 150-600mm", "150-600 Sigma", "Sigma 150-600"]
+    "aliases": [
+      "Sigma 150-600mm",
+      "150-600 Sigma",
+      "Sigma 150-600"
+    ],
+    "tags": [
+      "Sigma Full-Frame Lenses"
+    ]
   },
-
-  // ─── Tamron Full-Frame Lenses ─────────────────────────────────────────────
   {
     "id": "tamron-17-28-2.8",
     "brand": "Tamron",
@@ -764,7 +1324,16 @@
     "focalLength": "17-28mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 17-28 2.8", "Tamron 17-28mm", "17-28 Tamron", "A046", "1728"]
+    "aliases": [
+      "Tamron 17-28 2.8",
+      "Tamron 17-28mm",
+      "17-28 Tamron",
+      "A046",
+      "1728"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-17-50-4",
@@ -774,7 +1343,14 @@
     "focalLength": "17-50mm",
     "maxAperture": "f/4",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 17-50mm", "17-50 Tamron", "A068"]
+    "aliases": [
+      "Tamron 17-50mm",
+      "17-50 Tamron",
+      "A068"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-16-30-2.8-g2",
@@ -784,7 +1360,15 @@
     "focalLength": "16-30mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 16-30 2.8", "Tamron 16-30mm", "16-30 Tamron", "A064"]
+    "aliases": [
+      "Tamron 16-30 2.8",
+      "Tamron 16-30mm",
+      "16-30 Tamron",
+      "A064"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-20-40-2.8",
@@ -794,7 +1378,15 @@
     "focalLength": "20-40mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 20-40 2.8", "Tamron 20-40mm", "20-40 Tamron", "A062"]
+    "aliases": [
+      "Tamron 20-40 2.8",
+      "Tamron 20-40mm",
+      "20-40 Tamron",
+      "A062"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-28-75-2.8",
@@ -804,7 +1396,17 @@
     "focalLength": "28-75mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 28-75 2.8", "Tamron 28-75mm", "28-75 Tamron", "2875", "Tamron 2875", "A036"]
+    "aliases": [
+      "Tamron 28-75 2.8",
+      "Tamron 28-75mm",
+      "28-75 Tamron",
+      "2875",
+      "Tamron 2875",
+      "A036"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-28-75-2.8-g2",
@@ -814,7 +1416,16 @@
     "focalLength": "28-75mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 28-75 G2", "Tamron 2875 G2", "28-75 G2", "A063", "2875 G2"]
+    "aliases": [
+      "Tamron 28-75 G2",
+      "Tamron 2875 G2",
+      "28-75 G2",
+      "A063",
+      "2875 G2"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-28-200-2.8-5.6",
@@ -824,7 +1435,14 @@
     "focalLength": "28-200mm",
     "maxAperture": "f/2.8-5.6",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 28-200mm", "28-200 Tamron", "A071"]
+    "aliases": [
+      "Tamron 28-200mm",
+      "28-200 Tamron",
+      "A071"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-28-300-4-7.1",
@@ -834,7 +1452,14 @@
     "focalLength": "28-300mm",
     "maxAperture": "f/4-7.1",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 28-300mm", "28-300 Tamron", "A074"]
+    "aliases": [
+      "Tamron 28-300mm",
+      "28-300 Tamron",
+      "A074"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-35-100-2.8",
@@ -844,7 +1469,15 @@
     "focalLength": "35-100mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 35-100 2.8", "Tamron 35-100mm", "35-100 Tamron", "A078"]
+    "aliases": [
+      "Tamron 35-100 2.8",
+      "Tamron 35-100mm",
+      "35-100 Tamron",
+      "A078"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-35-150-2-2.8",
@@ -854,7 +1487,15 @@
     "focalLength": "35-150mm",
     "maxAperture": "f/2-2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 35-150mm", "35-150 Tamron", "A058", "35-150 f2"]
+    "aliases": [
+      "Tamron 35-150mm",
+      "35-150 Tamron",
+      "A058",
+      "35-150 f2"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-70-180-2.8-g2",
@@ -864,7 +1505,16 @@
     "focalLength": "70-180mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 70-180 G2", "Tamron 70-180mm", "70-180 Tamron", "A065", "70-180 G2"]
+    "aliases": [
+      "Tamron 70-180 G2",
+      "Tamron 70-180mm",
+      "70-180 Tamron",
+      "A065",
+      "70-180 G2"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-70-300-4.5-6.3",
@@ -874,7 +1524,14 @@
     "focalLength": "70-300mm",
     "maxAperture": "f/4.5-6.3",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 70-300mm", "70-300 Tamron", "A047"]
+    "aliases": [
+      "Tamron 70-300mm",
+      "70-300 Tamron",
+      "A047"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-50-400-4.5-6.3",
@@ -884,7 +1541,14 @@
     "focalLength": "50-400mm",
     "maxAperture": "f/4.5-6.3",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 50-400mm", "50-400 Tamron", "A067"]
+    "aliases": [
+      "Tamron 50-400mm",
+      "50-400 Tamron",
+      "A067"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-150-500-5-6.7",
@@ -894,7 +1558,14 @@
     "focalLength": "150-500mm",
     "maxAperture": "f/5-6.7",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 150-500mm", "150-500 Tamron", "A057"]
+    "aliases": [
+      "Tamron 150-500mm",
+      "150-500 Tamron",
+      "A057"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-20-2.8-macro",
@@ -904,7 +1575,14 @@
     "focalLength": "20mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 20mm 2.8", "Tamron 20 2.8", "F050"]
+    "aliases": [
+      "Tamron 20mm 2.8",
+      "Tamron 20 2.8",
+      "F050"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-24-2.8-macro",
@@ -914,7 +1592,14 @@
     "focalLength": "24mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 24mm 2.8", "Tamron 24 2.8", "F051"]
+    "aliases": [
+      "Tamron 24mm 2.8",
+      "Tamron 24 2.8",
+      "F051"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-35-2.8-macro",
@@ -924,7 +1609,14 @@
     "focalLength": "35mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 35mm 2.8", "Tamron 35 2.8", "F053"]
+    "aliases": [
+      "Tamron 35mm 2.8",
+      "Tamron 35 2.8",
+      "F053"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   },
   {
     "id": "tamron-90-2.8-macro",
@@ -934,6 +1626,14 @@
     "focalLength": "90mm",
     "maxAperture": "f/2.8",
     "mount": "FE (Full-Frame)",
-    "aliases": ["Tamron 90mm macro", "Tamron 90 macro", "F072", "Tamron 90 2.8"]
+    "aliases": [
+      "Tamron 90mm macro",
+      "Tamron 90 macro",
+      "F072",
+      "Tamron 90 2.8"
+    ],
+    "tags": [
+      "Tamron Full-Frame Lenses"
+    ]
   }
 ]
