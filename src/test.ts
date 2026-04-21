@@ -1,6 +1,47 @@
 import { writeFileSync } from "fs";
-import { fetchBatch, type Post } from "./scraper.js";
-import { matchLenses } from "./matcher.js";
+import { type Post } from "./scraper.js";
+import { matchPost } from "./matcher.js";
+
+const USER_AGENT = "lenslook/1.0 by kyle.flippo@gmail.com";
+
+async function fetchPage(
+  subreddit: string,
+  sort: string,
+  after: string | null,
+  timeframe: string
+): Promise<{ posts: Post[]; after: string | null }> {
+  const url = new URL(`https://www.reddit.com/r/${subreddit}/${sort}.json`);
+  url.searchParams.set("limit", "25");
+  url.searchParams.set("t", timeframe);
+  if (after) url.searchParams.set("after", after);
+
+  const res = await fetch(url.toString(), { headers: { "User-Agent": USER_AGENT } });
+  if (!res.ok) throw new Error(`Reddit error: ${res.status}`);
+
+  const data = (await res.json()) as {
+    data: { children: { data: Record<string, unknown> }[]; after: string | null };
+  };
+
+  const posts: Post[] = data.data.children.map((child) => {
+    const p = child.data;
+    return {
+      id: p.id as string,
+      title: p.title as string,
+      selftext: p.selftext as string,
+      score: p.score as number,
+      upvote_ratio: p.upvote_ratio as number,
+      num_comments: p.num_comments as number,
+      created_utc: p.created_utc as number,
+      url: p.url as string,
+      subreddit: p.subreddit as string,
+      sort,
+      timeframe,
+      is_self: p.is_self as boolean,
+    };
+  });
+
+  return { posts, after: data.data.after };
+}
 
 const SUBREDDITS = ["sonyalpha", "photography"];
 const SORT = "top" as const;
@@ -28,15 +69,15 @@ async function findMatches(subreddit: string): Promise<MatchedPost[]> {
   let after: string | null = null;
 
   while (matched.length < target) {
-    const result = await fetchBatch(subreddit, SORT, after, 25, TIMEFRAME);
+    const result = await fetchPage(subreddit, SORT, after, TIMEFRAME);
     console.log(`  r/${subreddit}: fetched ${result.posts.length} posts, ${matched.length} matches so far`);
 
     for (const post of result.posts) {
-      const lensIds = matchLenses(post.title + " " + post.selftext);
+      const lensIds = matchPost(post);
       if (lensIds.length > 0) {
-        const engagementScore = post.score * post.upvote_ratio;
+        const engagementScore = Math.log(1 + post.score) * (post.is_self ? post.upvote_ratio * 0.5 : post.upvote_ratio);
         const discussionScore = Math.log(1 + post.num_comments);
-        const weight = engagementScore * 0.8 + discussionScore * 0.2;
+        const weight = engagementScore * 0.5 + discussionScore * 0.5;
         matched.push({
           ...post,
           lensIds,

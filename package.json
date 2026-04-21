@@ -5,8 +5,14 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "tsx src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dashboard": "npx serve . -l 3000"
+    "sentiment": "tsx src/sentiment-rerun.ts",
+    "test": "tsx --test src/alias.test.ts",
+    "dashboard": "cd dashboard && npm run dev",
+    "dashboard:static": "npx serve . -l 3000",
+    "claude-sentiment": "tsx src/claude-sentiment.ts",
+    "amazon-scrape": "tsx src/amazon-scrape.ts",
+    "youtube-sentiment": "tsx src/youtube-sentiment.ts",
+    "bh-scrape": "tsx src/bh-scrape.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,10 +20,13 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "playwright": "^1.59.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "dotenv": "^17.4.2"
+    "@anthropic-ai/sdk": "^0.90.0",
+    "dotenv": "^17.4.2",
+    "youtube-transcript": "^1.3.0"
   }
 }

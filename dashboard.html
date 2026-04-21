@@ -4,107 +4,1034 @@
   <meta charset="UTF-8">
   <title>Lenslook Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.js"></script>
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #0f0f0f;
       color: #e0e0e0;
       margin: 0;
       padding: 2rem;
+      font-size: 14px;
     }
-    h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
-    p.sub { color: #888; font-size: 0.9rem; margin-bottom: 2rem; }
-    .charts {
-      display: flex;
-      gap: 1.5rem;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-    .chart-wrap {
+    h1 { font-size: 1.5rem; margin: 0 0 0.25rem 0; }
+    .meta { color: #666; font-size: 0.85rem; margin-bottom: 2.5rem; }
+    .meta span { margin-right: 1.5rem; }
+
+    /* ── Section headers ── */
+    h2 { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem 0; }
+
+    /* ── Grid layout ── */
+    .row { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .card {
       background: #1a1a1a;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 1.5rem;
     }
-    .chart-wrap.bar { flex: 1; min-width: 500px; }
-    .chart-wrap.pie { width: 280px; }
-    .chart-wrap h2 { font-size: 0.85rem; color: #888; margin: 0 0 1rem 0; text-transform: uppercase; letter-spacing: 0.05em; }
+    .card.wide { flex: 1; min-width: 420px; }
+    .card.narrow { width: 260px; }
+    .card.full { width: 100%; }
+
+    /* ── Stat pills ── */
+    .stats-row { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .stat-pill {
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      flex: 1;
+      min-width: 140px;
+    }
+    .stat-pill .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-pill .value { font-size: 1.6rem; font-weight: 700; margin-top: 0.25rem; }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      text-align: left; padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em;
+      cursor: pointer; user-select: none;
+    }
+    thead th:hover { color: #ccc; }
+    thead th.sorted { color: #3b82f6; }
+    tbody tr { border-bottom: 1px solid #1e1e1e; }
+    tbody tr:hover { background: #222; }
+    tbody td { padding: 0.45rem 0.75rem; color: #d0d0d0; }
+    td.num { text-align: right; color: #aaa; }
+    td.highlight { color: #fff; font-weight: 500; }
+    a { color: #3b82f6; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .badge {
+      display: inline-block; padding: 1px 7px; border-radius: 999px;
+      font-size: 11px; font-weight: 500;
+    }
+    .badge-sony    { background: #1e3a5f; color: #60a5fa; }
+    .badge-sigma   { background: #2a1e1e; color: #f87171; }
+    .badge-tamron  { background: #1e2a1e; color: #4ade80; }
+    .badge-zeiss   { background: #2a2a1e; color: #facc15; }
+    .badge-samyang { background: #2a1e2a; color: #c084fc; }
+    .badge-viltrox { background: #1e2a2a; color: #22d3ee; }
+    .badge-ttartisan{ background: #2a201e; color: #fb923c; }
+    .badge-laowa   { background: #202a1e; color: #86efac; }
+    .badge-other   { background: #252525; color: #9ca3af; }
+
+    .section-title {
+      display: flex; justify-content: space-between; align-items: center;
+      width: 100%; background: none; border: none; text-align: left; padding: 0;
+      font-size: 1rem; font-weight: 600; margin: 2rem 0 1rem 0; color: #e0e0e0;
+      cursor: pointer;
+    }
+    .section-title:hover { color: #fff; }
+    .collapse-icon { font-size: 0.75rem; color: #555; transition: transform 0.2s; }
+    .section-title.is-collapsed .collapse-icon { transform: rotate(-90deg); }
+    .card.collapsed { display: none; }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      display: flex; gap: 0.25rem; margin-bottom: 2rem;
+      border-bottom: 1px solid #2a2a2a; padding-bottom: 0;
+    }
+    .tab-btn {
+      background: none; border: none; color: #888; font-size: 0.9rem;
+      padding: 0.6rem 1.2rem; cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: color 0.15s;
+    }
+    .tab-btn:hover { color: #ccc; }
+    .tab-btn.active { color: #e0e0e0; border-bottom-color: #3b82f6; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: flex-end;
+      background: #141414; border: 1px solid #242424; border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+    .filter-bar label { display: flex; flex-direction: column; gap: 0.4rem; }
+    .filter-header {
+      display: flex; align-items: baseline; gap: 0.5rem;
+      font-size: 0.68rem; color: #666; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .range-value { color: #60a5fa; font-size: 0.78rem; text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .filter-bar select {
+      height: 34px; background: #1e1e1e; border: 1px solid #303030; color: #d0d0d0;
+      font-size: 0.85rem; padding: 0 0.75rem; border-radius: 7px;
+      cursor: pointer; min-width: 150px; appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.6rem center;
+      padding-right: 1.8rem;
+    }
+    .filter-bar select:focus { outline: none; border-color: #3b82f6; }
+    .filter-bar select:hover { border-color: #444; }
+    .range-slider { position: relative; width: 200px; height: 34px; }
+    .range-slider .range-track {
+      position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%);
+      height: 4px; background: #2a2a2a; border-radius: 2px;
+    }
+    .range-slider .range-fill {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      height: 4px; background: #2563eb; border-radius: 2px;
+    }
+    .range-slider input[type=range] {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      -webkit-appearance: none; appearance: none; background: transparent;
+      pointer-events: none; margin: 0;
+    }
+    .range-slider input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #3b82f6; border: 2px solid #141414; box-shadow: 0 0 0 1px #3b82f620;
+      cursor: pointer; pointer-events: all; position: relative; z-index: 2;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .range-slider input[type=range]::-webkit-slider-thumb:hover {
+      background: #60a5fa; box-shadow: 0 0 0 4px #3b82f630;
+    }
+    .range-slider input[type=range]::-moz-range-thumb {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #3b82f6; border: 2px solid #141414;
+      cursor: pointer; pointer-events: all;
+    }
+    .range-slider input[type=range]::-moz-range-track { background: transparent; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .cloud-canvas { display: block; width: 100%; height: auto; max-width: 100%; }
   </style>
 </head>
 <body>
-  <h1>Lenslook — Lens Mentions</h1>
-  <p class="sub">From <code>output/test.json</code></p>
-  <div class="charts">
-    <div class="chart-wrap bar">
-      <h2>Lens Mentions</h2>
-      <canvas id="barChart"></canvas>
+  <h1>Lenslook — Lens Popularity</h1>
+  <p class="meta" id="meta"></p>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="tables">Tables</button>
+    <button class="tab-btn" data-tab="wordcloud">Word Cloud</button>
+    <button class="tab-btn" data-tab="lenscloud">Per-Lens Clouds</button>
+    <button class="tab-btn" data-tab="brandcloud">Per-Brand Clouds</button>
+  </div>
+
+  <!-- Tab: Overview -->
+  <div class="tab-panel active" id="tab-overview">
+    <div class="stats-row" id="pillRow"></div>
+
+    <div class="row">
+      <div class="card wide">
+        <h2>Top 20 Lenses by Weight</h2>
+        <canvas id="weightChart" height="340"></canvas>
+      </div>
+      <div class="card wide">
+        <h2>Top 20 Lenses by Post Count</h2>
+        <canvas id="countChart" height="340"></canvas>
+      </div>
     </div>
-    <div class="chart-wrap pie">
-      <h2>Matches by Subreddit</h2>
-      <canvas id="pieChart"></canvas>
+
+    <div class="row">
+      <div class="card narrow">
+        <h2>Brand Share</h2>
+        <canvas id="brandChart"></canvas>
+      </div>
+      <div class="card wide" style="min-width:320px;">
+        <h2>Avg Weight by Brand</h2>
+        <canvas id="brandWeightChart"></canvas>
+      </div>
+      <div class="card narrow">
+        <h2>Subreddit Share</h2>
+        <canvas id="subChart"></canvas>
+      </div>
+      <div class="card" style="flex:1; min-width:280px;">
+        <h2>Sort Distribution</h2>
+        <canvas id="sortChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Tables -->
+  <div class="tab-panel" id="tab-tables">
+    <!-- Top post per brand -->
+    <button class="section-title" data-target="brandCard">Highest-Weighted Post per Brand <span class="collapse-icon">▼</span></button>
+    <div class="card full" id="brandCard">
+    <table id="topBrandTable">
+      <thead>
+        <tr>
+          <th data-col="brand">Brand</th>
+          <th data-col="lensId">Lens</th>
+          <th data-col="title">Post</th>
+          <th data-col="subreddit">Sub</th>
+          <th data-col="score">Score</th>
+          <th data-col="weight" class="sorted">Weight ▼</th>
+        </tr>
+      </thead>
+      <tbody id="topBrandBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Full stats table -->
+  <button class="section-title" data-target="statsCard">All Lenses — Stats <span class="collapse-icon">▼</span></button>
+  <div class="card full" id="statsCard">
+    <div class="filter-bar">
+      <label>
+        <span class="filter-header">Brand</span>
+        <select id="filterBrand"><option value="">All brands</option></select>
+      </label>
+      <label>
+        <span class="filter-header">Max Aperture <span class="range-value" id="apertureLabel"></span></span>
+        <div class="range-slider">
+          <div class="range-track"></div>
+          <div class="range-fill" id="apertureFill"></div>
+          <input type="range" id="apertureMin" step="0.1">
+          <input type="range" id="apertureMax" step="0.1">
+        </div>
+      </label>
+      <label>
+        <span class="filter-header">Focal Length <span class="range-value" id="focalLabel"></span></span>
+        <div class="range-slider">
+          <div class="range-track"></div>
+          <div class="range-fill" id="focalFill"></div>
+          <input type="range" id="focalMin" step="1">
+          <input type="range" id="focalMax" step="1">
+        </div>
+      </label>
+      <label>
+        <span class="filter-header">Post Mentions <span class="range-value" id="postLabel"></span></span>
+        <div class="range-slider">
+          <div class="range-track"></div>
+          <div class="range-fill" id="postFill"></div>
+          <input type="range" id="postMin" step="1">
+          <input type="range" id="postMax" step="1">
+        </div>
+      </label>
+      <label>
+        <span class="filter-header">Comment Mentions <span class="range-value" id="commentLabel"></span></span>
+        <div class="range-slider">
+          <div class="range-track"></div>
+          <div class="range-fill" id="commentFill"></div>
+          <input type="range" id="commentMin" step="1">
+          <input type="range" id="commentMax" step="1">
+        </div>
+      </label>
+    </div>
+    <table id="statsTable">
+      <thead>
+        <tr>
+          <th data-col="lensId">Lens</th>
+          <th data-col="brand">Brand</th>
+          <th data-col="postCount" class="sorted">Post Mentions ▼</th>
+          <th data-col="commentCount">Comment Mentions</th>
+          <th data-col="avgScore">Avg Score</th>
+          <th data-col="avgUpvoteRatio">Avg Ratio</th>
+          <th data-col="avgComments">Avg Comments</th>
+          <th data-col="scoreSentiment">Score Sentiment</th>
+        </tr>
+      </thead>
+      <tbody id="statsBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Top post per lens -->
+  <button class="section-title" data-target="topPostCard">Highest-Weighted Post per Lens <span class="collapse-icon">▼</span></button>
+  <div class="card full" id="topPostCard">
+    <div class="filter-bar">
+      <label>
+        <span class="filter-header">Brand</span>
+        <select id="filterBrand2"><option value="">All brands</option></select>
+      </label>
+      <label>
+        <span class="filter-header">Max Aperture <span class="range-value" id="apertureLabel2"></span></span>
+        <div class="range-slider">
+          <div class="range-track"></div>
+          <div class="range-fill" id="apertureFill2"></div>
+          <input type="range" id="apertureMin2" step="0.1">
+          <input type="range" id="apertureMax2" step="0.1">
+        </div>
+      </label>
+      <label>
+        <span class="filter-header">Focal Length <span class="range-value" id="focalLabel2"></span></span>
+        <div class="range-slider">
+          <div class="range-track"></div>
+          <div class="range-fill" id="focalFill2"></div>
+          <input type="range" id="focalMin2" step="1">
+          <input type="range" id="focalMax2" step="1">
+        </div>
+      </label>
+    </div>
+    <table id="topPostTable">
+      <thead>
+        <tr>
+          <th data-col="lensId">Lens</th>
+          <th data-col="title">Post</th>
+          <th data-col="subreddit">Sub</th>
+          <th data-col="score">Score</th>
+          <th data-col="weight" class="sorted">Weight ▼</th>
+        </tr>
+      </thead>
+      <tbody id="topPostBody"></tbody>
+    </table>
+  </div>
+  </div> <!-- /tab-tables -->
+
+  <!-- Tab: Word Cloud -->
+  <div class="tab-panel" id="tab-wordcloud">
+    <div class="card full" style="text-align:center;">
+      <h2>Words from Matched Post Titles</h2>
+      <canvas id="wordCloud" class="cloud-canvas" width="1100" height="500"></canvas>
+    </div>
+  </div>
+
+  <!-- Tab: Per-Lens Clouds -->
+  <div class="tab-panel" id="tab-lenscloud">
+    <div class="filter-bar">
+      <label>
+        <span class="filter-header">Lens</span>
+        <select id="lensCloudSelect" style="min-width: 320px;"></select>
+      </label>
+      <div style="display:flex; gap:1rem; align-items:flex-end; font-size:0.78rem; color:#888;">
+        <span><span style="display:inline-block;width:10px;height:10px;background:#4ade80;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>positive</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#f87171;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>negative</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#fbbf24;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>negated</span>
+      </div>
+    </div>
+    <div class="card full" style="text-align:center;">
+      <h2 id="lensCloudTitle">Select a lens</h2>
+      <p class="meta" id="lensCloudMeta" style="margin-bottom: 1rem;"></p>
+      <canvas id="lensCloud" class="cloud-canvas" width="1100" height="500"></canvas>
+    </div>
+  </div>
+
+  <!-- Tab: Per-Brand Clouds -->
+  <div class="tab-panel" id="tab-brandcloud">
+    <div class="filter-bar">
+      <label>
+        <span class="filter-header">Brand</span>
+        <select id="brandCloudSelect" style="min-width: 240px;"></select>
+      </label>
+      <div style="display:flex; gap:1rem; align-items:flex-end; font-size:0.78rem; color:#888;">
+        <span><span style="display:inline-block;width:10px;height:10px;background:#4ade80;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>positive</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#f87171;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>negative</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#fbbf24;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>negated</span>
+      </div>
+    </div>
+    <div class="card full" style="text-align:center;">
+      <h2 id="brandCloudTitle">Select a brand</h2>
+      <p class="meta" id="brandCloudMeta" style="margin-bottom: 1rem;"></p>
+      <canvas id="brandCloud" class="cloud-canvas" width="1100" height="500"></canvas>
     </div>
   </div>
 
   <script>
-    fetch('output/test.json')
-      .then(r => r.json())
-      .then(data => {
-        const counts = data.lensCounts;
-        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-        const labels = sorted.map(([id]) => id);
-        const values = sorted.map(([, count]) => count);
+    const PALETTE = ['#3b82f6','#f59e0b','#10b981','#ef4444','#a78bfa','#22d3ee','#fb923c','#4ade80','#f472b6','#facc15'];
 
-        const subredditCounts = {};
-        for (const post of data.posts) {
-          const sub = post.subreddit;
-          subredditCounts[sub] = (subredditCounts[sub] ?? 0) + 1;
+    Chart.defaults.color = '#aaa';
+
+    // ── Tab switching ──
+    let wordCloudRendered = false;
+    let lensCloudInitialized = false;
+    let brandCloudInitialized = false;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        if (btn.dataset.tab === 'wordcloud' && !wordCloudRendered) {
+          renderWordCloud();
+          wordCloudRendered = true;
         }
-        new Chart(document.getElementById('pieChart'), {
-          type: 'pie',
-          data: {
-            labels: Object.keys(subredditCounts),
-            datasets: [{
-              data: Object.values(subredditCounts),
-              backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#ef4444'],
-              borderWidth: 0,
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 11 } } },
-            }
-          }
-        });
+        if (btn.dataset.tab === 'lenscloud' && !lensCloudInitialized) {
+          initLensCloud();
+          lensCloudInitialized = true;
+        }
+        if (btn.dataset.tab === 'brandcloud' && !brandCloudInitialized) {
+          initBrandCloud();
+          brandCloudInitialized = true;
+        }
+      });
+    });
 
-        new Chart(document.getElementById('barChart'), {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [{
-              label: 'Mentions',
-              data: values,
-              backgroundColor: '#3b82f6',
-              borderRadius: 4,
-            }]
-          },
-          options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: {
-              legend: { display: false },
-            },
-            scales: {
-              x: {
-                ticks: { color: '#aaa', stepSize: 1 },
-                grid: { color: '#2a2a2a' },
-              },
-              y: {
-                ticks: { color: '#ccc', font: { size: 11 } },
-                grid: { color: '#2a2a2a' },
-              }
+    // ── Re-render visible cloud on window resize ──
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const active = document.querySelector('.tab-btn.active')?.dataset.tab;
+        if (active === 'wordcloud' && wordCloudRendered) renderWordCloud();
+        else if (active === 'lenscloud' && currentLensId) renderLensCloud(currentLensId);
+        else if (active === 'brandcloud' && currentBrandEntry) renderBrandCloud(currentBrandEntry);
+      }, 180);
+    });
+
+    // ── Collapsible sections ──
+    document.querySelectorAll('button.section-title[data-target]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = document.getElementById(btn.dataset.target);
+        const collapsed = card.classList.toggle('collapsed');
+        btn.classList.toggle('is-collapsed', collapsed);
+      });
+    });
+
+    let lensById = {};
+
+    function brandOf(lensId) {
+      return lensById[lensId]?.brand ?? lensId.split('-')[0].replace(/^\w/, c => c.toUpperCase());
+    }
+
+    const BRAND_DISPLAY = {
+      sony: 'Sony', tamron: 'Tamron', sigma: 'Sigma', samyang: 'Samyang',
+      viltrox: 'Viltrox', laowa: 'Laowa', zeiss: 'Zeiss', ttartisan: 'TTArtisan',
+    };
+
+    function displayName(lensId) {
+      const lens = lensById[lensId];
+      if (lens) return `${lens.brand} ${lens.name}`;
+      const parts = lensId.split('-');
+      parts[0] = BRAND_DISPLAY[parts[0]] ?? parts[0].replace(/^\w/, c => c.toUpperCase());
+      return parts.join(' ');
+    }
+
+    const CART_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:0.35rem;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
+
+    // HTML-safe variant: wraps the lens name in a link to its shoppingLink when present.
+    function displayNameLink(lensId) {
+      const lens = lensById[lensId];
+      const name = displayName(lensId);
+      if (lens?.shoppingLink) {
+        return `<a href="${lens.shoppingLink}" target="_blank" rel="noopener">${name}</a>`;
+      }
+      return name;
+    }
+
+    const BRAND_COLOR = {
+      sony: '#60a5fa', sigma: '#f87171', tamron: '#4ade80', zeiss: '#facc15',
+      samyang: '#c084fc', viltrox: '#22d3ee', ttartisan: '#fb923c', laowa: '#86efac',
+    };
+
+    function brandColor(brand) {
+      return BRAND_COLOR[brand.toLowerCase().replace(/[^a-z]/g, '')] ?? '#9ca3af';
+    }
+
+    function brandBadge(brand) {
+      const key = brand.toLowerCase().replace(/[^a-z]/g, '');
+      const cls = ['sony','sigma','tamron','zeiss','samyang','viltrox','ttartisan','laowa'].includes(key)
+        ? `badge-${key}` : 'badge-other';
+      return `<span class="badge ${cls}">${brand}</span>`;
+    }
+
+    function isImagePost(post) {
+      if ('is_self' in post) return !post.is_self;
+      return /i\.redd\.it|i\.imgur\.com|\.(jpg|jpeg|png|gif|webp)($|\?)/i.test(post.url);
+    }
+
+    function weight(post) {
+      const eng = Math.log(1 + post.score) * (isImagePost(post) ? post.upvote_ratio : post.upvote_ratio * 0.5);
+      const disc = Math.log(1 + post.num_comments);
+      return eng * 0.5 + disc * 0.5;
+    }
+
+    function makeBarChart(id, labels, values, color) {
+      return new Chart(document.getElementById(id), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ data: values, backgroundColor: color, borderRadius: 3, borderWidth: 0 }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#888' }, grid: { color: '#222' } },
+            y: { ticks: { color: '#ccc', font: { size: 11 } }, grid: { color: '#222' } },
+          }
+        }
+      });
+    }
+
+    function makeDoughnut(id, labels, values) {
+      return new Chart(document.getElementById(id), {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{ data: values, backgroundColor: PALETTE, borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 11 }, padding: 10 } }
+          }
+        }
+      });
+    }
+
+    // ── Sortable table helper ──
+    function makeSortable(tableEl, rows, renderRow, onSort) {
+      let sortCol = null, sortAsc = false;
+      const headers = tableEl.querySelectorAll('thead th');
+      headers.forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.dataset.col;
+          if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = false; }
+          headers.forEach(h => { h.classList.remove('sorted'); h.textContent = h.textContent.replace(/ [▲▼]$/, ''); });
+          th.classList.add('sorted');
+          th.textContent = th.textContent + (sortAsc ? ' ▲' : ' ▼');
+          rows.sort((a, b) => {
+            const av = a[col], bv = b[col];
+            if (typeof av === 'number') return sortAsc ? av - bv : bv - av;
+            return sortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+          });
+          if (onSort) onSort(); else tableEl.querySelector('tbody').innerHTML = rows.map(renderRow).join('');
+        });
+      });
+    }
+
+    let lensSentiment = {};
+    let currentLensId = null;
+    let currentBrandEntry = null;
+    function initLensCloud() {
+      const select = document.getElementById('lensCloudSelect');
+      const entries = Object.entries(lensSentiment)
+        .map(([id, s]) => ({ id, label: displayName(id), mentions: s.postCount + s.commentCount }))
+        .sort((a, b) => b.mentions - a.mentions);
+      if (entries.length === 0) {
+        select.innerHTML = '<option>No sentiment data — run npm run sentiment</option>';
+        return;
+      }
+      select.innerHTML = entries.map(e => `<option value="${e.id}">${e.label} (${e.mentions})</option>`).join('');
+      select.addEventListener('change', () => renderLensCloud(select.value));
+      renderLensCloud(entries[0].id);
+    }
+
+    // Merge positive + negative tallies per word; a word can appear in both lists
+    // when sometimes negated and sometimes not (e.g. "soft" — negative word → +1 when negated).
+    function buildCloudData(sources) {
+      const merged = new Map();
+      const tally = (w, polarity) => {
+        const prev = merged.get(w.word) ?? { pos: 0, neg: 0, negated: 0 };
+        if (polarity === 1) prev.pos += w.count; else prev.neg += w.count;
+        prev.negated += w.negatedCount;
+        merged.set(w.word, prev);
+      };
+      for (const s of sources) {
+        for (const w of s.topPositiveWords) tally(w, 1);
+        for (const w of s.topNegativeWords) tally(w, -1);
+      }
+      const list = [];
+      const colorMap = {};
+      for (const [word, { pos, neg, negated }] of merged) {
+        const count = pos + neg;
+        list.push([word, count]);
+        if (negated === count) colorMap[word] = '#fbbf24';
+        else if (pos >= neg) colorMap[word] = '#4ade80';
+        else colorMap[word] = '#f87171';
+      }
+      return { list, colorMap };
+    }
+
+    // Size canvas to its parent's content width and scale weight with it.
+    function sizeCloudCanvas(canvas, aspect = 500 / 1100) {
+      const parent = canvas.parentElement;
+      const styles = getComputedStyle(parent);
+      const pad = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+      const width = Math.max(320, Math.floor(parent.clientWidth - pad));
+      const height = Math.max(240, Math.round(width * aspect));
+      canvas.width = width;
+      canvas.height = height;
+      return width;
+    }
+
+    function drawCloud(canvasId, list, colorMap, emptyMessage) {
+      const canvas = document.getElementById(canvasId);
+      const width = sizeCloudCanvas(canvas);
+      // Scale word size with container width so labels stay readable on any screen.
+      const scale = width / 1100;
+      if (list.length === 0) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#666';
+        ctx.font = `${Math.round(16 * scale)}px -apple-system, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(emptyMessage, canvas.width / 2, canvas.height / 2);
+        return;
+      }
+      WordCloud(canvas, {
+        list,
+        gridSize: Math.max(6, Math.round(10 * scale)),
+        weightFactor: size => Math.log(size + 1) * 28 * scale,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        color: (word) => colorMap[word] ?? '#888',
+        backgroundColor: '#1a1a1a',
+        rotateRatio: 0.2,
+        rotationSteps: 2,
+        minSize: Math.max(8, Math.round(12 * scale)),
+        shuffle: false,
+      });
+    }
+
+    function renderLensCloud(lensId) {
+      const s = lensSentiment[lensId];
+      if (!s) return;
+      currentLensId = lensId;
+      const lens = lensById[lensId];
+      const shopLink = lens?.shoppingLink
+        ? `<a href="${lens.shoppingLink}" target="_blank" rel="noopener" title="Shop on Amazon" style="color:#888;">${CART_SVG}</a>`
+        : '';
+      document.getElementById('lensCloudTitle').innerHTML = displayName(lensId) + shopLink;
+      document.getElementById('lensCloudMeta').innerHTML =
+        `<span>${s.postCount} posts · ${s.commentCount} comments</span>` +
+        `<span>avg ${s.avg}</span>` +
+        `<span>positivity ${s.ratio != null ? (s.ratio * 100).toFixed(0) + '%' : '—'}</span>` +
+        `<span>+${s.positiveCount} / −${s.negativeCount} / =${s.neutralCount}</span>`;
+      const { list, colorMap } = buildCloudData([s]);
+      drawCloud('lensCloud', list, colorMap, 'No lexicon hits for this lens');
+    }
+
+    function initBrandCloud() {
+      const select = document.getElementById('brandCloudSelect');
+      // Group lens sentiment by brand using lensById
+      const byBrand = new Map();
+      for (const [lensId, s] of Object.entries(lensSentiment)) {
+        const brand = lensById[lensId]?.brand ?? brandOf(lensId);
+        if (!byBrand.has(brand)) byBrand.set(brand, []);
+        byBrand.get(brand).push(s);
+      }
+      const entries = [...byBrand.entries()]
+        .map(([brand, arr]) => ({
+          brand,
+          sources: arr,
+          lensCount: arr.length,
+          mentions: arr.reduce((n, s) => n + s.postCount + s.commentCount, 0),
+        }))
+        .sort((a, b) => b.mentions - a.mentions);
+      if (entries.length === 0) {
+        select.innerHTML = '<option>No sentiment data — run npm run sentiment</option>';
+        return;
+      }
+      select.innerHTML = entries.map(e =>
+        `<option value="${e.brand}">${e.brand} (${e.lensCount} ${e.lensCount === 1 ? 'lens' : 'lenses'}, ${e.mentions})</option>`
+      ).join('');
+      const byBrandMap = new Map(entries.map(e => [e.brand, e]));
+      select.addEventListener('change', () => renderBrandCloud(byBrandMap.get(select.value)));
+      renderBrandCloud(entries[0]);
+    }
+
+    function renderBrandCloud(entry) {
+      if (!entry) return;
+      currentBrandEntry = entry;
+      const totalPost = entry.sources.reduce((n, s) => n + s.postCount, 0);
+      const totalComment = entry.sources.reduce((n, s) => n + s.commentCount, 0);
+      const posCount = entry.sources.reduce((n, s) => n + s.positiveCount, 0);
+      const negCount = entry.sources.reduce((n, s) => n + s.negativeCount, 0);
+      const neuCount = entry.sources.reduce((n, s) => n + s.neutralCount, 0);
+      const polar = posCount + negCount;
+      const ratio = polar > 0 ? posCount / polar : null;
+      document.getElementById('brandCloudTitle').textContent = entry.brand;
+      document.getElementById('brandCloudMeta').innerHTML =
+        `<span>${entry.lensCount} ${entry.lensCount === 1 ? 'lens' : 'lenses'}</span>` +
+        `<span>${totalPost} posts · ${totalComment} comments</span>` +
+        `<span>positivity ${ratio != null ? (ratio * 100).toFixed(0) + '%' : '—'}</span>` +
+        `<span>+${posCount} / −${negCount} / =${neuCount}</span>`;
+      const { list, colorMap } = buildCloudData(entry.sources);
+      drawCloud('brandCloud', list, colorMap, 'No lexicon hits for this brand');
+    }
+
+    Promise.all([
+      fetch('output/results.json').then(r => r.json()),
+      fetch('lenses.json').then(r => r.json()),
+      fetch('output/lens-sentiment.json').then(r => r.ok ? r.json() : { lenses: {} }).catch(() => ({ lenses: {} })),
+    ]).then(([data, lensesRaw, sentiment]) => {
+      for (const l of lensesRaw) lensById[l.id] = l;
+      lensSentiment = sentiment.lenses ?? {};
+        const { stats, posts, fetchedAt, subreddits, sorts } = data;
+
+        // ── Meta ──
+        const d = new Date(fetchedAt);
+        document.getElementById('meta').innerHTML =
+          `<span>Fetched ${d.toLocaleDateString()} ${d.toLocaleTimeString()}</span>` +
+          `<span>${stats.length} lenses</span>` +
+          `<span>${posts.length} matched posts</span>` +
+          `<span>r/${subreddits.join(', r/')}</span>`;
+
+        // ── Stat pills ──
+        const totalPosts = posts.length;
+        const topLens = stats[0];
+        const avgWeight = (stats.reduce((s, x) => s + x.totalWeight, 0) / stats.length).toFixed(2);
+        const brands = [...new Set(stats.map(s => brandOf(s.lensId)))];
+        document.getElementById('pillRow').innerHTML = [
+          ['Matched Posts', totalPosts],
+          ['Distinct Lenses', stats.length],
+          ['Brands', brands.length],
+          ['Top Lens', displayName(topLens.lensId)],
+          ['Avg Weight', avgWeight],
+        ].map(([label, value]) => `
+          <div class="stat-pill">
+            <div class="label">${label}</div>
+            <div class="value">${value}</div>
+          </div>`).join('');
+
+        // ── Top 20 by weight ──
+        const top20w = stats.slice(0, 20);
+        makeBarChart('weightChart', top20w.map(s => displayName(s.lensId)), top20w.map(s => s.totalWeight), top20w.map(s => brandColor(brandOf(s.lensId))));
+
+        // ── Top 20 by post count ──
+        const top20c = [...stats].sort((a, b) => b.postCount - a.postCount).slice(0, 20);
+        makeBarChart('countChart', top20c.map(s => displayName(s.lensId)), top20c.map(s => s.postCount), top20c.map(s => brandColor(brandOf(s.lensId))));
+
+        // ── Brand doughnut ──
+        const brandCounts = {};
+        for (const s of stats) {
+          const b = brandOf(s.lensId);
+          brandCounts[b] = (brandCounts[b] ?? 0) + s.postCount;
+        }
+        const brandEntries = Object.entries(brandCounts).sort((a, b) => b[1] - a[1]);
+        makeDoughnut('brandChart', brandEntries.map(([k]) => k), brandEntries.map(([, v]) => v));
+
+        // ── Subreddit doughnut ──
+        const subCounts = {};
+        for (const p of posts) { subCounts[p.subreddit] = (subCounts[p.subreddit] ?? 0) + 1; }
+        const subEntries = Object.entries(subCounts).sort((a, b) => b[1] - a[1]);
+        makeDoughnut('subChart', subEntries.map(([k]) => `r/${k}`), subEntries.map(([, v]) => v));
+
+        // ── Avg weight by brand ──
+        const brandWeightMap = {};
+        for (const s of stats) {
+          const b = brandOf(s.lensId);
+          if (!brandWeightMap[b]) brandWeightMap[b] = { total: 0, count: 0 };
+          brandWeightMap[b].total += s.totalWeight;
+          brandWeightMap[b].count += 1;
+        }
+        const brandWeightEntries = Object.entries(brandWeightMap)
+          .map(([b, v]) => [b, parseFloat((v.total / v.count).toFixed(3))])
+          .sort((a, b) => b[1] - a[1]);
+        makeBarChart('brandWeightChart', brandWeightEntries.map(([k]) => k), brandWeightEntries.map(([, v]) => v), brandWeightEntries.map(([k]) => brandColor(k)));
+
+        // ── Sort distribution bar ──
+        const sortCounts = {};
+        for (const p of posts) { sortCounts[p.sort] = (sortCounts[p.sort] ?? 0) + 1; }
+        const sortEntries = Object.entries(sortCounts).sort((a, b) => b[1] - a[1]);
+        makeBarChart('sortChart', sortEntries.map(([k]) => k), sortEntries.map(([, v]) => v), '#a78bfa');
+
+        // ── Word cloud (rendered lazily on tab open) ──
+        const STOP_WORDS = new Set([
+          'a','an','the','and','or','but','in','on','at','to','for','of','with','by','from',
+          'is','are','was','were','be','been','being','have','has','had','do','does','did',
+          'will','would','could','should','may','might','shall','can','this','that','these',
+          'those','i','my','me','we','our','you','your','it','its','he','she','they','their',
+          'what','which','who','how','when','where','why','not','no','so','if','as','up',
+          'just','about','out','more','also','some','any','all','than','then','there','here',
+          'like','get','got','im','ive','use','using','used','one','two',
+          'new','first','best','good','great','really','very','much','only','still','back',
+          'after','before','into','over','through','between','own','same','other','such',
+          'need','want','think','know','see','look','go','going','take','took','time','way',
+        ]);
+
+        const wordFreq = {};
+        for (const post of posts) {
+          const words = post.title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, ' ')
+            .split(/\s+/)
+            .filter(w => w.length > 2 && !STOP_WORDS.has(w) && !/^\d+$/.test(w));
+          for (const w of words) wordFreq[w] = (wordFreq[w] ?? 0) + 1;
+        }
+        const wordList = Object.entries(wordFreq)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 200)
+          .map(([word, count]) => [word, count]);
+
+        function renderWordCloud() {
+          const canvas = document.getElementById('wordCloud');
+          const width = sizeCloudCanvas(canvas);
+          const scale = width / 1100;
+          WordCloud(canvas, {
+            list: wordList,
+            gridSize: Math.max(6, Math.round(10 * scale)),
+            weightFactor: size => Math.log(size + 1) * 18 * scale,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            color: () => PALETTE[Math.floor(Math.random() * PALETTE.length)],
+            backgroundColor: '#1a1a1a',
+            rotateRatio: 0.3,
+            rotationSteps: 2,
+            minSize: Math.max(8, Math.round(10 * scale)),
+          });
+        }
+
+        // ── Stats table ──
+        const statsRows = stats.map(s => ({ ...s, brand: brandOf(s.lensId) }));
+        const statsTable = document.getElementById('statsTable');
+        const statsBody = document.getElementById('statsBody');
+
+        function renderStatsRow(s) {
+          return `<tr>
+            <td class="highlight">${displayNameLink(s.lensId)}</td>
+            <td>${brandBadge(s.brand)}</td>
+            <td class="num">${s.postCount}</td>
+            <td class="num">${s.commentCount ?? 0}</td>
+            <td class="num">${s.avgScore.toLocaleString()}</td>
+            <td class="num">${(s.avgUpvoteRatio * 100).toFixed(1)}%</td>
+            <td class="num">${s.avgComments}</td>
+            <td class="num">${s.scoreSentiment}</td>
+          </tr>`;
+        }
+        // ── Filter bar ──
+        const parseAperture = s => { const m = /f\/([\d.]+)/.exec(s || ''); return m ? parseFloat(m[1]) : null; };
+        const parseFocalLength = s => {
+          const m = /([\d.]+)(?:-([\d.]+))?\s*mm/.exec(s || '');
+          if (!m) return null;
+          const lo = parseFloat(m[1]);
+          return [lo, m[2] ? parseFloat(m[2]) : lo];
+        };
+
+        const lenses = Object.values(lensById);
+        const brandSelect = document.getElementById('filterBrand');
+        for (const b of [...new Set(lenses.map(l => l.brand))].sort()) {
+          brandSelect.insertAdjacentHTML('beforeend', `<option value="${b}">${b}</option>`);
+        }
+
+        const apertureValues = lenses.map(l => parseAperture(l.maxAperture)).filter(x => x != null);
+        const focalValues = lenses.flatMap(l => parseFocalLength(l.focalLength) || []);
+        const apBounds = [Math.min(...apertureValues), Math.max(...apertureValues)];
+        const flBounds = [Math.min(...focalValues), Math.max(...focalValues)];
+
+        function setupRange(minId, maxId, fillId, labelId, bounds, step, format, onChange) {
+          const minEl = document.getElementById(minId);
+          const maxEl = document.getElementById(maxId);
+          const fillEl = document.getElementById(fillId);
+          const labelEl = document.getElementById(labelId);
+          for (const el of [minEl, maxEl]) { el.min = bounds[0]; el.max = bounds[1]; el.step = step; }
+          minEl.value = bounds[0]; maxEl.value = bounds[1];
+          const span = bounds[1] - bounds[0];
+          function update() {
+            let lo = parseFloat(minEl.value), hi = parseFloat(maxEl.value);
+            if (lo > hi) { if (document.activeElement === minEl) maxEl.value = lo; else minEl.value = hi; lo = parseFloat(minEl.value); hi = parseFloat(maxEl.value); }
+            fillEl.style.left  = ((lo - bounds[0]) / span * 100) + '%';
+            fillEl.style.right = ((bounds[1] - hi) / span * 100) + '%';
+            labelEl.textContent = format(lo, hi);
+          }
+          minEl.addEventListener('input', () => { update(); onChange(); });
+          maxEl.addEventListener('input', () => { update(); onChange(); });
+          update();
+          return { minEl, maxEl };
+        }
+
+        const aperture = setupRange('apertureMin', 'apertureMax', 'apertureFill', 'apertureLabel',
+          apBounds, 0.1, (lo, hi) => `f/${lo.toFixed(1)} – f/${hi.toFixed(1)}`, () => applyStatsFilter());
+        const focal = setupRange('focalMin', 'focalMax', 'focalFill', 'focalLabel',
+          flBounds, 1, (lo, hi) => `${Math.round(lo)}mm – ${Math.round(hi)}mm`, () => applyStatsFilter());
+
+        const pcBounds = [0, Math.max(...statsRows.map(s => s.postCount))];
+        const ccBounds = [0, Math.max(...statsRows.map(s => s.commentCount ?? 0))];
+        const postRange    = setupRange('postMin',    'postMax',    'postFill',    'postLabel',
+          pcBounds, 1, (lo, hi) => `${lo} – ${hi}`, () => applyStatsFilter());
+        const commentRange = setupRange('commentMin', 'commentMax', 'commentFill', 'commentLabel',
+          ccBounds, 1, (lo, hi) => `${lo} – ${hi}`, () => applyStatsFilter());
+
+        function applyStatsFilter() {
+          const brand = brandSelect.value;
+          const aLo = parseFloat(aperture.minEl.value),     aHi = parseFloat(aperture.maxEl.value);
+          const fLo = parseFloat(focal.minEl.value),        fHi = parseFloat(focal.maxEl.value);
+          const pLo = parseFloat(postRange.minEl.value),    pHi = parseFloat(postRange.maxEl.value);
+          const cLo = parseFloat(commentRange.minEl.value), cHi = parseFloat(commentRange.maxEl.value);
+          const apActive = aLo > apBounds[0] || aHi < apBounds[1];
+          const flActive = fLo > flBounds[0] || fHi < flBounds[1];
+          const pcActive = pLo > pcBounds[0] || pHi < pcBounds[1];
+          const ccActive = cLo > ccBounds[0] || cHi < ccBounds[1];
+          const filtered = statsRows.filter(s => {
+            const lens = lensById[s.lensId];
+            if (brand && s.brand !== brand) return false;
+            if (apActive) {
+              const a = lens && parseAperture(lens.maxAperture);
+              if (a == null || a < aLo || a > aHi) return false;
+            }
+            if (flActive) {
+              const r = lens && parseFocalLength(lens.focalLength);
+              if (!r || r[1] < fLo || r[0] > fHi) return false;
+            }
+            if (pcActive && (s.postCount < pLo || s.postCount > pHi)) return false;
+            if (ccActive && ((s.commentCount ?? 0) < cLo || (s.commentCount ?? 0) > cHi)) return false;
+            return true;
+          });
+          statsBody.innerHTML = filtered.map(renderStatsRow).join('');
+        }
+
+        applyStatsFilter();
+        makeSortable(statsTable, statsRows, null, applyStatsFilter);
+        brandSelect.addEventListener('change', applyStatsFilter);
+
+        // ── Top post per lens ──
+        const topPostMap = {};
+        for (const post of posts) {
+          const w = weight(post);
+          for (const lensId of post.lensIds) {
+            if (!topPostMap[lensId] || w > topPostMap[lensId].weight) {
+              topPostMap[lensId] = { ...post, weight: w };
             }
           }
-        });
+        }
+
+        const topPostRows = Object.entries(topPostMap)
+          .map(([lensId, post]) => ({
+            lensId,
+            title: post.title,
+            url: post.url,
+            subreddit: post.subreddit,
+            score: post.score,
+            weight: parseFloat(post.weight.toFixed(3)),
+          }))
+          .sort((a, b) => b.weight - a.weight);
+
+        const topPostTable = document.getElementById('topPostTable');
+        const topPostBody = document.getElementById('topPostBody');
+
+        function renderTopPostRow(r) {
+          const shortTitle = r.title.length > 80 ? r.title.slice(0, 77) + '…' : r.title;
+          return `<tr>
+            <td class="highlight" style="white-space:nowrap">${displayNameLink(r.lensId)}</td>
+            <td><a href="${r.url}" target="_blank">${shortTitle}</a></td>
+            <td>r/${r.subreddit}</td>
+            <td class="num">${r.score.toLocaleString()}</td>
+            <td class="num">${r.weight}</td>
+          </tr>`;
+        }
+        // ── Top post per lens filter bar ──
+        const brandSelect2 = document.getElementById('filterBrand2');
+        for (const b of [...new Set(lenses.map(l => l.brand))].sort()) {
+          brandSelect2.insertAdjacentHTML('beforeend', `<option value="${b}">${b}</option>`);
+        }
+        const aperture2 = setupRange('apertureMin2', 'apertureMax2', 'apertureFill2', 'apertureLabel2',
+          apBounds, 0.1, (lo, hi) => `f/${lo.toFixed(1)} – f/${hi.toFixed(1)}`, () => applyTopPostFilter());
+        const focal2 = setupRange('focalMin2', 'focalMax2', 'focalFill2', 'focalLabel2',
+          flBounds, 1, (lo, hi) => `${Math.round(lo)}mm – ${Math.round(hi)}mm`, () => applyTopPostFilter());
+
+        function applyTopPostFilter() {
+          const brand = brandSelect2.value;
+          const aLo = parseFloat(aperture2.minEl.value), aHi = parseFloat(aperture2.maxEl.value);
+          const fLo = parseFloat(focal2.minEl.value),    fHi = parseFloat(focal2.maxEl.value);
+          const apActive = aLo > apBounds[0] || aHi < apBounds[1];
+          const flActive = fLo > flBounds[0] || fHi < flBounds[1];
+          const filtered = topPostRows.filter(r => {
+            const lens = lensById[r.lensId];
+            if (brand && brandOf(r.lensId) !== brand) return false;
+            if (apActive) {
+              const a = lens && parseAperture(lens.maxAperture);
+              if (a == null || a < aLo || a > aHi) return false;
+            }
+            if (flActive) {
+              const fl = lens && parseFocalLength(lens.focalLength);
+              if (!fl || fl[1] < fLo || fl[0] > fHi) return false;
+            }
+            return true;
+          });
+          topPostBody.innerHTML = filtered.map(renderTopPostRow).join('');
+        }
+
+        applyTopPostFilter();
+        makeSortable(topPostTable, topPostRows, null, applyTopPostFilter);
+        brandSelect2.addEventListener('change', applyTopPostFilter);
+
+        // ── Top post per brand ──
+        const topBrandMap = {};
+        for (const post of posts) {
+          const w = weight(post);
+          for (const lensId of post.lensIds) {
+            const brand = brandOf(lensId);
+            if (!topBrandMap[brand] || w > topBrandMap[brand].weight) {
+              topBrandMap[brand] = { ...post, lensId, weight: w };
+            }
+          }
+        }
+
+        const topBrandRows = Object.entries(topBrandMap)
+          .map(([brand, post]) => ({
+            brand,
+            lensId: post.lensId,
+            title: post.title,
+            url: post.url,
+            subreddit: post.subreddit,
+            score: post.score,
+            weight: parseFloat(post.weight.toFixed(3)),
+          }))
+          .sort((a, b) => b.weight - a.weight);
+
+        const topBrandTable = document.getElementById('topBrandTable');
+        const topBrandBody = document.getElementById('topBrandBody');
+
+        function renderTopBrandRow(r) {
+          const shortTitle = r.title.length > 80 ? r.title.slice(0, 77) + '…' : r.title;
+          return `<tr>
+            <td>${brandBadge(r.brand)}</td>
+            <td class="highlight" style="white-space:nowrap">${displayNameLink(r.lensId)}</td>
+            <td><a href="${r.url}" target="_blank">${shortTitle}</a></td>
+            <td>r/${r.subreddit}</td>
+            <td class="num">${r.score.toLocaleString()}</td>
+            <td class="num">${r.weight}</td>
+          </tr>`;
+        }
+        topBrandBody.innerHTML = topBrandRows.map(renderTopBrandRow).join('');
+        makeSortable(topBrandTable, topBrandRows, renderTopBrandRow);
+      })
+      .catch(err => {
+        document.body.innerHTML += `<p style="color:#f87171;margin-top:2rem">Error loading data: ${err.message}. Open this file via a local server (e.g. <code>npx serve .</code>).</p>`;
       });
   </script>
 </body>

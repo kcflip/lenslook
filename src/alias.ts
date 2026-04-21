@@ -1,33 +1,27 @@
 import { writeFileSync, mkdirSync } from "fs";
 import { fetchPosts, fetchComments } from "./scraper.js";
-import { matchLenses } from "./matcher.js";
+import { matchLenses, matchPost } from "./matcher.js";
 import lensData from "../lenses.json" with { type: "json" };
 import brandsData from "../brands.json" with { type: "json" };
+import type { Lens } from "../shared/types.js";
 
 const SUBREDDITS = ["sonyalpha", "photography"];
 const SORT = "top" as const;
 const TIMEFRAME = "year" as const;
 const LIMIT = 500;
 const CONTEXT_WORDS = 5;
-
-interface Lens {
-  id: string;
-  brand: string;
-  name: string;
-  model: string;
-  focalLength: string;
-  maxAperture: string;
-  aliases: string[];
-}
+const CANDIDATE_LIMIT = 100;
 
 interface AliasCandidate {
   candidate: string;
   pattern: string;
   surroundingText: string;
-  commentId: string;
-  commentScore: number;
-  lensId: string;
-  lensName: string;
+  source: "post" | "comment";
+  commentId: string | null;
+  commentScore: number | null;
+  lensId: string | null;
+  lensName: string | null;
+  matchedLensIds: string[];
   postId: string;
   postTitle: string;
   subreddit: string;
@@ -38,26 +32,23 @@ const brands = brandsData as string[];
 
 const brandPattern = new RegExp(`\\b(${brands.map(escapeRegex).join("|")})\\b`, "i");
 
-const PATTERNS: { name: string; regex: RegExp }[] = [
-  // Combined focal range + aperture
+const COMMENT_PATTERNS: { name: string; regex: RegExp }[] = [
   { name: "focal_range_aperture", regex: /\b\d{2,3}-\d{2,3}mm?\s+f[/]?\d+\.?\d*/i },
-  // Combined single focal + aperture
   { name: "focal_single_aperture", regex: /\b\d{2,3}mm\s+f[/]?\d+\.?\d*/i },
-  // Aperture before focal
   { name: "aperture_focal", regex: /\bf[/]?\d+\.?\d*\s+\d{2,3}mm/i },
-  // Focal range only
+];
+
+const POST_PATTERNS: { name: string; regex: RegExp }[] = [
+  ...COMMENT_PATTERNS,
   { name: "focal_range", regex: /\b\d{2,3}-\d{2,3}mm?\b/i },
-  // Single focal only
   { name: "focal_single", regex: /\b\d{2,3}mm\b/i },
-  // Aperture only
-  { name: "aperture", regex: /\bf[/]?\d+\.?\d*\b/i },
 ];
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function extractContext(text: string, matchIndex: number, matchLength: number): string {
+function extractContext(text: string, matchIndex: number, matchLength: number, wordsBefore = CONTEXT_WORDS, wordsAfter = CONTEXT_WORDS): string {
   const words = text.split(/\s+/);
   let charCount = 0;
   let matchWordIndex = -1;
@@ -68,55 +59,73 @@ function extractContext(text: string, matchIndex: number, matchLength: number): 
   }
 
   if (matchWordIndex === -1) matchWordIndex = 0;
-  const start = Math.max(0, matchWordIndex - CONTEXT_WORDS);
-  const end = Math.min(words.length, matchWordIndex + CONTEXT_WORDS + Math.ceil(matchLength / 5) + 1);
+  const start = Math.max(0, matchWordIndex - wordsBefore);
+  const end = Math.min(words.length, matchWordIndex + wordsAfter + Math.ceil(matchLength / 5) + 1);
   return words.slice(start, end).join(" ");
 }
 
-function analyzeComment(
+export function analyzeText(
   body: string,
-  commentId: string,
-  commentScore: number,
-  lensId: string,
-  lensName: string,
+  source: "post" | "comment",
+  commentId: string | null,
+  commentScore: number | null,
+  lensId: string | null,
+  lensName: string | null,
   postId: string,
   postTitle: string,
   subreddit: string
 ): AliasCandidate | null {
-  // Step 1: skip if already matches a known lens
   if (matchLenses(body).length > 0) return null;
 
-  // Step 2a: try brand name first
   const brandMatch = brandPattern.exec(body);
   if (brandMatch) {
-    const candidate = extractContext(body, brandMatch.index, brandMatch[0].length);
+    const afterBrand = body.slice(brandMatch.index + brandMatch[0].length);
+    const patterns = source === "post" ? POST_PATTERNS : COMMENT_PATTERNS;
+    let focalMatch: RegExpExecArray | null = null;
+    for (const { regex } of patterns) {
+      focalMatch = regex.exec(afterBrand);
+      if (focalMatch && focalMatch.index < 60) break;
+      focalMatch = null;
+    }
+    if (!focalMatch) return null;
+
+    const candidate = `${brandMatch[0]} ${focalMatch[0]}`;
     return {
       candidate,
-      pattern: "brand",
-      surroundingText: body.slice(Math.max(0, brandMatch.index - 80), brandMatch.index + 160).trim(),
+      pattern: "brand_focal",
+      surroundingText: body.slice(Math.max(0, brandMatch.index - 40), brandMatch.index + 160).trim(),
+      source,
       commentId,
       commentScore,
       lensId,
       lensName,
+      matchedLensIds: matchLenses(candidate),
       postId,
       postTitle,
       subreddit,
     };
   }
 
-  // Step 2b: try combined and individual focal/aperture patterns
-  for (const { name, regex } of PATTERNS) {
+  const TRAILING_APERTURE = /^\s+\d+\.?\d*/;
+
+  const patterns = source === "post" ? POST_PATTERNS : COMMENT_PATTERNS;
+  for (const { name, regex } of patterns) {
     const match = regex.exec(body);
     if (match) {
-      const candidate = extractContext(body, match.index, match[0].length);
+      const afterMatch = body.slice(match.index + match[0].length);
+      const trailingAperture = TRAILING_APERTURE.exec(afterMatch);
+      const fullMatch = trailingAperture ? match[0] + trailingAperture[0].trimEnd() : match[0];
+      const candidate = fullMatch.trim();
       return {
         candidate,
         pattern: name,
         surroundingText: body.slice(Math.max(0, match.index - 80), match.index + 160).trim(),
+        source,
         commentId,
         commentScore,
         lensId,
         lensName,
+        matchedLensIds: matchLenses(candidate),
         postId,
         postTitle,
         subreddit,
@@ -135,11 +144,19 @@ async function main() {
     const posts = await fetchPosts(sub, SORT, LIMIT, TIMEFRAME);
     console.log(`  ${posts.length} posts fetched`);
 
-    for (const post of posts) {
-      const lensIds = matchLenses(post.title + " " + post.selftext);
-      if (lensIds.length === 0) continue;
+    const unmatched = posts.filter((p) => matchPost(p).length === 0);
+    const matched = posts.filter((p) => matchPost(p).length > 0);
+    console.log(`  ${unmatched.length} unmatched, ${matched.length} matched`);
 
-      const lens = lenses.find((l) => l.id === lensIds[0])!;
+    // Primary: unmatched posts — scan post text then comments
+    for (const post of unmatched) {
+      const postText = post.title + " " + post.selftext;
+      const postResult = analyzeText(postText, "post", null, null, null, null, post.id, post.title, sub);
+      if (postResult) {
+        candidates.push(postResult);
+        if (candidates.length >= CANDIDATE_LIMIT) break;
+      }
+
       let comments;
       try {
         comments = await fetchComments(sub, post.id);
@@ -148,28 +165,55 @@ async function main() {
         continue;
       }
 
-      console.log(`  ${post.id} (${lensIds.length} lens match, ${comments.length} comments)`);
+      console.log(`  [unmatched] ${post.id} (${comments.length} comments)`);
 
       for (const comment of comments) {
-        const result = analyzeComment(
-          comment.body,
-          comment.id,
-          comment.score,
-          lens.id,
-          lens.name,
-          post.id,
-          post.title,
-          sub
-        );
-        if (result) candidates.push(result);
+        const result = analyzeText(comment.body, "comment", comment.id, comment.score, null, null, post.id, post.title, sub);
+        if (result) {
+          candidates.push(result);
+          if (candidates.length >= CANDIDATE_LIMIT) break;
+        }
       }
+      if (candidates.length >= CANDIDATE_LIMIT) break;
     }
+
+    if (candidates.length >= CANDIDATE_LIMIT) break;
+
+    // Secondary: matched posts — scan comments for unknown aliases
+    for (const post of matched) {
+      const lensIds = matchPost(post);
+      const lens = lenses.find((l) => l.id === lensIds[0])!;
+
+      let comments;
+      try {
+        comments = await fetchComments(sub, post.id);
+      } catch (e) {
+        console.warn(`  Failed to fetch comments for ${post.id}: ${e}`);
+        continue;
+      }
+
+      console.log(`  [matched: ${lens.id}] ${post.id} (${comments.length} comments)`);
+
+      for (const comment of comments) {
+        const result = analyzeText(comment.body, "comment", comment.id, comment.score, lens.id, lens.name, post.id, post.title, sub);
+        if (result) {
+          candidates.push(result);
+          if (candidates.length >= CANDIDATE_LIMIT) break;
+        }
+      }
+      if (candidates.length >= CANDIDATE_LIMIT) break;
+    }
+
+    if (candidates.length >= CANDIDATE_LIMIT) break;
   }
 
   candidates.sort((a, b) => {
-    if (a.lensId < b.lensId) return -1;
-    if (a.lensId > b.lensId) return 1;
-    return b.commentScore - a.commentScore;
+    // Unmatched (lensId null) first
+    if (a.lensId === null && b.lensId !== null) return -1;
+    if (a.lensId !== null && b.lensId === null) return 1;
+    if ((a.lensId ?? "") < (b.lensId ?? "")) return -1;
+    if ((a.lensId ?? "") > (b.lensId ?? "")) return 1;
+    return (b.commentScore ?? 0) - (a.commentScore ?? 0);
   });
 
   mkdirSync("output", { recursive: true });
