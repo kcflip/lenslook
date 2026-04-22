@@ -18,6 +18,7 @@ const SOURCE_COLOR: Record<ReviewSource, string> = {
 };
 import { BrandBadge } from '../components/BrandBadge';
 import { StatPill } from '../components/StatPill';
+import { TagPillRow } from '../components/TagPill';
 import { WordCloudCanvas } from '../components/WordCloudCanvas';
 import { brandOf, calcWeight, buildCloudData, postCommentsUrl, commentPermalink } from '../utils';
 import { brandHref } from '../hooks/useHashRoute';
@@ -242,10 +243,10 @@ export function LensDetailPage({ data, lensId }: Props) {
     <>
       <a href="#" className="back-link">← Back to overview</a>
 
-      {/* Hero */}
+      {/* Hero + stats */}
       <div className="card full lens-hero">
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: '280px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 320px', minWidth: '280px' }}>
             <div style={{ marginBottom: '0.5rem' }}>
               <BrandBadge brand={brand} />
               <span style={{ marginLeft: '0.6rem', color: '#666', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -258,8 +259,11 @@ export function LensDetailPage({ data, lensId }: Props) {
               </a>{' '}
               {lens.name}
             </h1>
-            <div style={{ color: '#888', fontSize: '0.95rem', marginBottom: '1rem' }}>
+            <div style={{ color: '#888', fontSize: '0.95rem', marginBottom: '0.75rem' }}>
               {lens.focalLength} · {lens.maxAperture}
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <TagPillRow tags={lens.tags ?? []} />
             </div>
             {lens.aliases.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
@@ -275,36 +279,34 @@ export function LensDetailPage({ data, lensId }: Props) {
               </a>
             )}
           </div>
+          <div className="hero-stats">
+            <StatPill
+              label="Post Mentions"
+              value={stat?.postCount ?? 0}
+              info="Number of posts whose title or body matched this lens."
+            />
+            <StatPill
+              label="Comment Mentions"
+              value={stat?.commentCount ?? 0}
+              info="Number of posts where the lens appeared only in the comment thread (disjoint from Post Mentions — a post that matches in both title and comments counts once as a post mention)."
+            />
+            <StatPill
+              label="Total Mentions"
+              value={mentions}
+              info="Post Mentions + Comment Mentions — how many distinct posts contributed to this lens's stats."
+            />
+            <StatPill
+              label="Score Sentiment"
+              value={stat ? stat.scoreSentiment.toFixed(2) : '—'}
+              info="Per-post weight = log(1 + score) × upvote_ratio × 0.5 + log(1 + num_comments) × 0.5, halved for self-posts. Aggregated across posts as mean(weights) × log(1 + count) so a few excellent matches aren't buried by many mediocre ones."
+            />
+            <StatPill
+              label="Claude Score"
+              value={claude ? `${claude.score > 0 ? '+' : ''}${claude.score.toFixed(2)}` : '—'}
+              info="Claude's sentiment score on a −1 to +1 scale, derived from qualifying opinion mentions about optical/build quality."
+            />
+          </div>
         </div>
-      </div>
-
-      {/* Stat pills */}
-      <div className="stats-row">
-        <StatPill
-          label="Post Mentions"
-          value={stat?.postCount ?? 0}
-          info="Number of posts whose title or body matched this lens."
-        />
-        <StatPill
-          label="Comment Mentions"
-          value={stat?.commentCount ?? 0}
-          info="Number of posts where the lens appeared only in the comment thread (disjoint from Post Mentions — a post that matches in both title and comments counts once as a post mention)."
-        />
-        <StatPill
-          label="Total Mentions"
-          value={mentions}
-          info="Post Mentions + Comment Mentions — how many distinct posts contributed to this lens's stats."
-        />
-        <StatPill
-          label="Score Sentiment"
-          value={stat ? stat.scoreSentiment.toFixed(2) : '—'}
-          info="Per-post weight = log(1 + score) × upvote_ratio × 0.5 + log(1 + num_comments) × 0.5, halved for self-posts. Aggregated across posts as mean(weights) × log(1 + count) so a few excellent matches aren't buried by many mediocre ones."
-        />
-        <StatPill
-          label="Claude Score"
-          value={claude ? `${claude.score > 0 ? '+' : ''}${claude.score.toFixed(2)}` : '—'}
-          info="Claude's sentiment score on a −1 to +1 scale, derived from qualifying opinion mentions about optical/build quality."
-        />
       </div>
 
       {/* Retailers price table */}

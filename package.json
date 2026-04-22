@@ -10,9 +10,10 @@
     "dashboard": "cd dashboard && npm run dev",
     "dashboard:static": "npx serve . -l 3000",
     "claude-sentiment": "tsx src/claude-sentiment.ts",
+    "youtube-sentiment": "tsx src/youtube-sentiment.ts",
+    "sentiment:all": "npm run claude-sentiment && npm run youtube-sentiment",
     "amazon-scrape": "tsx src/amazon-scrape.ts",
     "amazon-scrape:test": "tsx src/amazon-scrape-test.ts",
-    "youtube-sentiment": "tsx src/youtube-sentiment.ts",
     "bh-scrape": "tsx src/bh-scrape.ts",
     "bh-scrape:test": "tsx src/bh-scrape-test.ts"
   },

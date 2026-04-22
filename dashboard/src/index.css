@@ -166,6 +166,30 @@ a:hover { text-decoration: underline; }
 .filter-bar select:focus { outline: none; border-color: #3b82f6; }
 .filter-bar select:hover { border-color: #444; }
 
+.toggle-switch {
+  position: relative;
+  width: 44px; height: 24px;
+  background: #2a2a2a;
+  border: 1px solid #303030;
+  border-radius: 999px;
+  padding: 0; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  align-self: flex-start;
+  margin-top: 5px;
+}
+.toggle-switch:hover { border-color: #444; }
+.toggle-switch .toggle-knob {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 18px; height: 18px;
+  background: #888;
+  border-radius: 50%;
+  transition: transform 0.15s, background 0.15s;
+}
+.toggle-switch.on { background: #1e3a5f; border-color: #3b82f6; }
+.toggle-switch.on .toggle-knob { transform: translateX(20px); background: #60a5fa; }
+.toggle-switch:focus { outline: none; border-color: #3b82f6; }
+
 /* ── Dual range slider ── */
 .range-slider { position: relative; width: 200px; height: 34px; }
 .range-slider .range-track {
@@ -238,6 +262,22 @@ a:hover { text-decoration: underline; }
 
 .lens-hero { margin-bottom: 1.5rem; }
 .lens-hero h1 { color: #fff; }
+.hero-stats {
+  flex: 2 1 360px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 0.5rem;
+  align-content: start;
+}
+.hero-stats .stat-pill {
+  padding: 0.5rem 0.8rem;
+  background: #222;
+  min-width: 0;
+}
+.hero-stats .stat-pill .value {
+  font-size: 1.1rem;
+  margin-top: 0.1rem;
+}
 
 .alias-pill {
   display: inline-block; background: #222; color: #999;

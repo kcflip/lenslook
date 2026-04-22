@@ -25,6 +25,24 @@ function useBounds(lenses: Lens[], statsRows: StatsRow[], topPostRows: TopPostRo
   }, [lenses, statsRows, topPostRows]);
 }
 
+// Toggle-switch control for filtering to prime lenses inside the filter bars.
+function PrimesToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label style={{ cursor: 'pointer' }}>
+      <span className="filter-header">Primes only</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={value}
+        onClick={() => onChange(!value)}
+        className={`toggle-switch${value ? ' on' : ''}`}
+      >
+        <span className="toggle-knob" />
+      </button>
+    </label>
+  );
+}
+
 // Renders the Claude Score cell — matches BrandDetailPage styling.
 function claudeCell(score: number | null) {
   if (score == null) return <td className="num">—</td>;
@@ -294,6 +312,7 @@ function StatsSection({ rows, lenses, lensById, bounds, brands }: SectionProps) 
   const [sortKey, setSortKey] = useState('postCount');
   const [sortAsc, setSortAsc] = useState(false);
   const [brand, setBrand] = useState('');
+  const [primesOnly, setPrimesOnly] = useState(false);
   const [aperture, setAperture] = useState<[number, number]>(bounds.aperture);
   const [focal, setFocal] = useState<[number, number]>(bounds.focal);
   const [postRange, setPostRange] = useState<[number, number]>(bounds.postCount);
@@ -313,6 +332,7 @@ function StatsSection({ rows, lenses, lensById, bounds, brands }: SectionProps) 
     return sortRows(rows, sortKey, sortAsc).filter(s => {
       const lens = lensById[s.lensId];
       if (brand && s.brand !== brand) return false;
+      if (primesOnly && !(lens?.tags ?? []).includes('prime')) return false;
       if (apActive) {
         const a = parseAperture(lens?.maxAperture);
         if (a == null || a < aperture[0] || a > aperture[1]) return false;
@@ -325,7 +345,7 @@ function StatsSection({ rows, lenses, lensById, bounds, brands }: SectionProps) 
       if (ccActive && (s.commentCount < commentRange[0] || s.commentCount > commentRange[1])) return false;
       return true;
     });
-  }, [rows, sortKey, sortAsc, brand, aperture, focal, postRange, commentRange, bounds, lensById]);
+  }, [rows, sortKey, sortAsc, brand, primesOnly, aperture, focal, postRange, commentRange, bounds, lensById]);
 
   const COLS = [
     { key: 'lensId', label: 'Lens' },
@@ -349,6 +369,7 @@ function StatsSection({ rows, lenses, lensById, bounds, brands }: SectionProps) 
             {brands.map(b => <option key={b} value={b}>{b}</option>)}
           </select>
         </label>
+        <PrimesToggle value={primesOnly} onChange={setPrimesOnly} />
         <RangeSlider label="Max Aperture" min={bounds.aperture[0]} max={bounds.aperture[1]} step={0.1}
           value={aperture} onChange={setAperture}
           format={(lo, hi) => `f/${lo.toFixed(1)} – f/${hi.toFixed(1)}`} />
@@ -400,6 +421,7 @@ function TopPostSection({ rows, lenses, lensById, bounds, brands }: TopPostSecti
   const [sortKey, setSortKey] = useState('weight');
   const [sortAsc, setSortAsc] = useState(false);
   const [brand, setBrand] = useState('');
+  const [primesOnly, setPrimesOnly] = useState(false);
   const [aperture, setAperture] = useState<[number, number]>(bounds.aperture);
   const [focal, setFocal] = useState<[number, number]>(bounds.focal);
 
@@ -415,6 +437,7 @@ function TopPostSection({ rows, lenses, lensById, bounds, brands }: TopPostSecti
     return sortRows(rows, sortKey, sortAsc).filter(r => {
       const lens = lensById[r.lensId];
       if (brand && brandOf(r.lensId, lensById) !== brand) return false;
+      if (primesOnly && !(lens?.tags ?? []).includes('prime')) return false;
       if (apActive) {
         const a = parseAperture(lens?.maxAperture);
         if (a == null || a < aperture[0] || a > aperture[1]) return false;
@@ -425,7 +448,7 @@ function TopPostSection({ rows, lenses, lensById, bounds, brands }: TopPostSecti
       }
       return true;
     });
-  }, [rows, sortKey, sortAsc, brand, aperture, focal, bounds, lensById]);
+  }, [rows, sortKey, sortAsc, brand, primesOnly, aperture, focal, bounds, lensById]);
 
   const COLS = [
     { key: 'lensId', label: 'Lens' },
@@ -446,6 +469,7 @@ function TopPostSection({ rows, lenses, lensById, bounds, brands }: TopPostSecti
             {brands.map(b => <option key={b} value={b}>{b}</option>)}
           </select>
         </label>
+        <PrimesToggle value={primesOnly} onChange={setPrimesOnly} />
         <RangeSlider label="Max Aperture" min={bounds.aperture[0]} max={bounds.aperture[1]} step={0.1}
           value={aperture} onChange={setAperture}
           format={(lo, hi) => `f/${lo.toFixed(1)} – f/${hi.toFixed(1)}`} />
