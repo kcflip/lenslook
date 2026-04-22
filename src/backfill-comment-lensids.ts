@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { matchLensesWithPositions, matchPostWithPositions } from "./matcher.js";
 import { computePhraseSentiment } from "./sentiment.js";
-import type { Post, LensStat, WordHit, PhraseSentimentStats } from "../shared/types.js";
+import type { Post, LensStat, WordHit, PhraseSentimentStats, LensSentimentEntry } from "../shared/types.js";
 
 const FILE = "output/results.json";
 
@@ -122,10 +122,10 @@ writeFileSync(FILE, JSON.stringify(data, null, 2));
 // 7. Regenerate lens-sentiment.json — dashboard reads it alongside results.json,
 //    so it needs to stay in sync with the rebuilt stats.
 const SENTIMENT_FILE = "output/lens-sentiment.json";
-const lensSentiment: Record<string, { postCount: number; commentCount: number } & PhraseSentimentStats> = {};
+const lensSentiment: Record<string, LensSentimentEntry> = {};
 for (const s of data.stats) {
   if (!s.phraseSentiment) continue;
-  lensSentiment[s.lensId] = { postCount: s.postCount, commentCount: s.commentCount, ...s.phraseSentiment };
+  lensSentiment[s.lensId] = { postCount: s.postCount, commentCount: s.commentCount, reviewCount: 0, ...s.phraseSentiment };
 }
 const fetchedAt = (data as { fetchedAt?: string }).fetchedAt ?? new Date().toISOString();
 writeFileSync(SENTIMENT_FILE, JSON.stringify({ fetchedAt, lenses: lensSentiment }, null, 2));

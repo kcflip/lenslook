@@ -6,6 +6,7 @@ import type {
   LensSentimentEntry,
   ClaudeSentimentResult,
   YouTubeSentimentResult,
+  ReviewsData,
 } from '../types';
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -27,6 +28,17 @@ async function fetchLensesMap<T>(url: string): Promise<Record<string, T>> {
   }
 }
 
+// reviews.json is a flat `{ [lensId]: ReviewItem[] }` — no `lenses` wrapper.
+async function fetchReviews(url: string): Promise<ReviewsData> {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return {};
+    return (await r.json()) as ReviewsData;
+  } catch {
+    return {};
+  }
+}
+
 export function useDashboardData() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,11 +50,12 @@ export function useDashboardData() {
       fetchLensesMap<LensSentimentEntry>('/output/lens-sentiment.json'),
       fetchLensesMap<ClaudeSentimentResult>('/output/claude-sentiment.json'),
       fetchLensesMap<YouTubeSentimentResult>('/output/youtube-sentiment.json'),
+      fetchReviews('/output/reviews.json'),
     ])
-      .then(([results, lenses, sentiment, claudeSentiment, youtubeSentiment]) => {
+      .then(([results, lenses, sentiment, claudeSentiment, youtubeSentiment, reviews]) => {
         const lensById: Record<string, Lens> = {};
         for (const l of lenses) lensById[l.id] = l;
-        setData({ results, lenses, sentiment, claudeSentiment, youtubeSentiment, lensById });
+        setData({ results, lenses, sentiment, claudeSentiment, youtubeSentiment, reviews, lensById });
       })
       .catch(err => setError((err as Error).message));
   }, []);

@@ -11,8 +11,10 @@
     "dashboard:static": "npx serve . -l 3000",
     "claude-sentiment": "tsx src/claude-sentiment.ts",
     "amazon-scrape": "tsx src/amazon-scrape.ts",
+    "amazon-scrape:test": "tsx src/amazon-scrape-test.ts",
     "youtube-sentiment": "tsx src/youtube-sentiment.ts",
-    "bh-scrape": "tsx src/bh-scrape.ts"
+    "bh-scrape": "tsx src/bh-scrape.ts",
+    "bh-scrape:test": "tsx src/bh-scrape-test.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +23,8 @@
   "devDependencies": {
     "@types/node": "^25.6.0",
     "playwright": "^1.59.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   },

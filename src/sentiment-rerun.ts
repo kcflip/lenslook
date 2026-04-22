@@ -2,25 +2,31 @@ import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { matchLensesWithPositions, matchPostWithPositions } from "./matcher.js";
 import {
   analyzePhraseSentiment,
+  analyzeReviewSentiment,
   computePhraseSentiment,
-  type PhraseSentimentStats,
   type SentimentAggregate,
 } from "./sentiment.js";
-import type { ResultsData } from "../shared/types.js";
+import type { ResultsData, LensSentimentEntry } from "../shared/types.js";
+import { loadReviews } from "./reviews.js";
 
 const INPUT = "output/results.json";
 const OUTPUT = "output/lens-sentiment.json";
 
 const data: ResultsData = JSON.parse(readFileSync(INPUT, "utf8"));
-console.log(`Loaded ${data.posts.length} posts and ${data.stats.length} lenses from ${INPUT}`);
+const reviewsByLens = loadReviews();
+console.log(`Loaded ${data.posts.length} posts, ${data.stats.length} lenses from ${INPUT}`);
+console.log(`Loaded reviews for ${Object.keys(reviewsByLens).length} lenses from output/reviews.json`);
 
 const sentimentMap = new Map<string, SentimentAggregate>();
+const reviewCounts = new Map<string, number>();
+
 const get = (id: string): SentimentAggregate => {
   let agg = sentimentMap.get(id);
   if (!agg) { agg = { rawScores: [], positiveHits: [], negativeHits: [] }; sentimentMap.set(id, agg); }
   return agg;
 };
 
+// Reddit posts + comments (windowed around the lens mention)
 for (const post of data.posts) {
   const { matches, normalized } = matchPostWithPositions(post);
   for (const m of matches) {
@@ -43,11 +49,32 @@ for (const post of data.posts) {
   }
 }
 
-const lensSentiment: Record<string, { postCount: number; commentCount: number } & PhraseSentimentStats> = {};
-for (const s of data.stats) {
-  const ps = computePhraseSentiment(sentimentMap.get(s.lensId), s.postCount, s.commentCount);
+// Amazon + B&H reviews (full-text, no windowing — the whole review is about one lens)
+for (const [lensId, items] of Object.entries(reviewsByLens)) {
+  for (const item of items) {
+    if (item.sourceType !== "amazon" && item.sourceType !== "bh") continue;
+    const { normalized } = matchLensesWithPositions(item.text);
+    const r = analyzeReviewSentiment(normalized);
+    const agg = get(lensId);
+    agg.rawScores.push(r.rawScore);
+    agg.positiveHits.push(...r.positiveHits);
+    agg.negativeHits.push(...r.negativeHits);
+    reviewCounts.set(lensId, (reviewCounts.get(lensId) ?? 0) + 1);
+  }
+}
+
+const lensSentiment: Record<string, LensSentimentEntry> = {};
+const statLensIds = new Set(data.stats.map(s => s.lensId));
+const allLensIds = new Set<string>([...statLensIds, ...Object.keys(reviewsByLens)]);
+
+for (const lensId of allLensIds) {
+  const stat = data.stats.find(s => s.lensId === lensId);
+  const postCount = stat?.postCount ?? 0;
+  const commentCount = stat?.commentCount ?? 0;
+  const reviewCount = reviewCounts.get(lensId) ?? 0;
+  const ps = computePhraseSentiment(sentimentMap.get(lensId), postCount, commentCount, reviewCount);
   if (!ps) continue;
-  lensSentiment[s.lensId] = { postCount: s.postCount, commentCount: s.commentCount, ...ps };
+  lensSentiment[lensId] = { postCount, commentCount, reviewCount, ...ps };
 }
 
 mkdirSync("output", { recursive: true });

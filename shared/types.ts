@@ -5,18 +5,28 @@
 
 export interface AsinEntry {
   asin: string;
-  seller: string;
   official: boolean;
+  url?: string;
   price?: number;
   priceScrapedAt?: string;
+  avgRating?: number;
+}
+
+export interface AmazonEntry {
+  searchLink: string;
+  asins: AsinEntry[];
 }
 
 export interface BHEntry {
-  sku: string;
+  bhNumber: string;
   url: string;
   title: string;
+  official: boolean;
   price?: number;
   priceScrapedAt?: string;
+  starCount?: number;
+  ratingCount?: number;
+  images?: string[];
 }
 
 export interface Lens {
@@ -29,8 +39,7 @@ export interface Lens {
   mount: string;
   aliases: string[];
   tags: string[];
-  shoppingLink?: string;
-  asins?: AsinEntry[];
+  amazon?: AmazonEntry;
   bh?: BHEntry;
 }
 
@@ -138,6 +147,7 @@ export interface PhraseSentimentStats {
 export interface LensSentimentEntry extends PhraseSentimentStats {
   postCount: number;
   commentCount: number;
+  reviewCount: number;
 }
 
 // ── Claude sentiment (output/claude-sentiment.json) ─────────────────────────
@@ -174,6 +184,38 @@ export interface YouTubeSentimentResult {
   videos: VideoSentiment[];
 }
 
+// ── Reviews (output/reviews.json) ───────────────────────────────────────────
+
+export type ReviewSource = "amazon" | "bh" | "reddit_post" | "reddit_comment" | "youtube";
+
+export interface ReviewItem {
+  sourceType: ReviewSource;
+  lensId: string;
+  text: string;
+  rating?: number;
+  verifiedPurchase?: boolean;
+  images: string[];
+  date?: string;
+  url?: string;
+  upvoteScore?: number;
+}
+
+export type ReviewsData = Record<string, ReviewItem[]>;
+
+// ── Price history (output/price-history.json) ────────────────────────────────
+
+export interface PricePoint {
+  price: number;
+  scrapedAt: string;
+}
+
+export interface LensPriceHistory {
+  amazon?: PricePoint[];
+  bh?: PricePoint[];
+}
+
+export type PriceHistoryData = Record<string, LensPriceHistory>;
+
 // ── Dashboard runtime aggregate ─────────────────────────────────────────────
 
 export interface DashboardData {
@@ -182,5 +224,6 @@ export interface DashboardData {
   sentiment: Record<string, LensSentimentEntry>;
   claudeSentiment: Record<string, ClaudeSentimentResult>;
   youtubeSentiment: Record<string, YouTubeSentimentResult>;
+  reviews: ReviewsData;
   lensById: Record<string, Lens>;
 }

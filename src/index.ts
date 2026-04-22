@@ -2,7 +2,7 @@ import { writeFileSync, mkdirSync } from "fs";
 import { fetchPosts, fetchComments, withCabinetAnimation } from "./scraper.js";
 import { matchLensesWithPositions, matchPostWithPositions } from "./matcher.js";
 import { analyzePhraseSentiment, computePhraseSentiment } from "./sentiment.js";
-import type { RedditPost as Post, Post as MatchedPost, LensStat, SentimentMention, WordHit, PhraseSentimentStats } from "../shared/types.js";
+import type { RedditPost as Post, Post as MatchedPost, LensStat, SentimentMention, WordHit, PhraseSentimentStats, LensSentimentEntry } from "../shared/types.js";
 
 const SUBREDDITS = ["sonyalpha", "photography"];
 const RUNS: { sort: string; timeframe: string }[] = [
@@ -253,10 +253,10 @@ function writeOutput(allMatched: MatchedPost[], partial = false) {
   writeFileSync("output/results.json", JSON.stringify(output, null, 2));
   console.log("Written to output/results.json");
 
-  const lensSentiment: Record<string, { postCount: number; commentCount: number } & PhraseSentimentStats> = {};
+  const lensSentiment: Record<string, LensSentimentEntry> = {};
   for (const s of stats) {
     if (!s.phraseSentiment) continue;
-    lensSentiment[s.lensId] = { postCount: s.postCount, commentCount: s.commentCount, ...s.phraseSentiment };
+    lensSentiment[s.lensId] = { postCount: s.postCount, commentCount: s.commentCount, reviewCount: 0, ...s.phraseSentiment };
   }
   writeFileSync("output/lens-sentiment.json", JSON.stringify({ fetchedAt, lenses: lensSentiment }, null, 2));
   console.log(`Written to output/lens-sentiment.json (${Object.keys(lensSentiment).length} lenses with sentiment)`);

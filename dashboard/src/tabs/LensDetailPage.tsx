@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { DashboardData, Post, VideoSentiment } from '../types';
 import { BrandBadge } from '../components/BrandBadge';
 import { StatPill } from '../components/StatPill';
@@ -24,6 +24,18 @@ const CartIcon = () => (
   </svg>
 );
 
+// Normalizes retailer image URLs pulled from stored data:
+//   - Amazon thumbnails carry a size suffix like `._SY88` before the extension;
+//     dropping it resolves to the full-size original.
+//   - B&H stores Cloudflare-resized paths like
+//     `/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/…`
+//     — the absolute source URL is embedded after the directive, so we unwrap it.
+function normalizeRetailerImage(src: string): string {
+  const stripped = src.replace(/\._[^.]+(\.\w+)$/, '$1');
+  const bhMatch = stripped.match(/^\/cdn-cgi\/image\/[^/]+\/(https?:\/\/.+)$/);
+  return bhMatch ? bhMatch[1] : stripped;
+}
+
 function scoreColor(score: number): string {
   if (score >= 0.7) return '#4ade80';
   if (score >= 0.4) return '#facc15';
@@ -42,12 +54,14 @@ function labelColors(label: string) {
 }
 
 export function LensDetailPage({ data, lensId }: Props) {
-  const { results, lensById, sentiment, claudeSentiment, youtubeSentiment, lenses } = data;
+  const { results, lensById, sentiment, claudeSentiment, youtubeSentiment, reviews, lenses } = data;
   const lens = lensById[lensId];
   const stat = results.stats.find(s => s.lensId === lensId);
   const claude = claudeSentiment[lensId];
   const lexicon = sentiment[lensId];
   const youtube = youtubeSentiment[lensId];
+  // Drop videos Claude couldn't extract opinions from (empty transcripts, music-only, etc.)
+  const youtubeVideos = youtube?.videos.filter(v => v.mentionCount > 0) ?? [];
 
   // Top posts for this lens (by weight)
   const topPosts = useMemo(() => {
@@ -89,6 +103,41 @@ export function LensDetailPage({ data, lensId }: Props) {
     }
     return tiles;
   }, [results.posts, lensId]);
+
+  // Retailer gallery tiles — flattened user-submitted review images, grouped
+  // by source. Same shape as Reddit tiles so the grid renderer stays uniform.
+  type RetailerTile = { src: string; linkUrl?: string; caption: string };
+  const buildRetailerGallery = (source: 'amazon' | 'bh'): RetailerTile[] => {
+    const tiles: RetailerTile[] = [];
+    const items = reviews[lensId] ?? [];
+    for (const item of items) {
+      if (item.sourceType !== source) continue;
+      if (!item.images?.length) continue;
+      const caption = item.text.length > 80 ? item.text.slice(0, 77) + '…' : item.text;
+      for (const src of item.images) tiles.push({ src: normalizeRetailerImage(src), linkUrl: item.url, caption });
+    }
+    return tiles;
+  };
+  const amazonGallery = useMemo(() => buildRetailerGallery('amazon'), [reviews, lensId]);
+
+  // B&H sidebar images live on BHEntry.images (captured from the review photo
+  // sidebar after opening the reviews tab), not in reviews.json.
+  const bhGallery = useMemo(() => {
+    type RetailerTile = { src: string; linkUrl?: string; caption: string };
+    return (lens.bh?.images ?? []).map((src): RetailerTile => ({
+      src: normalizeRetailerImage(src),
+      linkUrl: lens.bh?.url,
+      caption: lens.bh?.title ?? 'B&H Photo',
+    }));
+  }, [lens]);
+
+  // Default to whichever source has images; prefer Reddit, then Amazon, then B&H.
+  const [galleryTab, setGalleryTab] = useState<'reddit' | 'amazon' | 'bh'>(
+    gallery.length > 0 ? 'reddit'
+    : amazonGallery.length > 0 ? 'amazon'
+    : bhGallery.length > 0 ? 'bh'
+    : 'reddit',
+  );
 
   // Top comments that actually mention this lens
   const topComments = useMemo(() => {
@@ -172,8 +221,8 @@ export function LensDetailPage({ data, lensId }: Props) {
                 ))}
               </div>
             )}
-            {lens.shoppingLink && (
-              <a href={lens.shoppingLink} target="_blank" rel="noopener" className="shop-button">
+            {lens.amazon?.searchLink && (
+              <a href={lens.amazon.searchLink} target="_blank" rel="noopener" className="shop-button">
                 <CartIcon />
                 Search on Amazon
               </a>
@@ -211,8 +260,8 @@ export function LensDetailPage({ data, lensId }: Props) {
         />
       </div>
 
-      {/* ASIN / price table */}
-      {lens.asins && lens.asins.length > 0 && (
+      {/* Retailers price table */}
+      {(lens.amazon?.asins?.length || lens.bh) && (
         <div className="card full">
           <h2>Retailers</h2>
           <table>
@@ -220,11 +269,12 @@ export function LensDetailPage({ data, lensId }: Props) {
               <tr>
                 <th>Retailer</th>
                 <th className="num-header">Price</th>
-                <th className="num-header"></th>
+                <th>Scraped</th>
+                <th className="num-header">Rating</th>
               </tr>
             </thead>
             <tbody>
-              {lens.asins.map(a => (
+              {lens.amazon?.asins?.map(a => (
                 <tr key={a.asin}>
                   <td>
                     <a href={`https://www.amazon.com/dp/${a.asin}`} target="_blank" rel="noopener">
@@ -237,24 +287,79 @@ export function LensDetailPage({ data, lensId }: Props) {
                   <td style={{ color: '#555', fontSize: '0.75rem' }}>
                     {a.priceScrapedAt ? new Date(a.priceScrapedAt).toLocaleDateString() : ''}
                   </td>
+                  <td className="num" style={{ color: a.avgRating != null ? '#facc15' : '#555', fontWeight: 600 }}>
+                    {a.avgRating != null ? `${a.avgRating.toFixed(1)} ★` : '—'}
+                  </td>
                 </tr>
               ))}
+              {lens.bh && (
+                <tr key="bh">
+                  <td>
+                    <a href={lens.bh.url} target="_blank" rel="noopener">
+                      B&amp;H{lens.bh.official && <span className="official-tag"> ✓ official</span>}
+                    </a>
+                  </td>
+                  <td className="num" style={{ color: lens.bh.price ? '#4ade80' : '#555', fontWeight: 600 }}>
+                    {lens.bh.price != null ? `$${lens.bh.price.toFixed(2)}` : '—'}
+                  </td>
+                  <td style={{ color: '#555', fontSize: '0.75rem' }}>
+                    {lens.bh.priceScrapedAt ? new Date(lens.bh.priceScrapedAt).toLocaleDateString() : ''}
+                  </td>
+                  <td
+                    className="num"
+                    style={{ color: lens.bh.starCount != null ? '#facc15' : '#555', fontWeight: 600 }}
+                    title={lens.bh.ratingCount != null ? `${lens.bh.ratingCount.toLocaleString()} reviews` : undefined}
+                  >
+                    {lens.bh.starCount != null ? `${lens.bh.starCount.toFixed(1)} ★` : '—'}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       )}
 
       {/* Gallery */}
-      {gallery.length > 0 && (
+      {(gallery.length > 0 || amazonGallery.length > 0 || bhGallery.length > 0) && (
         <div className="card full">
-          <h2>Gallery</h2>
-          <p className="meta" style={{ marginTop: '-0.5rem', marginBottom: '1rem' }}>
-            Images from top-weighted Reddit posts that mention this lens.
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <h2 style={{ margin: 0 }}>Gallery</h2>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+              <button
+                type="button"
+                onClick={() => setGalleryTab('reddit')}
+                disabled={gallery.length === 0}
+                className={`tab-pill${galleryTab === 'reddit' ? ' active' : ''}`}
+              >
+                Reddit <span style={{ color: '#666', marginLeft: '0.3rem' }}>{gallery.length}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setGalleryTab('amazon')}
+                disabled={amazonGallery.length === 0}
+                className={`tab-pill${galleryTab === 'amazon' ? ' active' : ''}`}
+              >
+                Amazon <span style={{ color: '#666', marginLeft: '0.3rem' }}>{amazonGallery.length}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setGalleryTab('bh')}
+                disabled={bhGallery.length === 0}
+                className={`tab-pill${galleryTab === 'bh' ? ' active' : ''}`}
+              >
+                B&amp;H <span style={{ color: '#666', marginLeft: '0.3rem' }}>{bhGallery.length}</span>
+              </button>
+            </div>
+          </div>
+          <p className="meta" style={{ marginTop: '0.25rem', marginBottom: '1rem' }}>
+            {galleryTab === 'reddit' && 'Images from top-weighted Reddit posts that mention this lens.'}
+            {galleryTab === 'amazon' && 'User-submitted images from verified Amazon reviews.'}
+            {galleryTab === 'bh' && 'User-submitted images from verified B&H reviews.'}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.5rem' }}>
-            {gallery.map((tile, i) => (
+            {galleryTab === 'reddit' && gallery.map((tile, i) => (
               <a
-                key={i}
+                key={`r${i}`}
                 href={tile.postUrl}
                 target="_blank"
                 rel="noopener"
@@ -264,6 +369,42 @@ export function LensDetailPage({ data, lensId }: Props) {
                 <img
                   src={tile.src}
                   alt={tile.postTitle}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </a>
+            ))}
+            {galleryTab === 'amazon' && amazonGallery.map((tile, i) => (
+              <a
+                key={`a${i}`}
+                href={tile.linkUrl ?? tile.src}
+                target="_blank"
+                rel="noopener"
+                title={tile.caption}
+                style={{ display: 'block', aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: '4px', background: '#111' }}
+              >
+                <img
+                  src={tile.src}
+                  alt={tile.caption}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </a>
+            ))}
+            {galleryTab === 'bh' && bhGallery.map((tile, i) => (
+              <a
+                key={`b${i}`}
+                href={tile.linkUrl ?? tile.src}
+                target="_blank"
+                rel="noopener"
+                title={tile.caption}
+                style={{ display: 'block', aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: '4px', background: '#111' }}
+              >
+                <img
+                  src={tile.src}
+                  alt={tile.caption}
                   loading="lazy"
                   referrerPolicy="no-referrer"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -320,25 +461,21 @@ export function LensDetailPage({ data, lensId }: Props) {
       )}
 
       {/* YouTube sentiment */}
-      {youtube && youtube.videos.length > 0 && (
+      {youtubeVideos.length > 0 && (
         <div className="card full">
           <h2>YouTube Reviews</h2>
-          {youtube.videos.map((v: VideoSentiment) => (
+          {youtubeVideos.map((v: VideoSentiment) => (
             <div key={v.videoId} style={{ marginBottom: '2rem', paddingBottom: '2rem', borderBottom: '1px solid #222' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
                 <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                   <a href={v.url} target="_blank" rel="noopener" style={{ fontWeight: 600, fontSize: '0.95rem' }}>
-                    {v.title ?? v.reviewer ?? v.videoId}
+                    {[v.channelTitle ?? v.reviewer, v.title].filter(Boolean).join(' — ') || v.videoId}
                   </a>
-                  <div style={{ color: '#888', fontSize: '0.78rem', marginTop: '0.2rem', display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                    {(v.channelTitle ?? v.reviewer) && <span>{v.channelTitle ?? v.reviewer}</span>}
-                    {typeof v.viewCount === 'number' && (
-                      <span>·</span>
-                    )}
-                    {typeof v.viewCount === 'number' && (
-                      <span>{v.viewCount.toLocaleString()} views</span>
-                    )}
-                  </div>
+                  {typeof v.viewCount === 'number' && (
+                    <div style={{ color: '#888', fontSize: '0.78rem', marginTop: '0.2rem' }}>
+                      {v.viewCount.toLocaleString()} views
+                    </div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
                   <span className="badge" style={{ background: labelColors(v.label).bg, color: labelColors(v.label).color }}>

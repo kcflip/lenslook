@@ -60,7 +60,7 @@ const CONTEXT_WINDOW_WORDS = 30;
 const NEGATION_LOOKBACK = 3;
 const COMMENT_DISCOUNT = 0.5;
 
-import type { SentimentWord, PhraseSentimentStats, WordHit } from "../shared/types.js";
+import type { SentimentWord, PhraseSentimentStats, WordHit, ReviewSource } from "../shared/types.js";
 export type { SentimentWord, PhraseSentimentStats, WordHit } from "../shared/types.js";
 
 export const SENTIMENT_MIN_MENTIONS = 5;
@@ -84,18 +84,7 @@ function collectToBoundary(tokens: string[], start: number, step: 1 | -1, max: n
   return step === 1 ? collected : collected.reverse();
 }
 
-export function analyzePhraseSentiment(
-  normalizedText: string,
-  matchIndex: number,
-  source: "post" | "comment",
-): PhraseSentimentResult {
-  const before = normalizedText.slice(0, matchIndex).trim().split(/\s+/).filter(Boolean);
-  const after = normalizedText.slice(matchIndex).trim().split(/\s+/).filter(Boolean);
-  const windowWords = [
-    ...collectToBoundary(before, before.length - 1, -1, CONTEXT_WINDOW_WORDS),
-    ...collectToBoundary(after, 0, 1, CONTEXT_WINDOW_WORDS + 1),
-  ];
-
+function scoreTokens(windowWords: string[]): PhraseSentimentResult {
   let rawScore = 0;
   const positiveHits: WordHit[] = [];
   const negativeHits: WordHit[] = [];
@@ -127,9 +116,31 @@ export function analyzePhraseSentiment(
     i += consumed - 1; // skip tokens consumed by a phrase match
   }
 
-  if (source === "comment") rawScore *= COMMENT_DISCOUNT;
-
   return { rawScore, positiveHits, negativeHits };
+}
+
+export function analyzePhraseSentiment(
+  normalizedText: string,
+  matchIndex: number,
+  source: ReviewSource | "post" | "comment",
+): PhraseSentimentResult {
+  const before = normalizedText.slice(0, matchIndex).trim().split(/\s+/).filter(Boolean);
+  const after = normalizedText.slice(matchIndex).trim().split(/\s+/).filter(Boolean);
+  const windowWords = [
+    ...collectToBoundary(before, before.length - 1, -1, CONTEXT_WINDOW_WORDS),
+    ...collectToBoundary(after, 0, 1, CONTEXT_WINDOW_WORDS + 1),
+  ];
+
+  const result = scoreTokens(windowWords);
+  if (source === "comment" || source === "reddit_comment") result.rawScore *= COMMENT_DISCOUNT;
+  return result;
+}
+
+// Analyze a full review-style text (Amazon/B&H) where the whole body is about
+// one lens — no windowing around a mention is needed.
+export function analyzeReviewSentiment(normalizedText: string): PhraseSentimentResult {
+  const tokens = normalizedText.trim().split(/\s+/).filter(Boolean);
+  return scoreTokens(tokens);
 }
 
 export interface SentimentAggregate {
@@ -156,8 +167,9 @@ export function computePhraseSentiment(
   s: SentimentAggregate | undefined,
   postCount: number,
   commentCount: number,
+  reviewCount: number = 0,
 ): PhraseSentimentStats | null {
-  if (!s || postCount + commentCount < SENTIMENT_MIN_MENTIONS) return null;
+  if (!s || postCount + commentCount + reviewCount < SENTIMENT_MIN_MENTIONS) return null;
   const avg = s.rawScores.reduce((a, b) => a + b, 0) / s.rawScores.length;
   const positiveCount = s.rawScores.filter((x) => x > 0).length;
   const negativeCount = s.rawScores.filter((x) => x < 0).length;
