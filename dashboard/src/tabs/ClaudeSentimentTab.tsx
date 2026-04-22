@@ -130,10 +130,10 @@ export function ClaudeSentimentTab({ data }: Props) {
                     : e.summary}
                 </td>
                 <td style={{ maxWidth: '180px', fontSize: '0.75rem', color: '#4ade80', lineHeight: 1.5 }}>
-                  {e.positives.length ? e.positives.slice(0, 3).map(p => <div key={p}>· {p}</div>) : <span style={{ color: '#333' }}>—</span>}
+                  {e.positives.length ? e.positives.slice(0, 3).map((p, i) => <div key={i}>· {p.aspect}</div>) : <span style={{ color: '#333' }}>—</span>}
                 </td>
                 <td style={{ maxWidth: '180px', fontSize: '0.75rem', color: '#f87171', lineHeight: 1.5 }}>
-                  {e.negatives.length ? e.negatives.slice(0, 3).map(n => <div key={n}>· {n}</div>) : <span style={{ color: '#333' }}>—</span>}
+                  {e.negatives.length ? e.negatives.slice(0, 3).map((n, i) => <div key={i}>· {n.aspect}</div>) : <span style={{ color: '#333' }}>—</span>}
                 </td>
               </tr>
             ))}

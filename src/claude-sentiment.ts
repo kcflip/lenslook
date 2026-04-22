@@ -2,7 +2,7 @@ import "dotenv/config";
 import Anthropic from "@anthropic-ai/sdk";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import lensData from "../lenses.json" with { type: "json" };
-import type { Lens, ResultsData, ClaudeSentimentResult, ReviewItem } from "../shared/types.js";
+import type { Lens, ResultsData, ClaudeSentimentResult, ReviewItem, SentimentCitation } from "../shared/types.js";
 import { loadReviews } from "./reviews.js";
 
 const RESULTS_INPUT = "output/results.json";
@@ -30,9 +30,18 @@ For each lens, analyze only the qualifying items and return an object with:
 - score: number from -1 (very negative) to 1 (very positive)
 - label: "positive", "negative", "neutral", or "mixed"
 - summary: 1-2 sentence summary of overall sentiment across all sources
-- positives: array of positive aspects mentioned (max 5, concise phrases)
-- negatives: array of negative aspects mentioned (max 5, concise phrases)
+- positives: array of citation objects (max 5), each with:
+    - aspect: short phrase describing the positive ("sharp wide open", "fast autofocus")
+    - quote: a DIRECT VERBATIM excerpt copied from one of the provided items' "text" field — character-for-character identical to the source. Do not paraphrase, rewrite, translate, fix typos, re-case, or stitch multiple excerpts together. You may trim surrounding context from either end, but the returned string must appear exactly as-is somewhere in the original "text".
+    - source: the "source" value of the item the quote came from ("reddit_post", "reddit_comment", "amazon", or "bh")
+- negatives: array of citation objects (max 5), same shape as positives
 - mentionCount: total number of items provided
+
+Critical constraints:
+- Every quote must be a verbatim copy from an input item. If no verbatim quote supports an aspect, omit that aspect entirely.
+- Never invent aspects, quotes, or sources. Never emit a citation without textual evidence you can point at.
+- Keep quotes tight — aim for 1–2 sentences, enough to justify the aspect without bloat.
+- If the provided items for a lens yield no qualifying opinion, return empty positives and negatives arrays rather than fabricating points.
 
 Return a JSON object where each key is a lensId and the value is the sentiment object. Return only valid JSON, no other text.`;
 
@@ -101,6 +110,22 @@ function mergeSources(
   return out;
 }
 
+// Verifies that each citation's quote appears verbatim somewhere in the items
+// we actually sent for this lens. Drops anything that doesn't match — our
+// defense against a model paraphrase or hallucination slipping into the UI.
+// Whitespace is normalized before comparison so minor formatting drift (e.g.
+// a literal newline Claude replaces with a space) still counts as a match.
+function verifyCitations(citations: SentimentCitation[], items: ReviewItem[]): SentimentCitation[] {
+  const norm = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+  const haystack = items.map(i => norm(i.text)).join("  ");
+  const kept: SentimentCitation[] = [];
+  for (const c of citations) {
+    if (!c.quote || !c.aspect) continue;
+    if (haystack.includes(norm(c.quote))) kept.push(c);
+  }
+  return kept;
+}
+
 async function analyzeBatch(
   client: Anthropic,
   batch: LensReviews[],
@@ -117,7 +142,7 @@ async function analyzeBatch(
 
   const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: `Analyze sentiment for these ${batch.length} lenses:\n\n${JSON.stringify(payload, null, 2)}` }],
   });
@@ -125,7 +150,23 @@ async function analyzeBatch(
   const text = response.content.find((b) => b.type === "text")?.text ?? "{}";
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error(`No JSON in response: ${text.slice(0, 200)}`);
-  return JSON.parse(match[0]);
+  const parsed: Record<string, ClaudeSentimentResult> = JSON.parse(match[0]);
+
+  const itemsByLens = new Map(batch.map(b => [b.lensId, b.items]));
+  let droppedPos = 0, droppedNeg = 0;
+  for (const [lensId, result] of Object.entries(parsed)) {
+    const items = itemsByLens.get(lensId) ?? [];
+    const verifiedPos = verifyCitations(result.positives ?? [], items);
+    const verifiedNeg = verifyCitations(result.negatives ?? [], items);
+    droppedPos += (result.positives?.length ?? 0) - verifiedPos.length;
+    droppedNeg += (result.negatives?.length ?? 0) - verifiedNeg.length;
+    result.positives = verifiedPos;
+    result.negatives = verifiedNeg;
+  }
+  if (droppedPos || droppedNeg) {
+    console.warn(`    (dropped ${droppedPos} positive + ${droppedNeg} negative unverifiable citations)`);
+  }
+  return parsed;
 }
 
 async function main() {

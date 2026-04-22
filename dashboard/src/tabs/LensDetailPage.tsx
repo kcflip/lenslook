@@ -1,5 +1,21 @@
 import { useMemo, useState } from 'react';
-import type { DashboardData, Post, VideoSentiment } from '../types';
+import type { DashboardData, Post, VideoSentiment, ReviewSource } from '../types';
+
+const SOURCE_LABEL: Record<ReviewSource, string> = {
+  reddit_post: 'Reddit post',
+  reddit_comment: 'Reddit comment',
+  amazon: 'Amazon',
+  bh: 'B&H',
+  youtube: 'YouTube',
+};
+
+const SOURCE_COLOR: Record<ReviewSource, string> = {
+  reddit_post: '#ff4500',
+  reddit_comment: '#ff4500',
+  amazon: '#ff9900',
+  bh: '#0066cc',
+  youtube: '#ff0033',
+};
 import { BrandBadge } from '../components/BrandBadge';
 import { StatPill } from '../components/StatPill';
 import { WordCloudCanvas } from '../components/WordCloudCanvas';
@@ -138,6 +154,37 @@ export function LensDetailPage({ data, lensId }: Props) {
     : bhGallery.length > 0 ? 'bh'
     : 'reddit',
   );
+
+  // Counts by source — drives the "Based on …" line under Claude's summary so
+  // readers can see the breadth of material that fed the analysis.
+  const sourceCounts = useMemo(() => {
+    const items = reviews[lensId] ?? [];
+    let amazon = 0, bh = 0;
+    for (const item of items) {
+      if (item.sourceType === 'amazon') amazon++;
+      else if (item.sourceType === 'bh') bh++;
+    }
+    let reddit = 0;
+    for (const post of results.posts) {
+      if (post.postLensIds.includes(lensId)) reddit++;
+      for (const c of post.matchedComments ?? []) {
+        const attributed = c.lensIds ? c.lensIds.includes(lensId) : post.commentLensIds.includes(lensId);
+        if (attributed) reddit++;
+      }
+    }
+    return { amazon, bh, reddit };
+  }, [reviews, lensId, results.posts]);
+
+  // Retailer reviews grouped for the collapsible source panel inside the Claude
+  // card. Higher-rated first so the sample skews toward the most common signal.
+  const retailerReviews = useMemo(() => {
+    const items = reviews[lensId] ?? [];
+    return items
+      .filter(r => r.sourceType === 'amazon' || r.sourceType === 'bh')
+      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+  }, [reviews, lensId]);
+
+  const [sourcesExpanded, setSourcesExpanded] = useState(false);
 
   // Top comments that actually mention this lens
   const topComments = useMemo(() => {
@@ -432,15 +479,33 @@ export function LensDetailPage({ data, lensId }: Props) {
               </span>
             </div>
           </div>
-          <p style={{ color: '#d0d0d0', lineHeight: 1.55, fontSize: '0.95rem', margin: '0 0 1.5rem 0' }}>
+          <p style={{ color: '#d0d0d0', lineHeight: 1.55, fontSize: '0.95rem', margin: '0 0 0.6rem 0' }}>
             {claude.summary}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ color: '#777', fontSize: '0.78rem', marginBottom: '1.5rem' }}>
+            Based on{' '}
+            {[
+              sourceCounts.reddit && `${sourceCounts.reddit} Reddit`,
+              sourceCounts.amazon && `${sourceCounts.amazon} Amazon`,
+              sourceCounts.bh && `${sourceCounts.bh} B&H`,
+            ].filter(Boolean).join(' · ') || 'no source material'}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
             <div>
               <h3 className="sentiment-heading" style={{ color: '#4ade80' }}>Positives</h3>
               {claude.positives.length > 0 ? (
-                <ul className="sentiment-list">
-                  {claude.positives.map(p => <li key={p}>{p}</li>)}
+                <ul className="sentiment-list citation-list">
+                  {claude.positives.map((c, i) => (
+                    <li key={i} style={{ marginBottom: '0.8rem' }}>
+                      <div style={{ color: '#e0e0e0', fontSize: '0.9rem' }}>{c.aspect}</div>
+                      <div style={{ color: '#999', fontStyle: 'italic', fontSize: '0.8rem', lineHeight: 1.45, marginTop: '0.25rem' }}>
+                        &ldquo;{c.quote}&rdquo;
+                      </div>
+                      <div style={{ marginTop: '0.25rem', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: SOURCE_COLOR[c.source] ?? '#666' }}>
+                        {SOURCE_LABEL[c.source] ?? c.source}
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               ) : (
                 <p className="meta" style={{ margin: 0 }}>None identified</p>
@@ -449,14 +514,63 @@ export function LensDetailPage({ data, lensId }: Props) {
             <div>
               <h3 className="sentiment-heading" style={{ color: '#f87171' }}>Negatives</h3>
               {claude.negatives.length > 0 ? (
-                <ul className="sentiment-list">
-                  {claude.negatives.map(n => <li key={n}>{n}</li>)}
+                <ul className="sentiment-list citation-list">
+                  {claude.negatives.map((c, i) => (
+                    <li key={i} style={{ marginBottom: '0.8rem' }}>
+                      <div style={{ color: '#e0e0e0', fontSize: '0.9rem' }}>{c.aspect}</div>
+                      <div style={{ color: '#999', fontStyle: 'italic', fontSize: '0.8rem', lineHeight: 1.45, marginTop: '0.25rem' }}>
+                        &ldquo;{c.quote}&rdquo;
+                      </div>
+                      <div style={{ marginTop: '0.25rem', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: SOURCE_COLOR[c.source] ?? '#666' }}>
+                        {SOURCE_LABEL[c.source] ?? c.source}
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               ) : (
                 <p className="meta" style={{ margin: 0 }}>None identified</p>
               )}
             </div>
           </div>
+          {retailerReviews.length > 0 && (
+            <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #222' }}>
+              <button
+                type="button"
+                onClick={() => setSourcesExpanded(v => !v)}
+                style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '0.82rem', padding: 0 }}
+              >
+                {sourcesExpanded ? '▾' : '▸'} Retailer reviews ({retailerReviews.length})
+              </button>
+              {sourcesExpanded && (
+                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {retailerReviews.map((r, i) => (
+                    <div key={i} style={{ borderLeft: '2px solid #2a2a2a', paddingLeft: '0.8rem' }}>
+                      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.3rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
+                        <span style={{ color: r.sourceType === 'amazon' ? '#ff9900' : '#0066cc', fontWeight: 600 }}>
+                          {r.sourceType === 'amazon' ? 'Amazon' : 'B&H'}
+                        </span>
+                        {r.rating != null && (
+                          <span style={{ color: '#facc15' }}>
+                            {'★'.repeat(Math.round(r.rating))}{'☆'.repeat(Math.max(0, 5 - Math.round(r.rating)))}
+                          </span>
+                        )}
+                        {r.verifiedPurchase && <span style={{ color: '#4ade80' }}>verified</span>}
+                        {r.date && <span style={{ color: '#666' }}>{r.date}</span>}
+                        {r.url && (
+                          <a href={r.url} target="_blank" rel="noopener" style={{ color: '#666', marginLeft: 'auto' }}>
+                            source ↗
+                          </a>
+                        )}
+                      </div>
+                      <div style={{ color: '#c8c8c8', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                        {r.text.length > 500 ? r.text.slice(0, 497) + '…' : r.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

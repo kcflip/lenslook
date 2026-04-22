@@ -154,12 +154,21 @@ export interface LensSentimentEntry extends PhraseSentimentStats {
 
 export type SentimentLabel = "positive" | "negative" | "neutral" | "mixed";
 
+// Evidence-backed sentiment point. Each positive/negative Claude emits must
+// pair an aspect phrase with a verbatim quote from one of the input items,
+// and carry the source it came from. Prevents paraphrase/hallucination.
+export interface SentimentCitation {
+  aspect: string;
+  quote: string;
+  source: ReviewSource;
+}
+
 export interface ClaudeSentimentResult {
   score: number;
   label: SentimentLabel;
   summary: string;
-  positives: string[];
-  negatives: string[];
+  positives: SentimentCitation[];
+  negatives: SentimentCitation[];
   mentionCount: number;
 }
 
