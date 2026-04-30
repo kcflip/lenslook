@@ -1,18 +1,35 @@
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import { type Post } from "./scraper.js";
-import { matchPost } from "./matcher.js";
+import { matchProductsWithPositions, compileBodies, ALL_LENSES, type CompiledProduct } from "./matcher.js";
+import { calcWeight } from "../shared/weight.js";
+import type { Body } from "../shared/types.js";
 
 const USER_AGENT = "lenslook/1.0 by kyle.flippo@gmail.com";
+
+function buildBrandQuery(): string {
+  const brands = new Set<string>();
+  for (const l of ALL_LENSES) brands.add(l.brand.toLowerCase());
+  brands.add("rokinon");
+  return [...brands].join(" OR ");
+}
 
 async function fetchPage(
   subreddit: string,
   sort: string,
   after: string | null,
-  timeframe: string
+  timeframe: string,
+  query: string | null,
 ): Promise<{ posts: Post[]; after: string | null }> {
-  const url = new URL(`https://www.reddit.com/r/${subreddit}/${sort}.json`);
+  const url = query
+    ? new URL(`https://www.reddit.com/r/${subreddit}/search.json`)
+    : new URL(`https://www.reddit.com/r/${subreddit}/${sort}.json`);
   url.searchParams.set("limit", "25");
   url.searchParams.set("t", timeframe);
+  if (query) {
+    url.searchParams.set("q", query);
+    url.searchParams.set("restrict_sr", "1");
+    url.searchParams.set("sort", sort);
+  }
   if (after) url.searchParams.set("after", after);
 
   const res = await fetch(url.toString(), { headers: { "User-Agent": USER_AGENT } });
@@ -43,12 +60,16 @@ async function fetchPage(
   return { posts, after: data.data.after };
 }
 
-const SUBREDDITS = ["sonyalpha", "photography"];
+const LISTING_SUBREDDITS = ["sonyalpha"];
+const SEARCH_SUBREDDITS = ["photography", "astrophotography", "macro"];
+const SUBREDDITS = [...LISTING_SUBREDDITS, ...SEARCH_SUBREDDITS];
 const SORT = "top" as const;
 const TIMEFRAME = "year" as const;
 const TARGETS: Record<string, number> = {
   sonyalpha: 10,
   photography: 4,
+  astrophotography: 4,
+  macro: 4,
 };
 
 interface MatchedPost extends Post {
@@ -57,27 +78,31 @@ interface MatchedPost extends Post {
     score: number;
     upvoteRatio: number;
     numComments: number;
-    engagementScore: number;
-    discussionScore: number;
     weight: number;
   };
 }
 
-async function findMatches(subreddit: string): Promise<MatchedPost[]> {
+async function findMatches(
+  subreddit: string,
+  query: string | null,
+  bodyPool: CompiledProduct[],
+): Promise<MatchedPost[]> {
   const matched: MatchedPost[] = [];
   const target = TARGETS[subreddit] ?? 10;
   let after: string | null = null;
 
   while (matched.length < target) {
-    const result = await fetchPage(subreddit, SORT, after, TIMEFRAME);
+    const result = await fetchPage(subreddit, SORT, after, TIMEFRAME, query);
     console.log(`  r/${subreddit}: fetched ${result.posts.length} posts, ${matched.length} matches so far`);
 
     for (const post of result.posts) {
-      const lensIds = matchPost(post);
+      const { matches } = matchProductsWithPositions(
+        post.title + " " + (post.selftext ?? ""),
+        bodyPool,
+      );
+      const lensIds = [...new Set(matches.map((m) => m.id))];
       if (lensIds.length > 0) {
-        const engagementScore = Math.log(1 + post.score) * (post.is_self ? post.upvote_ratio * 0.5 : post.upvote_ratio);
-        const discussionScore = Math.log(1 + post.num_comments);
-        const weight = engagementScore * 0.5 + discussionScore * 0.5;
+        const weight = calcWeight(post);
         matched.push({
           ...post,
           lensIds,
@@ -85,8 +110,6 @@ async function findMatches(subreddit: string): Promise<MatchedPost[]> {
             score: post.score,
             upvoteRatio: post.upvote_ratio,
             numComments: post.num_comments,
-            engagementScore: Math.round(engagementScore),
-            discussionScore: parseFloat(discussionScore.toFixed(3)),
             weight: parseFloat(weight.toFixed(3)),
           },
         });
@@ -105,10 +128,17 @@ async function findMatches(subreddit: string): Promise<MatchedPost[]> {
 
 async function main() {
   const allPosts: MatchedPost[] = [];
+  const brandQuery = buildBrandQuery();
+
+  const bodies: Body[] = existsSync("bodies.json")
+    ? JSON.parse(readFileSync("bodies.json", "utf8"))
+    : [];
+  const bodyPool: CompiledProduct[] = compileBodies(bodies);
 
   for (const sub of SUBREDDITS) {
-    console.log(`\nSearching r/${sub}...`);
-    const matches = await findMatches(sub);
+    const query = SEARCH_SUBREDDITS.includes(sub) ? brandQuery : null;
+    console.log(`\nSearching r/${sub}${query ? " (search)" : " (listing)"}...`);
+    const matches = await findMatches(sub, query, bodyPool);
     console.log(`  found ${matches.length} matches`);
     allPosts.push(...matches);
   }

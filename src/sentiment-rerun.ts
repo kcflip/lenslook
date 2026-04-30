@@ -9,7 +9,7 @@ import {
 import type { ResultsData, LensSentimentEntry } from "../shared/types.js";
 import { loadReviews } from "./reviews.js";
 
-const INPUT = "output/results.json";
+const INPUT = "output/sonyResults.json";
 const OUTPUT = "output/lens-sentiment.json";
 
 const data: ResultsData = JSON.parse(readFileSync(INPUT, "utf8"));

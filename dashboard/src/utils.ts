@@ -1,5 +1,8 @@
 import type { Lens, LensSentimentEntry, Post, SentimentWord } from './types';
 import { BRAND_COLOR, BRAND_DISPLAY } from './constants';
+import { calcWeight as sharedCalcWeight } from '../../shared/weight';
+
+export const calcWeight = sharedCalcWeight;
 
 export function brandOf(lensId: string, lensById: Record<string, Lens>): string {
   return lensById[lensId]?.brand ?? lensId.split('-')[0].replace(/^\w/, c => c.toUpperCase());
@@ -30,16 +33,6 @@ export function postCommentsUrl(post: Pick<Post, 'subreddit' | 'id'>): string {
 // Deep link to a specific comment under a post.
 export function commentPermalink(post: Pick<Post, 'subreddit' | 'id'>, commentId: string): string {
   return `https://reddit.com/r/${post.subreddit}/comments/${post.id}/_/${commentId}/`;
-}
-
-function isImagePost(post: Post): boolean {
-  return !post.is_self;
-}
-
-export function calcWeight(post: Post): number {
-  const eng = Math.log(1 + post.score) * (isImagePost(post) ? post.upvote_ratio : post.upvote_ratio * 0.5);
-  const disc = Math.log(1 + post.num_comments);
-  return eng * 0.5 + disc * 0.5;
 }
 
 export function parseAperture(s: string | undefined | null): number | null {

@@ -1,104 +1,69 @@
-# Snowsniffer — Reddit Lens Popularity Scraper
+# Lenslook — Progress
 
-## What We're Building
+Sentiment + popularity tracker for Sony-ecosystem lenses and bodies. Pulls from Reddit (posts + comments), Amazon, B&H, Adorama, Phillip Reeve, and YouTube reviews. React dashboard reads JSON in `output/`.
 
-A TypeScript tool that scrapes posts from `r/sonyalpha` and `r/photography`, detects which Sony-ecosystem lens is mentioned in each post title, and tracks popularity metrics (score, upvote ratio, comment count) per lens.
+## Current state (2026-04-29)
 
----
+- **Reddit pipeline** — listing scrape on `r/sonyalpha`, search-restricted scrape on `r/photography`, `r/astrophotography`, `r/macro`. Multi-sort/timeframe runs, search-query fan-out (`sony` + `sony <brand>` pair queries). Comments fetched for every post above the score threshold; same-user same-lens repeats collapsed. Lenses + bodies matched in one pass.
+- **Sentiment** — three layers, never combined: (1) phrase-lexicon `phraseSentiment` per lens/body, (2) Claude-summarized `claude-sentiment.json` with verbatim-quote citations and a `verifyCitations` pass that drops anything not in the source text, (3) per-video `youtube-sentiment.json`.
+- **Retailer scrapers** — Amazon, B&H, Adorama, Phillip Reeve. All Playwright (Adorama needs persistent profile + injected `_px3` cookies for PerimeterX). Each scraper accepts `--bodies` to flip from `lenses.json` to `bodies.json`. Reviews land in `output/reviews.json`, prices append to `output/price-history.json`.
+- **Bodies** — full Sony E-mount FF + APS-C lineup back to 2013 in `bodies.json`. All scrapers and the sentiment pipelines understand them. Body-specific Claude prompt (autofocus, EVF, IBIS, rolling shutter…). Dashboard has a Bodies tab + `BodyDetailPage`.
+- **Dashboard** — v1 Overview/Bodies/lens-detail and a v2 "Spectrum" view (`dashboard/src/spectrum/`). System switcher exists; only Sony is live (Nikon button disabled).
 
-## Journal
+## Open work
 
-### 2026-04-16
+- **YouTube quote timestamps** (`TODO.md`). Resolve verbatim quotes back to transcript segments and link to `&t=NNs`.
+- **`callClaudeJson` helper** (`TODO.md`). De-duplicate the Anthropic call + JSON-extract pattern across `claude-sentiment`, `youtube-sentiment`, `audit-lexicon`.
+- **`src/scrapers/` reorg** (`TODO.md`). Empty dir kept on purpose — move retailer scrapers into it next.
+- **`Lens.discontinued`** (`TODO.md`). Field exists, nothing reads it. Decide.
+- **Bidirectional lens↔body co-occurrence linking** on detail pages (`Phase 8` of the body rollout — deferred, not blocking).
+- **Phillip Reeve auto-discovery** for review URLs (today the URLs are hand-curated under `lens.reviews.phillipreeve`).
+- **Multi-system support** — `system` is a first-class field on `Lens`/`Body` and the dashboard switches on it, but only Sony has data. Output filenames already use a `<system>Results.json` shape, so adding Nikon is mostly catalog work.
 
-Kicked off the project. Defined scope, designed the lens data structure, and built out `lenses.json` with ~93 lenses across Sony, Sigma, and Tamron. Decided to use Reddit's public JSON endpoints (no OAuth needed). Built the core pipeline:
+## Open questions worth keeping (from the original Sentiment.md)
 
-- **`src/scraper.ts`** — `fetchPosts` (bulk, up to 500) and `fetchBatch` (single page with cursor) for paginated post fetching.
-- **`src/matcher.ts`** — normalizes text (lowercase, strip punctuation) and does substring matching against each lens's name, model, and aliases. Pre-computes normalized tokens at startup.
-- **`src/index.ts`** — main run: fetches posts, matches lenses, aggregates per-lens stats (post count, avg score, avg upvote ratio, total weight), writes `output/results.json`.
-- **`src/test.ts`** — pagination-driven test run that stops once each subreddit hits a match target, writes matched posts with formula breakdown to `output/test.json`.
-
-Post weighting uses an 80/20 split: `engagementScore * 0.8 + discussionScore * 0.2`.
-
----
-
-### 2026-04-17
-
-Expanded the tool to support comment fetching and alias discovery.
-
-- **`brands.json`** — extracted unique brand names (Sony, Sigma, Tamron) to a standalone file; user extended it with TTArtisan, Laowa, Viltrox, Zeiss, Samyang for broader third-party coverage.
-- **`src/scraper.ts`** — added `fetchComments(subreddit, postId)` which hits Reddit's comments endpoint and recursively walks the reply tree, returning a flat array of comment objects (id, body, score, parent_id). Added `redditFetch` wrapper with 429 retry logic — reads the `Retry-After` header, logs a wait message, and retries up to 5 times.
-- **`src/alias.ts`** — new standalone script (`npx tsx src/alias.ts`) that scans comments on lens-matched posts for unknown lens references. Per-comment flow: skip if already matches a known lens, then try brand name → combined focal+aperture patterns → focal range → single focal → aperture alone (first match wins). Writes candidates to `output/aliases.json` with full context for manual review.
+- Should the lexicon stay fixed forever, or should `audit-lexicon` propose additions automatically? Today it just prints suggestions.
+- "Which lens should I buy?" comparison posts disproportionately mention many lenses with neutral context. Multi-lens dilution (`weight / sqrt(lensIds.length)`) is a candidate fix — see `weightingPosts.md`.
+- Time decay on `weight` — discussed in `weightingPosts.md`, not implemented. Re-running the pipeline retroactively changes old weights, which makes diffs noisy.
 
 ---
 
-### 2026-04-17 (continued)
+## Recent journal
 
-Second session. Focus on expanding data coverage, refining the weight formula, and rebuilding the dashboard.
+### 2026-04-29 — doc + code consolidation
 
-- **`src/scraper.ts`** — added `is_self` field to `Post` to distinguish image posts from text posts.
-- **Weight formula** — text posts (`is_self = true`) penalised with `upvote_ratio * 0.5`; image posts use full `upvote_ratio`. Formula divided by 1000 for smaller output digits.
-- **`src/index.ts`** — bumped fetch limit to 1000, added `r/mirrorless`, trimmed sorts to `top/hot/new`. Added a two-phase matching pipeline: phase 1 matches post title + selftext; phase 2 fetches comments for unmatched posts with `score ≥ 50` and runs the matcher on combined comment text.
-- **`lenses.json`** — expanded from ~93 to ~145 lenses, adding Samyang/Rokinon, Viltrox, TTArtisan, Laowa, Zeiss (Batis + Loxia), Sony APS-C, Sigma APS-C, and various new aliases.
-- **`dashboard.html`** — full rebuild with tabbed layout (Overview / Tables / Word Cloud). Overview has charts for top lenses by weight, top lenses by post count, brand share, avg weight by brand, subreddit share, and sort distribution. Tables tab has highest-weighted post per brand, highest-weighted post per lens, and full sortable stats table. Word Cloud tab renders lazily on first open. Brand doughnut fixed to use `brand` field from `lenses.json` via a parallel `fetch('lenses.json')`.
-- **`README.md`** — updated to document both matching phases, score threshold, and weight formula.
+Sweep pass before adding new features.
+- **Docs**: rewrote `CLAUDE.md` for current pipeline (was stuck circa 04-16). Shrank `PROGRESS.md` from 168-line dev journal to a structured context doc. Removed obsolete `example.md`, `Sentiment.md`, `04-27-cameraBodyFeature.md` (all shipped or stale).
+- **Refactor**: `shared/weight.ts` is now the single source of the per-post weight formula — pulled out of 5 places (`src/index.ts`, `src/test.ts`, `src/backfill-comment-lensids.ts`, `dashboard/src/utils.ts`, formerly `src/sentiment-rerun.ts`). `src/index.ts` and `src/test.ts` reuse `ALL_LENSES` from the matcher instead of re-reading `lenses.json`. `src/test.ts` now matches bodies too (was lens-only since the body feature shipped).
+- **Cleanup**: dropped the broken `npm test` script (referenced deleted `src/alias.test.ts`). Fixed `.gitignore` (was using `//` comments which gitignore doesn't support; added `dist-dashboard/` and `backups/`). Moved older `lenses.json.bak*` into `backups/`, deleted three stale `output/results.json.*.bak` snapshots from the 04-20 weight-formula change.
+- **Dashboard**: Nikon system-switch button is now disabled with a tooltip until a Nikon catalog exists.
+- **Sentiment internals**: documented why `analyzePhraseSentiment` accepts both `"comment"` and `"reddit_comment"`.
+- **Docs regenerated**: `docs/ARCHITECTURE.md` and `docs/DATA_MODELS.md` bumped to v1.1.0 reflecting bodies, retailers, technical reviews, price history.
 
----
+### 2026-04-28 — Spectrum dashboard scaffold
 
-### 2026-04-18
+Built the v2 dashboard view in `dashboard/src/spectrum/`. New layout language: brand-pulse cards, KPI tiles, sortable lens table with row drawer, sparklines, claude-pill, heat legend. Toggleable from the existing v1 dashboard via the view switcher. Lens-of-the-day picker in `spectrum/utils/lensOfTheDay.ts`.
 
-Focus on data coverage, resilience, naming, and sentiment planning.
+### 2026-04-27 — Camera body feature shipped
 
-- **`src/scraper.ts`** — increased retry backoff to `Retry-After + 90s base + 60s per attempt`. `fetchPosts` now catches rate limit exhaustion and returns partial results rather than throwing. Console log updated to show Retry-After value and backoff breakdown separately.
-- **`src/index.ts`** — `allMatched` lifted to module scope so the `.catch` handler can call `writeOutput` with partial data on fatal error. `writeOutput` extracted as a standalone function, accepts a `partial` flag. Comment fetch failures now caught per-post with a warning — loop continues rather than crashing. Added `SENTIMENT_MIN_MENTIONS = 5` constant. Renamed `totalWeight` → `scoreSentiment` throughout. Added `matchSource` field (`"post"` | `"comments"`) and `matchedComments` to each matched post. Comment matching console logs now show per-match lens IDs and comment count. `SORTS` replaced with `RUNS` array of `{ sort, timeframe }` objects — added `top/month` and `top/week` alongside existing `top/all`, `hot/all`, `new/all`, `rising/all`, `controversial/all`.
-- **`dashboard.html`** — renamed `totalWeight` → `scoreSentiment` in all charts, tables, and sort logic. Stats table gains a Comment Mentions column and a filter (Both / Post mentions only / Comment mentions only). `makeSortable` updated to accept an optional `onSort` callback to support the filtered table.
-- **`Sentiment.md`** — new planning document. Covers goal, keyword lexicon (positive + negative photography terms), context windowing (±30 words), negation handling, quantification formula (`sentimentRatio`, `avgSentiment`, word counts), ambiguous word handling, output schema, dashboard display ideas, and full implementation plan. Decisions recorded: comment sentiment weighted at 0.5, `phraseSentiment` kept separate from `scoreSentiment`, min 5 mentions threshold, static word weights (weight field added to lexicon entries for future tiering), `analyzePhraseSentiment` as the export name, `matchLensesWithPositions` added to matcher, comments fetched for post-matched posts controlled by `FETCH_COMMENTS_FOR_SENTIMENT` flag.
+Followed the phased plan in the (now-deleted) `04-27-cameraBodyFeature.md`. `bodies.json` seeded with full Sony E-mount FF + APS-C lineup from 2013. `--bodies` flag on every retail scraper. Reddit matcher generalized via `Matchable` + `compileBodies`. `BODY_SYSTEM_PROMPT` for Claude (autofocus tracking, EVF, IBIS, rolling shutter, codec, battery, etc.). Dashboard `BodiesTab` + `BodyDetailPage` mirror the lens equivalents. Phase 8 (bi-directional lens↔body links) deferred.
 
----
+### 2026-04-24 — Adorama / PerimeterX
 
-### 2026-04-20
+Adorama's `/l/` SPA is guarded by PerimeterX (HUMAN Security). Real Chrome binary, `puppeteer-extra-plugin-stealth`, persistent profile, injected cookies from a real authenticated session (`adorama-cookies.json`), organic Google/DDG search referer, cached product URLs, randomized delays + human scroll, captcha-streak detection that prompts for cookie refresh and rewinds to the streak start. The trust score is carried in the `_px3` cookie — exporting it from a real session laundering it into Playwright is what makes Adorama navigable.
 
-Focus on fixing a specific false-positive, tightening the weight formula, and linking the dashboard back to Reddit.
+### 2026-04-22 — Multi-system data model
 
-- **`src/matcher.ts`** — `buildFocalRegex` for primes now rejects a bare focal followed by `\s+\d{2,}` (e.g. `24 70`) so Sony 24mm f/2.8 G no longer matches `24-70mm` mentions where the hyphen got stripped or space-separated. `24mm` form still matches always.
-- **`src/backfill-comment-lensids.ts`** — rewritten from comment-only to full re-match. Now re-runs the matcher against post title+selftext, cascades through each comment body, recomputes `postLensIds` / `commentLensIds` / `lensIds`, drops posts whose match set went empty, filters stale `sentimentMentions`, rebuilds `stats`, and regenerates `output/lens-sentiment.json` in place. No Reddit calls.
-- **Weight formula** — two-stage rebalance to fix top-heavy distribution (top/p50 was ~9× before). (1) Per-post weight moved into log-space: `engagementScore = log(1 + score) × upvote_ratio` (×0.5 for self-posts), `discussionScore = log(1 + num_comments)`, `weight = engagementScore × 0.5 + discussionScore × 0.5`. (2) Per-lens aggregation switched from `sum(weights)` to `mean(weights) × log(1 + count)` so breadth no longer dominates per-mention quality. Post-change distribution: top=20.32, p10=15.10, p50=10.33, top/p50=2.0×.
-- **Dashboard Reddit links** — `dashboard/src/utils.ts` adds `postCommentsUrl(post)` and `commentPermalink(post, commentId)`. `LensDetailPage.tsx` and `TablesTab.tsx` now always link post titles to the Reddit comments section rather than the image URL, and comment bodies on the lens detail page link to the individual comment when the source is `"comment"`.
-- **Tooltips + docs** — `LensDetailPage` stat pills (`Post Mentions`, `Comment Mentions`, `Total Mentions`, `Score Sentiment`) now carry up-to-date `info` props. `OverviewTab` `Avg Weight` pill likewise. `README.md` grows a full Weighting section documenting per-post formula, per-lens aggregation, and every `stats` property. `weightingPosts.md` rewritten as personal scratchpad with the current formula, rationale for both changes, and a longer list of future-work knobs (time decay, multi-lens dilution, subreddit normalization, trimmed mean, phrase-sentiment feedback). `Sentiment.md` updated for the new `scoreSentiment` derivation. Legacy `dashboard.html` and `src/test.ts` formulas brought into sync.
+`system: string` added to `Lens`. `tags: string[]` renamed `category: string[]`; compound system-encoded values (`"Sony FE Full-Frame Primes"` etc.) flattened to pure category tokens (`prime`, `zoom`, `ultra-wide`, `aps-c`, …). All 146 lenses migrated. Dashboard updated. Decision: keep Sony as one system regardless of FE vs E mount; APS-C is a category tag, not a separate system.
 
----
+### 2026-04-21 — Retailer hardening + claude citations
 
-### 2026-04-20 (continued)
+B&H rating pivot from per-card review scrape to header summary (`avgRating` + `ratingCount` only — review UI was too inconsistent). Amazon scraper split into discover + refresh phases (always navigate `/dp/{asin}` after first ASIN found, re-scrape price + rating + official badge). `titleMatches` switched from substring junk-list to word-boundary regex (the bare `"filter"` reject was killing `"58mm filter thread"` lens-spec titles). Claude `positives`/`negatives` now `SentimentCitation[]` with `{aspect, quote, source}`; `verifyCitations` drops any quote not in the source text. Retailer image normalization unwraps Amazon size suffixes and B&H `/cdn-cgi/image/...` Cloudflare wrappers.
 
-Second session that day. Documentation pass, codebase consolidation, and a batch of feature additions ahead of an overnight scraper run.
+### 2026-04-20 — Weight rebalance + shared types
 
-- **Docs + regen command** — `docs/ARCHITECTURE.md` (Mermaid system + sequence diagrams, 8 consolidation opportunities), `docs/DATA_MODELS.md` (UML class diagrams for every JSON shape), both versioned at 1.0.0. `.claude/commands/regenerate-docs.md` — slash command that re-surveys the codebase and bumps version on regen.
-- **`shared/types.ts`** — new single source of truth for 18 types (Lens, Post, RedditPost, LensStat, VideoSentiment, ClaudeSentimentResult, etc.). Replaces duplicate definitions scattered across `src/` and `dashboard/src/types.ts` (which now just re-exports from shared). `tsconfig.json` and `dashboard/tsconfig.json` updated to include `../shared`; Vite `server.fs.allow` extended to reach the shared folder. Closed a data gap where the dashboard's Lens type was missing `bh?`.
-- **Consolidation passes** — `src/scraper.ts` stripped ~19 lines of dead jumping-jack animation code; cabinet animation kept. `dashboard/src/hooks/useDashboardData.ts` refactored with generic `fetchJson<T>` + `fetchLensesMap<T>` helpers instead of five hand-rolled fetch+fallback blocks. `src/matcher.ts` grew `matchPost(post)` and `matchPostWithPositions(post)` helpers taking `PostLike = { title; selftext? }`, replacing the `title + " " + (selftext ?? "")` boilerplate duplicated across 6 call sites (index.ts, sentiment-rerun.ts, backfill-comment-lensids.ts, test.ts, and 3 sites in alias.ts).
-- **`src/youtube-sentiment.ts`** — richer link metadata. `searchVideos` now returns `title`, `channelTitle`, `viewCount` (all already in the API response — just weren't persisted). The video map threads them end-to-end and `VideoSentiment` in `shared/types.ts` gained matching optional fields. `LensDetailPage` now renders video title as the link text with channel · viewCount on a subtitle line, falling back to `reviewer ?? videoId` for legacy manual entries.
-- **Gallery card on per-lens page** — `shared/types.ts` adds `PostImage` type and `RedditPost.images?: PostImage[]`. `src/scraper.ts` grows `extractImages()` that walks `media_metadata` + `gallery_data` for gallery posts, falls back to `preview.images[0].source` for single-image posts, and to the `url` field for direct image links. HTML-entity-decodes Reddit's signed preview URLs. `LensDetailPage.tsx` adds a Gallery section between retailers and Claude sentiment — up to 30 tiles sorted by post weight, responsive 160px-min grid, lazy-loaded, `referrerPolicy="no-referrer"` for cross-origin safety. Includes a fallback for pre-rescrape data that reads image extensions from `post.url`.
-- **Sonnet upgrade + broader coverage** — `src/claude-sentiment.ts` and `src/youtube-sentiment.ts` both switched from `claude-haiku-4-5` to `claude-sonnet-4-6`. Roughly 3× the per-token cost, estimated ~$5–6 per full run (vs ~$2) — worth it for better nuance on hedged statements. YouTube selection changed from `TOP_LENSES_COUNT = 10` (flat) to `TOP_LENSES_PER_BRAND = 15`, covering ~70 lenses across 8 brands (Sony 54→15, Sigma 27→15, Tamron 19→15, everything else takes all). Reddit sentiment scope unchanged — still runs against every lens with mentions.
-- **Claude Score column** — `dashboard/src/tabs/TablesTab.tsx` gains a Claude Score column in the three lens-row tables: "Highest-Weighted Post per Brand", "All Lenses — Stats", "Highest-Weighted Post per Lens". Shared `claudeCell()` helper renders `+0.42` / `—` with matching styling to the BrandDetailPage cell that already existed.
-- **`TODO.md`** — new file. Timestamp-quotes-in-YouTube-reviews plan parked for later: walk `fetchTranscript` segments to build an offset→index map, substring-match Claude's verbatim quotes back to segments, persist `t` alongside each quote, render `&t=NNs` links in `LensDetailPage`.
+Per-post weight moved into log-space (`log(1 + score) * upvote_ratio` etc.); per-lens aggregation switched from `sum(weights)` to `mean(weights) * log(1 + count)`. Top/p50 ratio dropped from ~9× to ~2×. `shared/types.ts` introduced as single source of truth (replaces duplicate `Lens` interfaces in 4 files). `LensDetailPage` gained Reddit-comments links, gallery section, and richer YouTube link metadata.
 
 ---
 
-### 2026-04-21
-
-Retailer-scraper session. Two themes: (1) making B&H data useful without fighting their review UI, and (2) turning the Amazon scraper from a one-shot discovery pass into a repeatable refresh loop.
-
-- **B&H rating pivot** — tried scraping per-card reviews (click the review tab, wait for `reviewsTab` container, pull verified cards), but the UX is inconsistent and the signal we actually want is star rating + total review count. Added `scrapeRatingAndCount(page)` in `src/bh-scrape.ts` that reads the header summary at `.//div[contains(@class, 'metaShare')]//div[contains(@class, 'reviews')]` — prefers the `aria-label` on the star widget (`"4.7 out of 5 stars"`), falls back to regex on the text node. Runs in parallel with `scrapePrice` / `scrapeOfficial`. `scrapeReviews` is kept in the file but no longer called — parked for a future pass. `BHEntry` in `shared/types.ts` gains `avgRating?` + `ratingCount?`.
-- **Amazon two-phase scraper** — `src/amazon-scrape.ts` split into discover + refresh. Extracted `scrapeProductData(page, asin)` that scrapes price + rating + official off the currently-loaded product page. Added exported `refreshAmazonAsin(page, lens, existing)` that navigates straight to `amazon.com/dp/{asin}` (skipping search entirely) and re-runs the same scrape. `main()` now always runs Phase 1 (discover ASINs for lenses without them) then Phase 2 (refresh every known ASIN). Each refresh writes `lenses.json` in place and calls `recordPrice` — which appends, so `output/price-history.json` naturally accumulates a timeseries. Reviews get overwritten per refresh (`saveReviews` replaces by `sourceType`).
-- **Official flag from product-page badge** — dropped the broken "mark official because we found an ASIN" hack. `scrapeOfficial(page)` now looks for `premium-logoByLine-brand-logo` (class/id/partial-class fallbacks) under the title on the product page. Re-evaluated every refresh so the flag can flip either direction if a seller wins or loses the brand storefront. Removed the dead `isOfficialStore` search-result helper.
-- **`titleMatches` false-positive fix** — replaced the flat `["filter", "lens cap", "hood", "case", "bag", "strap", "bundle with", "kit with"]` substring list with word-boundary regexes: `/\blens cap\b/`, `/\blens hood\b/`, `/\b(camera\|carrying\|gadget)\s+(bag\|case\|pouch)\b/`, `/\bcamera\s+strap\b/`, `/\bbundle\s+with\b/`, `/\bkit\s+with\b/`, `/\b(uv\|nd\|cpl\|polariz(?:er\|ing)\|variable\|protective\|neutral\s+density)\s+filter\b/`, `/\bfilter\s+(kit\|set\|pack)\b/`. Root cause: bare `"filter"` was rejecting any title containing `"58mm filter thread"` — a standard lens spec Amazon tacks onto the end of titles. Same shape of false positive was hiding behind `"hood"` / `"case"` / `"bag"`. Also added per-check rejection logs (brand / focal / aperture / which junk regex fired) so the next debug pass is faster.
-- **Dashboard retailers table** — B&H row now renders `${avgRating.toFixed(1)} ★` in yellow (mirroring the Amazon cell), with a `title` tooltip surfacing `ratingCount.toLocaleString() reviews` when we have it. No-rating fallback stays at `—`.
-- **Dashboard gallery** — scaffolded a B&H tab alongside Reddit + Amazon. Extracted the retailer-tile builder into a `buildRetailerGallery(source)` helper used for both Amazon and B&H. Tab button renders and counts but stays `disabled` when `bhGallery.length === 0` — it'll light up automatically once we start writing `sourceType: 'bh'` review entries with images (we're not scraping them yet; this is the wiring so the fetch pass is a drop-in later).
-
----
-
-### 2026-04-21 (continued)
-
-Short follow-up session focused on the Claude sentiment surface.
-
-- **Retailer image normalization on read** — `LensDetailPage.tsx` grows a `normalizeRetailerImage(src)` helper: strips Amazon's `._SY88`-style size suffix (→ full-size original) and unwraps B&H's `/cdn-cgi/image/<directive>/<absolute_url>` Cloudflare wrapper (→ full-resolution Bazaarvoice URL). Applied in both gallery builders so existing `reviews.json` / `lenses.json` data works without a re-scrape.
-- **Claude sentiment panel in lens detail** — the Claude card now shows a `"Based on N Reddit · N Amazon · N B&H"` line under the summary (counts computed from `reviews[lensId]` + `results.posts`) and a collapsible "Retailer reviews (N)" section below the positives/negatives grid that lists each Amazon/B&H review card (source badge, star glyphs, verified-purchase tag, date, link) sorted by star rating.
-- **Evidence-backed citations** — `ClaudeSentimentResult.positives` / `negatives` went from `string[]` to `SentimentCitation[]` (`{aspect, quote, source}`). System prompt rewritten to demand verbatim quotes — explicitly forbids paraphrase, typo-fixing, stitching, or invented evidence, and tells Claude to omit an aspect entirely when no quote supports it. New `verifyCitations` post-processing in `claude-sentiment.ts` normalizes whitespace/case and drops any quote not found character-for-character in the items actually sent for that lens (logs drop counts per batch). `max_tokens` bumped 4096 → 8192 for the richer output. `LensDetailPage` renders aspect + italic quote + colored source tag; `ClaudeSentimentTab` compact table shows just the aspect to keep cells readable. Requires re-running `npm run claude-sentiment` to regenerate `output/claude-sentiment.json` in the new shape.
+Earlier history (kickoff, Reddit pipeline, comment matching, alias discovery, lexicon design) is in git log; trimmed from this doc 2026-04-29.

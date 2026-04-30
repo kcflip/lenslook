@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
-import type { DashboardData, Post, VideoSentiment, ReviewSource } from '../types';
+import { useEffect, useMemo, useState } from 'react';
+import type { DashboardData, Post, VideoSentiment, ReviewSource, SentimentCitation, ReviewItem, BHProperty } from '../types';
 
 const SOURCE_LABEL: Record<ReviewSource, string> = {
   reddit_post: 'Reddit post',
   reddit_comment: 'Reddit comment',
   amazon: 'Amazon',
   bh: 'B&H',
+  adorama: 'Adorama',
   youtube: 'YouTube',
 };
 
@@ -14,14 +15,16 @@ const SOURCE_COLOR: Record<ReviewSource, string> = {
   reddit_comment: '#ff4500',
   amazon: '#ff9900',
   bh: '#0066cc',
+  adorama: '#e11d2c',
   youtube: '#ff0033',
 };
 import { BrandBadge } from '../components/BrandBadge';
 import { StatPill } from '../components/StatPill';
 import { TagPillRow } from '../components/TagPill';
+import { GalleryLightbox, type GalleryTile } from '../components/GalleryLightbox';
 import { WordCloudCanvas } from '../components/WordCloudCanvas';
 import { brandOf, calcWeight, buildCloudData, postCommentsUrl, commentPermalink } from '../utils';
-import { brandHref } from '../hooks/useHashRoute';
+import { brandHref, bodyHref } from '../hooks/useHashRoute';
 
 interface Props {
   data: DashboardData;
@@ -53,6 +56,58 @@ function normalizeRetailerImage(src: string): string {
   return bhMatch ? bhMatch[1] : stripped;
 }
 
+// Claude returns verbatim quotes from the input items but no URL — so we
+// find the originating item at render time by matching the quote back into
+// the same haystack `claude-sentiment.ts` verified against, then return its
+// public-facing URL (review URL, post comments URL, or comment permalink).
+function resolveCitationUrl(
+  citation: SentimentCitation,
+  lensId: string,
+  reviews: ReviewItem[],
+  posts: Post[],
+): string | null {
+  const norm = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+  const needle = norm(citation.quote);
+  if (!needle) return null;
+
+  if (citation.source === 'amazon' || citation.source === 'bh' || citation.source === 'adorama') {
+    for (const r of reviews) {
+      if (r.sourceType !== citation.source) continue;
+      if (norm(r.text).includes(needle)) return r.url ?? null;
+    }
+    return null;
+  }
+
+  if (citation.source === 'reddit_post') {
+    for (const post of posts) {
+      if (!post.postLensIds?.includes(lensId)) continue;
+      const postText = post.title + (post.selftext && post.selftext !== '[removed]'
+        ? ': ' + post.selftext.slice(0, 300)
+        : '');
+      if (norm(postText).includes(needle)) {
+        return post.id && post.subreddit ? postCommentsUrl(post) : post.url;
+      }
+    }
+    return null;
+  }
+
+  if (citation.source === 'reddit_comment') {
+    for (const post of posts) {
+      if (!post.commentLensIds?.includes(lensId)) continue;
+      for (const c of post.matchedComments ?? []) {
+        if (c.lensIds && !c.lensIds.includes(lensId)) continue;
+        if (norm(c.body).includes(needle)) {
+          if (c.id && post.id && post.subreddit) return commentPermalink(post, c.id);
+          return post.id && post.subreddit ? postCommentsUrl(post) : post.url;
+        }
+      }
+    }
+    return null;
+  }
+
+  return null;
+}
+
 function scoreColor(score: number): string {
   if (score >= 0.7) return '#4ade80';
   if (score >= 0.4) return '#facc15';
@@ -70,8 +125,49 @@ function labelColors(label: string) {
   return styles[label] ?? styles.neutral;
 }
 
+const SPEC_LABELS: Array<[keyof BHProperty, string]> = [
+  ['focalLength',          'Focal Length'],
+  ['maxAperture',          'Max Aperture'],
+  ['minAperture',          'Min Aperture'],
+  ['mount',                'Mount'],
+  ['format',               'Format'],
+  ['angleOfView',          'Angle of View'],
+  ['minimumFocusDistance', 'Min Focus'],
+  ['magnification',        'Magnification'],
+  ['opticalDesign',        'Optical Design'],
+  ['apertureBlades',       'Aperture Blades'],
+  ['focusType',            'Focus Type'],
+  ['imageStabilization',   'Stabilization'],
+  ['filterSize',           'Filter Thread'],
+  ['dimensions',           'Dimensions'],
+  ['weight',               'Weight'],
+];
+
+function BHSpecsTable({ props }: { props: BHProperty }) {
+  const rows = SPEC_LABELS.map(([key, label]) => [label, props[key]] as [string, string | undefined]).filter(([, v]) => v != null);
+  if (!rows.length) return null;
+  return (
+    <div style={{ flexShrink: 0 }}>
+      <table style={{ borderCollapse: 'collapse' }}>
+        <tbody>
+          {rows.map(([label, value]) => (
+            <tr key={label}>
+              <td style={{ color: '#4a4a4a', fontSize: '0.67rem', paddingRight: '0.6rem', paddingTop: '1px', paddingBottom: '1px', whiteSpace: 'nowrap', verticalAlign: 'top', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {label}
+              </td>
+              <td style={{ color: '#aaa', fontSize: '0.72rem', paddingTop: '1px', paddingBottom: '1px', lineHeight: 1.35, maxWidth: 180 }}>
+                {value}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function LensDetailPage({ data, lensId }: Props) {
-  const { results, lensById, sentiment, claudeSentiment, youtubeSentiment, reviews, lenses } = data;
+  const { results, lensById, sentiment, claudeSentiment, youtubeSentiment, reviews, lenses, bodyById } = data;
   const lens = lensById[lensId];
   const stat = results.stats.find(s => s.lensId === lensId);
   const claude = claudeSentiment[lensId];
@@ -95,9 +191,8 @@ export function LensDetailPage({ data, lensId }: Props) {
   // Gallery tiles drawn from post-matched posts, weighted. Prefers the new
   // images[] field from the scraper; falls back to post.url when it's a
   // direct image link (covers pre-rescrape data).
-  const gallery = useMemo(() => {
-    type Tile = { src: string; postUrl: string; postTitle: string };
-    const tiles: Tile[] = [];
+  const gallery = useMemo((): GalleryTile[] => {
+    const tiles: GalleryTile[] = [];
     const matched: Array<{ post: Post; weight: number }> = [];
     for (const post of results.posts) {
       if (post.postLensIds.includes(lensId)) {
@@ -108,62 +203,110 @@ export function LensDetailPage({ data, lensId }: Props) {
     const LIMIT = 30;
     for (const { post } of matched) {
       const postUrl = post.id && post.subreddit ? postCommentsUrl(post) : post.url;
+      const meta = [
+        { label: 'subreddit', value: `r/${post.subreddit}` },
+        { label: 'score', value: post.score.toLocaleString() },
+        { label: 'comments', value: post.num_comments.toLocaleString() },
+      ];
+      const pushTile = (src: string) => tiles.push({
+        src,
+        source: 'reddit',
+        linkUrl: postUrl,
+        linkLabel: 'View post on Reddit',
+        title: post.title,
+        meta,
+      });
       if (post.images && post.images.length > 0) {
         for (const img of post.images) {
-          tiles.push({ src: img.url, postUrl, postTitle: post.title });
+          pushTile(img.url);
           if (tiles.length >= LIMIT) break;
         }
       } else if (!post.is_self && /\.(jpe?g|png|gif|webp)(\?|$)/i.test(post.url)) {
-        tiles.push({ src: post.url, postUrl, postTitle: post.title });
+        pushTile(post.url);
       }
       if (tiles.length >= LIMIT) break;
     }
     return tiles;
   }, [results.posts, lensId]);
 
-  // Retailer gallery tiles — flattened user-submitted review images, grouped
-  // by source. Same shape as Reddit tiles so the grid renderer stays uniform.
-  type RetailerTile = { src: string; linkUrl?: string; caption: string };
-  const buildRetailerGallery = (source: 'amazon' | 'bh'): RetailerTile[] => {
-    const tiles: RetailerTile[] = [];
+  // Retailer gallery tiles — flattened user-submitted review images. One tile
+  // per image; each carries back to the review it was posted with.
+  const amazonGallery = useMemo((): GalleryTile[] => {
+    const tiles: GalleryTile[] = [];
     const items = reviews[lensId] ?? [];
     for (const item of items) {
-      if (item.sourceType !== source) continue;
+      if (item.sourceType !== 'amazon') continue;
       if (!item.images?.length) continue;
-      const caption = item.text.length > 80 ? item.text.slice(0, 77) + '…' : item.text;
-      for (const src of item.images) tiles.push({ src: normalizeRetailerImage(src), linkUrl: item.url, caption });
+      const caption = item.text.length > 160 ? item.text.slice(0, 157) + '…' : item.text;
+      const meta: Array<{ label: string; value: string }> = [];
+      if (item.rating != null) meta.push({ label: 'rating', value: `${item.rating}★` });
+      if (item.verifiedPurchase) meta.push({ label: 'purchase', value: 'verified' });
+      if (item.date) meta.push({ label: 'date', value: item.date });
+      if (item.upvoteScore != null) meta.push({ label: 'helpful', value: String(item.upvoteScore) });
+      for (const src of item.images) {
+        tiles.push({
+          src: normalizeRetailerImage(src),
+          source: 'amazon',
+          linkUrl: item.url ?? '#',
+          linkLabel: 'View review on Amazon',
+          title: caption,
+          meta,
+        });
+      }
     }
     return tiles;
-  };
-  const amazonGallery = useMemo(() => buildRetailerGallery('amazon'), [reviews, lensId]);
+  }, [reviews, lensId]);
 
   // B&H sidebar images live on BHEntry.images (captured from the review photo
-  // sidebar after opening the reviews tab), not in reviews.json.
-  const bhGallery = useMemo(() => {
-    type RetailerTile = { src: string; linkUrl?: string; caption: string };
-    return (lens.bh?.images ?? []).map((src): RetailerTile => ({
+  // sidebar after opening the reviews tab), not in reviews.json — so there's
+  // no per-image review attribution. Surface product-level context instead.
+  const bhGallery = useMemo((): GalleryTile[] => {
+    const bh = lens.bh;
+    if (!bh) return [];
+    const meta: Array<{ label: string; value: string }> = [];
+    if (bh.starCount != null) meta.push({ label: 'avg rating', value: `${bh.starCount}★` });
+    if (bh.ratingCount != null) meta.push({ label: 'reviews', value: bh.ratingCount.toLocaleString() });
+    if (bh.official) meta.push({ label: 'seller', value: 'authorized' });
+    return (bh.images ?? []).map((src): GalleryTile => ({
       src: normalizeRetailerImage(src),
-      linkUrl: lens.bh?.url,
-      caption: lens.bh?.title ?? 'B&H Photo',
+      source: 'bh',
+      linkUrl: bh.url,
+      linkLabel: 'View product on B&H',
+      title: bh.title ?? `${lens.brand} ${lens.name}`,
+      meta,
     }));
   }, [lens]);
 
-  // Default to whichever source has images; prefer Reddit, then Amazon, then B&H.
-  const [galleryTab, setGalleryTab] = useState<'reddit' | 'amazon' | 'bh'>(
-    gallery.length > 0 ? 'reddit'
-    : amazonGallery.length > 0 ? 'amazon'
-    : bhGallery.length > 0 ? 'bh'
-    : 'reddit',
-  );
+  // Adorama product images from AdoramaEntry.images — same pattern as bhGallery.
+
+  // Combined view interleaves sources round-robin so variety surfaces in the
+  // first visible rows rather than burying the smaller sets (typically B&H) at
+  // the end.
+  const combinedGallery = useMemo((): GalleryTile[] => {
+    const result: GalleryTile[] = [];
+    const max = Math.max(gallery.length, amazonGallery.length, bhGallery.length);
+    for (let i = 0; i < max; i++) {
+      if (i < gallery.length) result.push(gallery[i]);
+      if (i < amazonGallery.length) result.push(amazonGallery[i]);
+      if (i < bhGallery.length) result.push(bhGallery[i]);
+    }
+    return result;
+  }, [gallery, amazonGallery, bhGallery]);
+
+  // Default to combined; pills toggle to a single source and back.
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'reddit' | 'amazon' | 'bh'>('all');
+  const toggleSource = (s: 'reddit' | 'amazon' | 'bh') =>
+    setSourceFilter(prev => (prev === s ? 'all' : s));
 
   // Counts by source — drives the "Based on …" line under Claude's summary so
   // readers can see the breadth of material that fed the analysis.
   const sourceCounts = useMemo(() => {
     const items = reviews[lensId] ?? [];
-    let amazon = 0, bh = 0;
+    let amazon = 0, bh = 0, adorama = 0;
     for (const item of items) {
       if (item.sourceType === 'amazon') amazon++;
       else if (item.sourceType === 'bh') bh++;
+      else if (item.sourceType === 'adorama') adorama++;
     }
     let reddit = 0;
     for (const post of results.posts) {
@@ -173,7 +316,7 @@ export function LensDetailPage({ data, lensId }: Props) {
         if (attributed) reddit++;
       }
     }
-    return { amazon, bh, reddit };
+    return { amazon, bh, adorama, reddit };
   }, [reviews, lensId, results.posts]);
 
   // Retailer reviews grouped for the collapsible source panel inside the Claude
@@ -181,11 +324,78 @@ export function LensDetailPage({ data, lensId }: Props) {
   const retailerReviews = useMemo(() => {
     const items = reviews[lensId] ?? [];
     return items
-      .filter(r => r.sourceType === 'amazon' || r.sourceType === 'bh')
+      .filter(r => r.sourceType === 'amazon' || r.sourceType === 'bh' || r.sourceType === 'adorama')
       .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
   }, [reviews, lensId]);
 
   const [sourcesExpanded, setSourcesExpanded] = useState(false);
+
+  // Render one Claude citation with the quote wrapped as a link back to its
+  // source item (review URL, post comments URL, or comment permalink). Falls
+  // back to a plain block when the quote can't be matched — shouldn't happen
+  // post-verifyCitations, but don't break the UI if it does.
+  const renderCitation = (c: SentimentCitation, i: number) => {
+    const url = resolveCitationUrl(c, lensId, reviews[lensId] ?? [], results.posts);
+    const quoteStyle = { color: '#999', fontStyle: 'italic' as const, fontSize: '0.8rem', lineHeight: 1.45, marginTop: '0.25rem' };
+    const sourceLabel = SOURCE_LABEL[c.source] ?? c.source;
+    const sourceColor = SOURCE_COLOR[c.source] ?? '#666';
+    const sourceStyle = { marginTop: '0.25rem', fontSize: '0.7rem', textTransform: 'uppercase' as const, letterSpacing: '0.04em', color: sourceColor };
+    return (
+      <li key={i} style={{ marginBottom: '0.8rem' }}>
+        <div style={{ color: '#e0e0e0', fontSize: '0.9rem' }}>{c.aspect}</div>
+        {url ? (
+          <a href={url} target="_blank" rel="noopener" title="View source" style={{ ...quoteStyle, display: 'block', textDecoration: 'none' }}>
+            &ldquo;{c.quote}&rdquo;
+          </a>
+        ) : (
+          <div style={quoteStyle}>&ldquo;{c.quote}&rdquo;</div>
+        )}
+        {url ? (
+          <a href={url} target="_blank" rel="noopener" style={{ ...sourceStyle, display: 'inline-block', textDecoration: 'none' }}>
+            {sourceLabel} ↗
+          </a>
+        ) : (
+          <div style={sourceStyle}>{sourceLabel}</div>
+        )}
+      </li>
+    );
+  };
+
+  // Gallery collapses to 2 rows by default. Row count in a responsive
+  // `repeat(auto-fill, 1fr)` grid depends on viewport width, so we read the
+  // resolved `grid-template-columns` via ResizeObserver instead of guessing.
+  const [galleryExpanded, setGalleryExpanded] = useState(false);
+  const [galleryGridEl, setGalleryGridEl] = useState<HTMLDivElement | null>(null);
+  const [galleryCols, setGalleryCols] = useState(4);
+  useEffect(() => {
+    if (!galleryGridEl) return;
+    const measure = () => {
+      const n = window.getComputedStyle(galleryGridEl)
+        .getPropertyValue('grid-template-columns')
+        .split(' ')
+        .filter(Boolean).length;
+      if (n > 0) setGalleryCols(n);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(galleryGridEl);
+    return () => ro.disconnect();
+  }, [galleryGridEl]);
+  // Reset to collapsed when changing filters so each view opens compact.
+  useEffect(() => { setGalleryExpanded(false); }, [sourceFilter]);
+  const activeGallery =
+    sourceFilter === 'all' ? combinedGallery :
+    sourceFilter === 'reddit' ? gallery :
+    sourceFilter === 'amazon' ? amazonGallery :
+    bhGallery;
+  const collapsedCount = galleryCols * 2;
+  const canExpandGallery = activeGallery.length > collapsedCount;
+  const visibleCount = galleryExpanded ? activeGallery.length : collapsedCount;
+
+  // Lightbox overlay — opens on tile click and cycles through the full active
+  // gallery (not just the visible thumbnails, so users can page past the
+  // collapsed limit with arrow keys).
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // Top comments that actually mention this lens
   const topComments = useMemo(() => {
@@ -210,6 +420,21 @@ export function LensDetailPage({ data, lensId }: Props) {
   const cloud = useMemo(() => (
     lexicon ? buildCloudData([lexicon]) : { list: [], colorMap: {} }
   ), [lexicon]);
+
+  // Bodies most frequently co-mentioned with this lens
+  const pairedBodies = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const post of results.posts) {
+      if (!post.postLensIds.includes(lensId) && !post.commentLensIds.includes(lensId)) continue;
+      for (const id of [...post.postLensIds, ...post.commentLensIds]) {
+        if (id.startsWith('body-')) counts.set(id, (counts.get(id) ?? 0) + 1);
+      }
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .flatMap(([id, count]) => bodyById[id] ? [{ body: bodyById[id], count }] : []);
+  }, [results.posts, lensId, bodyById]);
 
   // Related lenses (same brand, excluding current)
   const related = useMemo(() => {
@@ -245,8 +470,8 @@ export function LensDetailPage({ data, lensId }: Props) {
 
       {/* Hero + stats */}
       <div className="card full lens-hero">
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 320px', minWidth: '280px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          <div style={{ flex: '1 1 260px', minWidth: '200px' }}>
             <div style={{ marginBottom: '0.5rem' }}>
               <BrandBadge brand={brand} />
               <span style={{ marginLeft: '0.6rem', color: '#666', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -263,7 +488,7 @@ export function LensDetailPage({ data, lensId }: Props) {
               {lens.focalLength} · {lens.maxAperture}
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <TagPillRow tags={lens.tags ?? []} />
+              <TagPillRow tags={lens.category ?? []} />
             </div>
             {lens.aliases.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
@@ -279,38 +504,39 @@ export function LensDetailPage({ data, lensId }: Props) {
               </a>
             )}
           </div>
-          <div className="hero-stats">
-            <StatPill
-              label="Post Mentions"
-              value={stat?.postCount ?? 0}
-              info="Number of posts whose title or body matched this lens."
-            />
-            <StatPill
-              label="Comment Mentions"
-              value={stat?.commentCount ?? 0}
-              info="Number of posts where the lens appeared only in the comment thread (disjoint from Post Mentions — a post that matches in both title and comments counts once as a post mention)."
-            />
-            <StatPill
-              label="Total Mentions"
-              value={mentions}
-              info="Post Mentions + Comment Mentions — how many distinct posts contributed to this lens's stats."
-            />
-            <StatPill
-              label="Score Sentiment"
-              value={stat ? stat.scoreSentiment.toFixed(2) : '—'}
-              info="Per-post weight = log(1 + score) × upvote_ratio × 0.5 + log(1 + num_comments) × 0.5, halved for self-posts. Aggregated across posts as mean(weights) × log(1 + count) so a few excellent matches aren't buried by many mediocre ones."
-            />
-            <StatPill
-              label="Claude Score"
-              value={claude ? `${claude.score > 0 ? '+' : ''}${claude.score.toFixed(2)}` : '—'}
-              info="Claude's sentiment score on a −1 to +1 scale, derived from qualifying opinion mentions about optical/build quality."
-            />
-          </div>
+          {lens.bh?.properties && <BHSpecsTable props={lens.bh.properties} />}
+        </div>
+        <div className="hero-stats">
+          <StatPill
+            label="Post Mentions"
+            value={stat?.postCount ?? 0}
+            info="Number of posts whose title or body matched this lens."
+          />
+          <StatPill
+            label="Comment Mentions"
+            value={stat?.commentCount ?? 0}
+            info="Number of posts where the lens appeared only in the comment thread (disjoint from Post Mentions — a post that matches in both title and comments counts once as a post mention)."
+          />
+          <StatPill
+            label="Total Mentions"
+            value={mentions}
+            info="Post Mentions + Comment Mentions — how many distinct posts contributed to this lens's stats."
+          />
+          <StatPill
+            label="Score Sentiment"
+            value={stat ? stat.scoreSentiment.toFixed(2) : '—'}
+            info="Per-post weight = log(1 + score) × upvote_ratio × 0.5 + log(1 + num_comments) × 0.5, halved for self-posts. Aggregated across posts as mean(weights) × log(1 + count) so a few excellent matches aren't buried by many mediocre ones."
+          />
+          <StatPill
+            label="Claude Score"
+            value={claude ? `${claude.score > 0 ? '+' : ''}${claude.score.toFixed(2)}` : '—'}
+            info="Claude's sentiment score on a −1 to +1 scale, derived from qualifying opinion mentions about optical/build quality."
+          />
         </div>
       </div>
 
       {/* Retailers price table */}
-      {(lens.amazon?.asins?.length || lens.bh) && (
+      {(lens.amazon?.asins?.length || lens.bh || lens.adorama || lens.retailers) && (
         <div className="card full">
           <h2>Retailers</h2>
           <table>
@@ -336,7 +562,11 @@ export function LensDetailPage({ data, lensId }: Props) {
                   <td style={{ color: '#555', fontSize: '0.75rem' }}>
                     {a.priceScrapedAt ? new Date(a.priceScrapedAt).toLocaleDateString() : ''}
                   </td>
-                  <td className="num" style={{ color: a.avgRating != null ? '#facc15' : '#555', fontWeight: 600 }}>
+                  <td
+                    className="num"
+                    style={{ color: a.avgRating != null ? '#facc15' : '#555', fontWeight: 600 }}
+                    title={a.ratingCount != null ? `${a.ratingCount.toLocaleString()} reviews` : undefined}
+                  >
                     {a.avgRating != null ? `${a.avgRating.toFixed(1)} ★` : '—'}
                   </td>
                 </tr>
@@ -363,6 +593,44 @@ export function LensDetailPage({ data, lensId }: Props) {
                   </td>
                 </tr>
               )}
+              {lens.adorama && (
+                <tr key="adorama">
+                  <td>
+                    <a href={lens.adorama.url} target="_blank" rel="noopener">
+                      Adorama{lens.adorama.official && <span className="official-tag"> ✓ official</span>}
+                    </a>
+                  </td>
+                  <td className="num" style={{ color: lens.adorama.price ? '#4ade80' : '#555', fontWeight: 600 }}>
+                    {lens.adorama.price != null ? `$${lens.adorama.price.toFixed(2)}` : '—'}
+                  </td>
+                  <td style={{ color: '#555', fontSize: '0.75rem' }}>
+                    {lens.adorama.priceScrapedAt ? new Date(lens.adorama.priceScrapedAt).toLocaleDateString() : ''}
+                  </td>
+                  <td
+                    className="num"
+                    style={{ color: lens.adorama.starCount != null ? '#facc15' : '#555', fontWeight: 600 }}
+                    title={lens.adorama.ratingCount != null ? `${lens.adorama.ratingCount.toLocaleString()} reviews` : undefined}
+                  >
+                    {lens.adorama.starCount != null ? `${lens.adorama.starCount.toFixed(1)} ★` : '—'}
+                  </td>
+                </tr>
+              )}
+              {lens.retailers && Object.entries(lens.retailers).map(([slug, r]) => (
+                <tr key={slug}>
+                  <td>
+                    <a href={r.url} target="_blank" rel="noopener">
+                      {r.title ?? slug.charAt(0).toUpperCase() + slug.slice(1)}
+                    </a>
+                  </td>
+                  <td className="num" style={{ color: r.price ? '#4ade80' : '#555', fontWeight: 600 }}>
+                    {r.price != null ? `$${r.price.toFixed(2)}` : '—'}
+                  </td>
+                  <td style={{ color: '#555', fontSize: '0.75rem' }}>
+                    {r.priceScrapedAt ? new Date(r.priceScrapedAt).toLocaleDateString() : ''}
+                  </td>
+                  <td className="num" style={{ color: '#555' }}>—</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -376,91 +644,75 @@ export function LensDetailPage({ data, lensId }: Props) {
             <div style={{ display: 'flex', gap: '0.4rem' }}>
               <button
                 type="button"
-                onClick={() => setGalleryTab('reddit')}
+                onClick={() => toggleSource('reddit')}
                 disabled={gallery.length === 0}
-                className={`tab-pill${galleryTab === 'reddit' ? ' active' : ''}`}
+                className={`tab-pill${sourceFilter === 'reddit' ? ' active' : ''}`}
               >
                 Reddit <span style={{ color: '#666', marginLeft: '0.3rem' }}>{gallery.length}</span>
               </button>
               <button
                 type="button"
-                onClick={() => setGalleryTab('amazon')}
+                onClick={() => toggleSource('amazon')}
                 disabled={amazonGallery.length === 0}
-                className={`tab-pill${galleryTab === 'amazon' ? ' active' : ''}`}
+                className={`tab-pill${sourceFilter === 'amazon' ? ' active' : ''}`}
               >
                 Amazon <span style={{ color: '#666', marginLeft: '0.3rem' }}>{amazonGallery.length}</span>
               </button>
               <button
                 type="button"
-                onClick={() => setGalleryTab('bh')}
+                onClick={() => toggleSource('bh')}
                 disabled={bhGallery.length === 0}
-                className={`tab-pill${galleryTab === 'bh' ? ' active' : ''}`}
+                className={`tab-pill${sourceFilter === 'bh' ? ' active' : ''}`}
               >
                 B&amp;H <span style={{ color: '#666', marginLeft: '0.3rem' }}>{bhGallery.length}</span>
               </button>
             </div>
           </div>
           <p className="meta" style={{ marginTop: '0.25rem', marginBottom: '1rem' }}>
-            {galleryTab === 'reddit' && 'Images from top-weighted Reddit posts that mention this lens.'}
-            {galleryTab === 'amazon' && 'User-submitted images from verified Amazon reviews.'}
-            {galleryTab === 'bh' && 'User-submitted images from verified B&H reviews.'}
+            {sourceFilter === 'all' && 'Images from Reddit posts, Amazon reviews, and B&H reviews — click a pill to filter.'}
+            {sourceFilter === 'reddit' && 'Images from top-weighted Reddit posts that mention this lens.'}
+            {sourceFilter === 'amazon' && 'User-submitted images from verified Amazon reviews.'}
+            {sourceFilter === 'bh' && 'User-submitted images from verified B&H reviews.'}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.5rem' }}>
-            {galleryTab === 'reddit' && gallery.map((tile, i) => (
-              <a
-                key={`r${i}`}
-                href={tile.postUrl}
-                target="_blank"
-                rel="noopener"
-                title={tile.postTitle}
-                style={{ display: 'block', aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: '4px', background: '#111' }}
+          <div ref={setGalleryGridEl} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.5rem' }}>
+            {activeGallery.slice(0, visibleCount).map((tile, i) => (
+              <button
+                type="button"
+                key={`${sourceFilter}-${tile.source}-${i}`}
+                onClick={() => setLightboxIndex(i)}
+                title={tile.title}
+                style={{
+                  display: 'block',
+                  aspectRatio: '1 / 1',
+                  overflow: 'hidden',
+                  borderRadius: '4px',
+                  background: '#111',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                }}
               >
                 <img
                   src={tile.src}
-                  alt={tile.postTitle}
+                  alt={tile.title}
                   loading="lazy"
                   referrerPolicy="no-referrer"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
-              </a>
-            ))}
-            {galleryTab === 'amazon' && amazonGallery.map((tile, i) => (
-              <a
-                key={`a${i}`}
-                href={tile.linkUrl ?? tile.src}
-                target="_blank"
-                rel="noopener"
-                title={tile.caption}
-                style={{ display: 'block', aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: '4px', background: '#111' }}
-              >
-                <img
-                  src={tile.src}
-                  alt={tile.caption}
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-              </a>
-            ))}
-            {galleryTab === 'bh' && bhGallery.map((tile, i) => (
-              <a
-                key={`b${i}`}
-                href={tile.linkUrl ?? tile.src}
-                target="_blank"
-                rel="noopener"
-                title={tile.caption}
-                style={{ display: 'block', aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: '4px', background: '#111' }}
-              >
-                <img
-                  src={tile.src}
-                  alt={tile.caption}
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-              </a>
+              </button>
             ))}
           </div>
+          {canExpandGallery && (
+            <button
+              type="button"
+              onClick={() => setGalleryExpanded(v => !v)}
+              style={{ marginTop: '0.75rem', background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '0.82rem', padding: 0 }}
+            >
+              {galleryExpanded
+                ? '▾ Show less'
+                : `▸ Show ${activeGallery.length - collapsedCount} more`}
+            </button>
+          )}
         </div>
       )}
 
@@ -490,6 +742,7 @@ export function LensDetailPage({ data, lensId }: Props) {
               sourceCounts.reddit && `${sourceCounts.reddit} Reddit`,
               sourceCounts.amazon && `${sourceCounts.amazon} Amazon`,
               sourceCounts.bh && `${sourceCounts.bh} B&H`,
+              sourceCounts.adorama && `${sourceCounts.adorama} Adorama`,
             ].filter(Boolean).join(' · ') || 'no source material'}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
@@ -497,17 +750,7 @@ export function LensDetailPage({ data, lensId }: Props) {
               <h3 className="sentiment-heading" style={{ color: '#4ade80' }}>Positives</h3>
               {claude.positives.length > 0 ? (
                 <ul className="sentiment-list citation-list">
-                  {claude.positives.map((c, i) => (
-                    <li key={i} style={{ marginBottom: '0.8rem' }}>
-                      <div style={{ color: '#e0e0e0', fontSize: '0.9rem' }}>{c.aspect}</div>
-                      <div style={{ color: '#999', fontStyle: 'italic', fontSize: '0.8rem', lineHeight: 1.45, marginTop: '0.25rem' }}>
-                        &ldquo;{c.quote}&rdquo;
-                      </div>
-                      <div style={{ marginTop: '0.25rem', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: SOURCE_COLOR[c.source] ?? '#666' }}>
-                        {SOURCE_LABEL[c.source] ?? c.source}
-                      </div>
-                    </li>
-                  ))}
+                  {claude.positives.map(renderCitation)}
                 </ul>
               ) : (
                 <p className="meta" style={{ margin: 0 }}>None identified</p>
@@ -517,17 +760,7 @@ export function LensDetailPage({ data, lensId }: Props) {
               <h3 className="sentiment-heading" style={{ color: '#f87171' }}>Negatives</h3>
               {claude.negatives.length > 0 ? (
                 <ul className="sentiment-list citation-list">
-                  {claude.negatives.map((c, i) => (
-                    <li key={i} style={{ marginBottom: '0.8rem' }}>
-                      <div style={{ color: '#e0e0e0', fontSize: '0.9rem' }}>{c.aspect}</div>
-                      <div style={{ color: '#999', fontStyle: 'italic', fontSize: '0.8rem', lineHeight: 1.45, marginTop: '0.25rem' }}>
-                        &ldquo;{c.quote}&rdquo;
-                      </div>
-                      <div style={{ marginTop: '0.25rem', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: SOURCE_COLOR[c.source] ?? '#666' }}>
-                        {SOURCE_LABEL[c.source] ?? c.source}
-                      </div>
-                    </li>
-                  ))}
+                  {claude.negatives.map(renderCitation)}
                 </ul>
               ) : (
                 <p className="meta" style={{ margin: 0 }}>None identified</p>
@@ -548,8 +781,8 @@ export function LensDetailPage({ data, lensId }: Props) {
                   {retailerReviews.map((r, i) => (
                     <div key={i} style={{ borderLeft: '2px solid #2a2a2a', paddingLeft: '0.8rem' }}>
                       <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.3rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
-                        <span style={{ color: r.sourceType === 'amazon' ? '#ff9900' : '#0066cc', fontWeight: 600 }}>
-                          {r.sourceType === 'amazon' ? 'Amazon' : 'B&H'}
+                        <span style={{ color: r.sourceType === 'amazon' ? '#ff9900' : r.sourceType === 'adorama' ? '#e11d2c' : '#0066cc', fontWeight: 600 }}>
+                          {r.sourceType === 'amazon' ? 'Amazon' : r.sourceType === 'adorama' ? 'Adorama' : 'B&H'}
                         </span>
                         {r.rating != null && (
                           <span style={{ color: '#facc15' }}>
@@ -710,6 +943,23 @@ export function LensDetailPage({ data, lensId }: Props) {
         )}
       </div>
 
+      {/* Bodies paired with this lens */}
+      {pairedBodies.length > 0 && (
+        <div className="card full">
+          <h2>Bodies discussed alongside this lens</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+            {pairedBodies.map(({ body, count }) => (
+              <a key={body.id} href={bodyHref(body.id)} className="related-chip">
+                <strong>{body.brand} {body.name}</strong>
+                <span style={{ color: '#666', marginLeft: '0.4rem', fontSize: '0.75rem' }}>
+                  {count} {count === 1 ? 'post' : 'posts'}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Related */}
       {related.length > 0 && (
         <div className="card full">
@@ -725,6 +975,15 @@ export function LensDetailPage({ data, lensId }: Props) {
             ))}
           </div>
         </div>
+      )}
+
+      {lightboxIndex != null && activeGallery.length > 0 && (
+        <GalleryLightbox
+          tiles={activeGallery}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onIndex={setLightboxIndex}
+        />
       )}
     </>
   );

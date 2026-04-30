@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync } from "fs";
 import { matchLensesWithPositions, matchPostWithPositions } from "./matcher.js";
 import { computePhraseSentiment } from "./sentiment.js";
+import { calcWeight } from "../shared/weight.js";
 import type { Post, LensStat, WordHit, PhraseSentimentStats, LensSentimentEntry } from "../shared/types.js";
 
-const FILE = "output/results.json";
+const FILE = "output/sonyResults.json";
 
 interface ResultsFile {
   posts: Post[];
@@ -79,9 +80,7 @@ const statsMap = new Map<string, { scores: number[]; ratios: number[]; comments:
 const sentimentMap = new Map<string, { rawScores: number[]; positiveHits: WordHit[]; negativeHits: WordHit[] }>();
 
 for (const post of data.posts) {
-  const engagementScore = Math.log(1 + post.score) * (post.is_self ? post.upvote_ratio * 0.5 : post.upvote_ratio);
-  const discussionScore = Math.log(1 + post.num_comments);
-  const weight = engagementScore * 0.5 + discussionScore * 0.5;
+  const weight = calcWeight(post);
   const ids = post.lensIds ?? [];
   const commentIds = post.commentLensIds ?? [];
   for (const id of ids) {

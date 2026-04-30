@@ -26,7 +26,7 @@ function useBounds(lenses: Lens[], statsRows: StatsRow[], topPostRows: TopPostRo
 }
 
 // Toggle-switch control for filtering to prime lenses inside the filter bars.
-function PrimesToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+export function PrimesToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
     <label style={{ cursor: 'pointer' }}>
       <span className="filter-header">Primes only</span>
@@ -43,8 +43,27 @@ function PrimesToggle({ value, onChange }: { value: boolean; onChange: (v: boole
   );
 }
 
+// Toggle-switch that hides APS-C lenses when on (default-on, since the
+// catalog is currently dominated by full-frame glass).
+export function HideApsCToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label style={{ cursor: 'pointer' }}>
+      <span className="filter-header">APS-C</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={value}
+        onClick={() => onChange(!value)}
+        className={`toggle-switch${value ? ' on' : ''}`}
+      >
+        <span className="toggle-knob" />
+      </button>
+    </label>
+  );
+}
+
 // Renders the Claude Score cell — matches BrandDetailPage styling.
-function claudeCell(score: number | null) {
+export function claudeCell(score: number | null) {
   if (score == null) return <td className="num">—</td>;
   return (
     <td className="num" style={{ fontWeight: 600 }}>
@@ -89,7 +108,7 @@ interface TopCommentRow {
   [key: string]: unknown;
 }
 
-interface TopBrandRow {
+export interface TopBrandRow {
   brand: string;
   lensId: string;
   title: string;
@@ -251,7 +270,7 @@ function TopCommentSection({ rows, lensById }: { rows: TopCommentRow[]; lensById
 }
 
 // ── Top brand per brand ──
-function TopBrandSection({ rows, lensById }: { rows: TopBrandRow[]; lensById: Record<string, Lens> }) {
+export function TopBrandSection({ rows, lensById }: { rows: TopBrandRow[]; lensById: Record<string, Lens> }) {
   const [sortKey, setSortKey] = useState('weight');
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -332,7 +351,7 @@ function StatsSection({ rows, lenses, lensById, bounds, brands }: SectionProps) 
     return sortRows(rows, sortKey, sortAsc).filter(s => {
       const lens = lensById[s.lensId];
       if (brand && s.brand !== brand) return false;
-      if (primesOnly && !(lens?.tags ?? []).includes('prime')) return false;
+      if (primesOnly && !(lens?.category ?? []).includes('prime')) return false;
       if (apActive) {
         const a = parseAperture(lens?.maxAperture);
         if (a == null || a < aperture[0] || a > aperture[1]) return false;
@@ -437,7 +456,7 @@ function TopPostSection({ rows, lenses, lensById, bounds, brands }: TopPostSecti
     return sortRows(rows, sortKey, sortAsc).filter(r => {
       const lens = lensById[r.lensId];
       if (brand && brandOf(r.lensId, lensById) !== brand) return false;
-      if (primesOnly && !(lens?.tags ?? []).includes('prime')) return false;
+      if (primesOnly && !(lens?.category ?? []).includes('prime')) return false;
       if (apActive) {
         const a = parseAperture(lens?.maxAperture);
         if (a == null || a < aperture[0] || a > aperture[1]) return false;

@@ -148,6 +148,7 @@ export async function fetchComments(
           body: d.body,
           score: d.score as number,
           parent_id: d.parent_id as string,
+          author: (d.author as string | undefined) ?? "[deleted]",
         });
       }
       if (d.replies && typeof d.replies === "object") {
@@ -214,6 +215,25 @@ function extractImages(p: Record<string, unknown>): PostImage[] {
   return images;
 }
 
+function mapListingChild(p: Record<string, unknown>, sort: Sort | SearchSort, timeframe?: Timeframe): Post {
+  const images = extractImages(p);
+  return {
+    id: p.id as string,
+    title: p.title as string,
+    selftext: p.selftext as string,
+    score: p.score as number,
+    upvote_ratio: p.upvote_ratio as number,
+    num_comments: p.num_comments as number,
+    created_utc: p.created_utc as number,
+    url: p.url as string,
+    subreddit: p.subreddit as string,
+    sort,
+    timeframe: timeframe ?? null,
+    is_self: p.is_self as boolean,
+    ...(images.length > 0 && { images }),
+  };
+}
+
 export async function fetchPosts(
   subreddit: string,
   sort: Sort = "hot",
@@ -246,23 +266,60 @@ export async function fetchPosts(
     };
 
     for (const child of data.data.children) {
-      const p = child.data;
-      const images = extractImages(p);
-      posts.push({
-        id: p.id as string,
-        title: p.title as string,
-        selftext: p.selftext as string,
-        score: p.score as number,
-        upvote_ratio: p.upvote_ratio as number,
-        num_comments: p.num_comments as number,
-        created_utc: p.created_utc as number,
-        url: p.url as string,
-        subreddit: p.subreddit as string,
-        sort,
-        timeframe: timeframe ?? null,
-        is_self: p.is_self as boolean,
-        ...(images.length > 0 && { images }),
-      });
+      posts.push(mapListingChild(child.data, sort, timeframe));
+    }
+
+    after = data.data.after;
+    if (!after) break;
+  }
+
+  return posts;
+}
+
+// Reddit's search-endpoint sort values. `rising` and `controversial` don't
+// apply — callers must pass one of these.
+export type SearchSort = "relevance" | "hot" | "top" | "new" | "comments";
+
+// Search within a single subreddit. Mirrors fetchPosts but targets the
+// `/r/{sub}/search.json` endpoint with a query filter. Useful for niche subs
+// where the top listing is mostly off-topic and we want to narrow to posts
+// that actually mention our brands.
+export async function fetchSearch(
+  subreddit: string,
+  query: string,
+  sort: SearchSort = "relevance",
+  limit = 500,
+  timeframe?: Timeframe,
+): Promise<Post[]> {
+  const posts: Post[] = [];
+  let after: string | null = null;
+
+  while (posts.length < limit) {
+    const batchSize = Math.min(100, limit - posts.length);
+    const url = new URL(`https://www.reddit.com/r/${subreddit}/search.json`);
+    url.searchParams.set("q", query);
+    url.searchParams.set("restrict_sr", "1");
+    url.searchParams.set("sort", sort);
+    url.searchParams.set("limit", String(batchSize));
+    if (after) url.searchParams.set("after", after);
+    // `t` only meaningful for `top`; harmless otherwise, but keep it scoped.
+    if (timeframe && sort === "top") url.searchParams.set("t", timeframe);
+
+    let res: Response;
+    try {
+      res = await redditFetch(url.toString());
+    } catch {
+      console.warn(`  ⚠ Rate limit retries exhausted for r/${subreddit}/search — returning ${posts.length} posts collected so far.`);
+      break;
+    }
+    if (!res.ok) throw new Error(`Reddit error: ${res.status} ${await res.text()}`);
+
+    const data = (await res.json()) as {
+      data: { children: { data: Record<string, unknown> }[]; after: string | null };
+    };
+
+    for (const child of data.data.children) {
+      posts.push(mapListingChild(child.data, sort, timeframe));
     }
 
     after = data.data.after;

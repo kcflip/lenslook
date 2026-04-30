@@ -11,11 +11,11 @@ function load(): ReviewsData {
   }
 }
 
-export function saveReviews(lensId: string, sourceType: ReviewSource, reviews: ReviewItem[]): void {
+export function saveReviews(productId: string, sourceType: ReviewSource, reviews: ReviewItem[]): void {
   mkdirSync("output", { recursive: true });
   const data = load();
-  const existing = data[lensId] ?? [];
-  data[lensId] = [...existing.filter(r => r.sourceType !== sourceType), ...reviews];
+  const existing = data[productId] ?? [];
+  data[productId] = [...existing.filter(r => r.sourceType !== sourceType), ...reviews];
   writeFileSync(REVIEWS_FILE, JSON.stringify(data, null, 2));
 }
 

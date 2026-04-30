@@ -1,18 +1,36 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StatPill } from '../components/StatPill';
 import { BarChart } from '../components/BarChart';
 import { DoughnutChart } from '../components/DoughnutChart';
 import { LensBarList } from '../components/LensBarList';
-import type { DashboardData } from '../types';
-import { brandOf, displayName, brandColor } from '../utils';
+import { CollapsibleSection } from '../components/CollapsibleSection';
+import { SortableTable, sortRows } from '../components/SortableTable';
+import { BrandBadge } from '../components/BrandBadge';
+import { LensNameLink } from '../components/LensNameLink';
+import type { DashboardData, Lens } from '../types';
+import { brandOf, displayName, brandColor, calcWeight, postCommentsUrl } from '../utils';
 import { lensHref, brandHref } from '../hooks/useHashRoute';
+import { TopBrandSection, PrimesToggle, HideApsCToggle, claudeCell, type TopBrandRow } from './TablesTab';
 
 interface Props {
   data: DashboardData;
 }
 
+interface StatsRow {
+  lensId: string;
+  brand: string;
+  postCount: number;
+  commentCount: number;
+  avgScore: number;
+  avgUpvoteRatio: number;
+  avgComments: number;
+  scoreSentiment: number;
+  claudeScore: number | null;
+  [key: string]: unknown;
+}
+
 export function OverviewTab({ data }: Props) {
-  const { results, lensById } = data;
+  const { results, lenses, lensById, claudeSentiment } = data;
   const { stats, posts, fetchedAt, subreddits } = results;
 
   const meta = useMemo(() => {
@@ -43,6 +61,37 @@ export function OverviewTab({ data }: Props) {
       { label: 'Most Popular Brand', value: topBrand, info: 'Brand with the most combined post and comment mentions', href: brandHref(topBrand) },
     ];
   }, [stats, lensById, results.stats]);
+
+  const topBrandRows = useMemo<TopBrandRow[]>(() => {
+    const map: Record<string, { lensId: string; title: string; url: string; subreddit: string; score: number; weight: number }> = {};
+    for (const post of posts) {
+      const w = calcWeight(post);
+      for (const lensId of post.lensIds) {
+        const brand = brandOf(lensId, lensById);
+        if (!map[brand] || w > map[brand].weight) {
+          map[brand] = { lensId, title: post.title, url: post.id && post.subreddit ? postCommentsUrl(post) : post.url, subreddit: post.subreddit, score: post.score, weight: w };
+        }
+      }
+    }
+    return Object.entries(map)
+      .map(([brand, p]) => ({
+        brand,
+        ...p,
+        weight: parseFloat(p.weight.toFixed(3)),
+        claudeScore: claudeSentiment[p.lensId]?.score ?? null,
+      }))
+      .sort((a, b) => b.weight - a.weight);
+  }, [posts, lensById, claudeSentiment]);
+
+  const statsRows = useMemo<StatsRow[]>(() => (
+    stats.map(s => ({
+      ...s,
+      brand: brandOf(s.lensId, lensById),
+      claudeScore: claudeSentiment[s.lensId]?.score ?? null,
+    }))
+  ), [stats, lensById, claudeSentiment]);
+
+  const brands = useMemo(() => [...new Set(lenses.map(l => l.brand))].sort(), [lenses]);
 
   const weightRows = useMemo(() => (
     stats.slice(0, 20).map(s => ({
@@ -111,6 +160,10 @@ export function OverviewTab({ data }: Props) {
         {pills.map(p => <StatPill key={p.label} label={p.label} value={p.value} info={p.info} href={p.href} />)}
       </div>
 
+      <TopBrandSection rows={topBrandRows} lensById={lensById} />
+
+      <AllLensesSection rows={statsRows} lensById={lensById} brands={brands} />
+
       <div className="row">
         <div className="card wide">
           <h2>Top 20 Lenses by Weight</h2>
@@ -143,5 +196,84 @@ export function OverviewTab({ data }: Props) {
         </div>
       </div>
     </>
+  );
+}
+
+// All-lenses table: simplified version of TablesTab's StatsSection — brand
+// dropdown, primes-only toggle, and hide-APS-C toggle (default on).
+interface AllLensesProps {
+  rows: StatsRow[];
+  lensById: Record<string, Lens>;
+  brands: string[];
+}
+
+function AllLensesSection({ rows, lensById, brands }: AllLensesProps) {
+  const [sortKey, setSortKey] = useState('postCount');
+  const [sortAsc, setSortAsc] = useState(false);
+  const [brand, setBrand] = useState('');
+  const [primesOnly, setPrimesOnly] = useState(false);
+  const [hideApsC, setHideApsC] = useState(true);
+
+  const onSort = (key: string) => {
+    if (key === sortKey) setSortAsc(a => !a);
+    else { setSortKey(key); setSortAsc(false); }
+  };
+
+  const filtered = useMemo(() => (
+    sortRows(rows, sortKey, sortAsc).filter(s => {
+      const lens = lensById[s.lensId];
+      if (brand && s.brand !== brand) return false;
+      if (primesOnly && !(lens?.category ?? []).includes('prime')) return false;
+      if (hideApsC && (lens?.category ?? []).includes('aps-c')) return false;
+      return true;
+    })
+  ), [rows, sortKey, sortAsc, brand, primesOnly, hideApsC, lensById]);
+
+  const COLS = [
+    { key: 'lensId', label: 'Lens' },
+    { key: 'brand', label: 'Brand' },
+    { key: 'postCount', label: 'Post Mentions' },
+    { key: 'commentCount', label: 'Comment Mentions' },
+    { key: 'avgScore', label: 'Avg Score' },
+    { key: 'avgUpvoteRatio', label: 'Avg Ratio' },
+    { key: 'avgComments', label: 'Avg Comments' },
+    { key: 'scoreSentiment', label: 'Score Sentiment' },
+    { key: 'claudeScore', label: 'Claude Score' },
+  ];
+
+  return (
+    <CollapsibleSection title="All Lenses — Stats">
+      <div className="filter-bar">
+        <label>
+          <span className="filter-header">Brand</span>
+          <select value={brand} onChange={e => setBrand(e.target.value)}>
+            <option value="">All brands</option>
+            {brands.map(b => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </label>
+        <PrimesToggle value={primesOnly} onChange={setPrimesOnly} />
+        <HideApsCToggle value={hideApsC} onChange={setHideApsC} />
+      </div>
+      <SortableTable
+        columns={COLS}
+        rows={filtered}
+        sortKey={sortKey}
+        sortAsc={sortAsc}
+        onSort={onSort}
+        renderRow={(s, i) => (
+          <tr key={i}>
+            <td className="highlight"><LensNameLink lensId={s.lensId} lensById={lensById} /></td>
+            <td><BrandBadge brand={s.brand} /></td>
+            <td className="num">{s.postCount}</td>
+            <td className="num">{s.commentCount}</td>
+            <td className="num">{s.avgScore.toLocaleString()}</td>
+            <td className="num">{(s.avgUpvoteRatio * 100).toFixed(1)}%</td>
+            <td className="num">{s.avgComments}</td>
+            <td className="num">{s.scoreSentiment}</td>
+            {claudeCell(s.claudeScore)}
+          </tr>
+        )}
+      />
+    </CollapsibleSection>
   );
 }

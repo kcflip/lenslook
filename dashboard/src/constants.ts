@@ -12,6 +12,7 @@ export const BRAND_COLOR: Record<string, string> = {
   viltrox: '#22d3ee',
   ttartisan: '#fb923c',
   laowa: '#86efac',
+  voigtlander: '#a5b4fc',
 };
 
 export const BRAND_DISPLAY: Record<string, string> = {
@@ -23,6 +24,7 @@ export const BRAND_DISPLAY: Record<string, string> = {
   laowa: 'Laowa',
   zeiss: 'Zeiss',
   ttartisan: 'TTArtisan',
+  voigtlander: 'Voigtlander',
 };
 
 export const STOP_WORDS = new Set([

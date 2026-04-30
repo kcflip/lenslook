@@ -1,25 +1,22 @@
 import "dotenv/config";
-import { chromium } from "playwright";
 import { readFileSync, writeFileSync } from "fs";
-import type { Lens, AsinEntry, AmazonEntry, ReviewItem } from "../shared/types.js";
+import type { Lens, Body, RetailSubject, AsinEntry, ReviewItem } from "../shared/types.js";
 import { recordPrice } from "./price-history.js";
 import { saveReviews, isEnglish } from "./reviews.js";
+import { launchChromiumContext, randomDelay, baseTitleMatches, baseBodyTitleMatches, looksLikeKit, humanDblClick, MAX_REVIEWS } from "./scraper-shared.js";
 
 const LENSES_FILE = "lenses.json";
-const DELAY_MS = [4000, 7000]; // random range between requests
-const MAX_RESULTS_PER_LENS = 5; // max ASINs to collect per lens
-
-function randomDelay() {
-  const ms = DELAY_MS[0] + Math.random() * (DELAY_MS[1] - DELAY_MS[0]);
-  console.log(`  (•_•)`);
-  console.log(`  ( •_•)>⌐■-■`);
-  console.log(`  (⌐■_■)  I'm being sneaky ${(ms / 1000).toFixed(1)}s`);
-  return new Promise((r) => setTimeout(r, ms));
-}
 
 function extractAsin(url: string): string | null {
   const match = url.match(/\/dp\/([A-Z0-9]{10})/);
   return match ? match[1] : null;
+}
+
+// Amazon search results redirect through `/ref=sr_…?dib=…&qid=…` tracking
+// junk. Strip both the `/ref=…` path segment and the query string so stored
+// URLs stay canonical (`/dp/{asin}`) and don't bloat lenses.json.
+function sanitizeAmazonUrl(url: string): string {
+  return url.replace(/\/ref=[^/?]*/g, "").replace(/\?.*$/, "");
 }
 
 // Detect sponsored/ad search result cards
@@ -43,23 +40,20 @@ async function isSponsored(result: import("playwright").Locator): Promise<boolea
   return false;
 }
 
-// Check if a result title plausibly matches this lens
-function titleMatches(title: string, lens: Lens): boolean {
+// Check if a result title plausibly matches this subject (lens or body)
+function titleMatches(title: string, subject: RetailSubject, isBodies: boolean): boolean {
   const t = title.toLowerCase();
-  console.log(`\n TITLE: ${t}`);
-  if (!t.includes(lens.brand.toLowerCase())) {
-    console.log(`  rejected — brand "${lens.brand.toLowerCase()}" not in title`);
-    return false;
-  }
-  const focal = lens.focalLength.replace("mm", "").toLowerCase();
-  if (!t.includes(focal)) {
-    console.log(`  rejected — focal "${focal}" not in title`);
-    return false;
+  if (isBodies) {
+    const base = baseBodyTitleMatches(title, subject as Body);
+    if (!base.ok) return false;
+    if (looksLikeKit(title)) return false;
+    return true;
   }
 
-  const aperture = lens.maxAperture.replace("f/", "").toLowerCase();
-  if (!t.includes(aperture)) {
-    console.log(`  rejected — aperture "${aperture}" not in title`);
+  console.log(`\n 🏷️  TITLE: ${t}`);
+  const base = baseTitleMatches(title, subject as Lens);
+  if (!base.ok) {
+    console.log(`  ✗ rejected — ${base.reason}`);
     return false;
   }
 
@@ -88,7 +82,7 @@ function titleMatches(title: string, lens: Lens): boolean {
   ];
   const hit = junkPatterns.find((re) => re.test(t));
   if (hit) {
-    console.log(`  rejected — looks like accessory/bundle (matched ${hit})`);
+    console.log(`  🗑️  rejected — looks like accessory/bundle (matched ${hit})`);
     return false;
   }
 
@@ -120,12 +114,12 @@ function fullSizeImageUrl(url: string): string {
 // triggers a sign-in wall, so we scroll to the embedded reviews widget instead
 // (~8 top reviews per product — Amazon picks the sort). We filter to verified
 // purchases via the avp-badge element.
-async function scrapeReviews(page: import("playwright").Page, lensId: string): Promise<ReviewItem[]> {
+async function scrapeReviews(page: import("playwright").Page, productId: string): Promise<ReviewItem[]> {
   const reviews: ReviewItem[] = [];
   const productUrl = page.url();
 
   try {
-    console.log(`  → scrolling to reviews section`);
+    console.log(`  📜 → scrolling to reviews section`);
     await page.evaluate(() => {
       const el = document.querySelector(
         "[data-hook='reviews-medley-widget'], #reviews-medley-footer, [data-hook='top-customer-reviews-widget'], #cm-cr-dp-review-list, [data-hook='review']",
@@ -137,24 +131,24 @@ async function scrapeReviews(page: import("playwright").Page, lensId: string): P
     const cards = page.locator("[data-hook='review']");
     const total = await cards.count().catch(() => 0);
     if (total === 0) {
-      console.log(`  no review cards found`);
+      console.log(`  🤷 no review cards found`);
       return reviews;
     }
 
-    console.log(`  found ${total} review cards, filtering to verified…`);
+    console.log(`  📋 found ${total} review cards, filtering to verified…`);
 
     let skippedUnverified = 0;
     let skippedEmpty = 0;
     let skippedNonEnglish = 0;
 
-    for (let i = 0; i < total && reviews.length < 3; i++) {
+    for (let i = 0; i < total && reviews.length < MAX_REVIEWS; i++) {
       const card = cards.nth(i);
       const tag = `    [${i + 1}/${total}]`;
 
       const verifiedHits = await card.locator("[data-hook='avp-badge']").count().catch(() => 0);
       if (verifiedHits === 0) {
         skippedUnverified++;
-        console.log(`${tag} skipped — no verified-purchase badge`);
+        console.log(`${tag} 🚫 skipped — no verified-purchase badge`);
         continue;
       }
 
@@ -166,14 +160,14 @@ async function scrapeReviews(page: import("playwright").Page, lensId: string): P
       const text = (await card.locator("[data-hook='review-body'] span").first().textContent().catch(() => "") ?? "").trim();
       if (!text) {
         skippedEmpty++;
-        console.log(`${tag} skipped — empty review body`);
+        console.log(`${tag} 📭 skipped — empty review body`);
         continue;
       }
 
       if (!isEnglish(text)) {
         skippedNonEnglish++;
         const preview = text.length > 50 ? text.slice(0, 47) + "…" : text;
-        console.log(`${tag} skipped — non-English: "${preview}"`);
+        console.log(`${tag} 🌍 skipped — non-English: "${preview}"`);
         continue;
       }
 
@@ -190,7 +184,7 @@ async function scrapeReviews(page: import("playwright").Page, lensId: string): P
 
       reviews.push({
         sourceType: "amazon",
-        lensId,
+        productId,
         text,
         rating,
         verifiedPurchase: true,
@@ -209,9 +203,9 @@ async function scrapeReviews(page: import("playwright").Page, lensId: string): P
       console.log(`${tag} ✓ kept — ${bits} — "${preview}"`);
     }
 
-    console.log(`  → kept ${reviews.length}, skipped ${skippedUnverified} unverified, ${skippedEmpty} empty, ${skippedNonEnglish} non-English`);
+    console.log(`  📊 → kept ${reviews.length}, skipped ${skippedUnverified} unverified, ${skippedEmpty} empty, ${skippedNonEnglish} non-English`);
   } catch (err) {
-    console.log(`  review scrape error: ${err instanceof Error ? err.message : err}`);
+    console.log(`  💥 review scrape error: ${err instanceof Error ? err.message : err}`);
   }
 
   return reviews;
@@ -243,6 +237,46 @@ async function scrapeRating(page: import("playwright").Page): Promise<number | n
     // swallow and return null
   }
   return null;
+}
+
+// Total rating count, shown beside the star rating at the top of the product
+// page as e.g. "1,234 ratings". Falls back to the review-section total header.
+async function scrapeRatingCount(page: import("playwright").Page): Promise<number | null> {
+  const selectors = [
+    "#acrCustomerReviewText",
+    "[data-hook='total-review-count']",
+  ];
+  for (const sel of selectors) {
+    try {
+      const el = page.locator(sel).first();
+      if (await el.count()) {
+        const text = await el.textContent();
+        const m = text?.match(/[\d,]+/);
+        if (m) {
+          const n = parseInt(m[0].replace(/,/g, ""), 10);
+          if (!isNaN(n) && n > 0) return n;
+        }
+      }
+    } catch {
+      // try next selector
+    }
+  }
+  return null;
+}
+
+// Lens product image — Amazon's image strip lives under <li class="image item">
+// on the product page. Take the first tile (the one currently shown in the
+// main viewer) and full-size it.
+async function scrapeProductImage(page: import("playwright").Page): Promise<string | null> {
+  try {
+    const img = page.locator("xpath=.//li[contains(@class, 'image item')]//img").first();
+    if (await img.count() === 0) return null;
+    const src = await img.getAttribute("src");
+    if (!src) return null;
+    return fullSizeImageUrl(src);
+  } catch {
+    return null;
+  }
 }
 
 async function scrapePrice(page: import("playwright").Page): Promise<number | null> {
@@ -284,18 +318,25 @@ async function scrapeProductData(
   page: import("playwright").Page,
   asin: string,
 ): Promise<AsinEntry> {
-  const [price, avgRating, official] = await Promise.all([
+  const [price, avgRating, ratingCount, official, productImage] = await Promise.all([
     scrapePrice(page),
     scrapeRating(page),
+    scrapeRatingCount(page),
     scrapeOfficial(page),
+    scrapeProductImage(page),
   ]);
-  console.log(`  ASIN ${asin} — price: ${price != null ? `$${price}` : "not found"} — rating: ${avgRating != null ? `${avgRating}★` : "not found"} — ${official ? "✓ official" : "not official"}`);
-  const entry: AsinEntry = { asin, official, url: page.url() };
+  const ratingBits = avgRating != null
+    ? `${avgRating}★${ratingCount != null ? ` (${ratingCount.toLocaleString()})` : ""}`
+    : "not found";
+  console.log(`  💰 ASIN ${asin} — price: ${price != null ? `$${price}` : "not found"} — rating: ${ratingBits} — ${official ? "✓ official" : "not official"} — image: ${productImage ? "✓" : "not found"}`);
+  const entry: AsinEntry = { asin, official, url: sanitizeAmazonUrl(page.url()) };
   if (price != null) {
     entry.price = price;
     entry.priceScrapedAt = new Date().toISOString();
   }
   if (avgRating != null) entry.avgRating = avgRating;
+  if (ratingCount != null) entry.ratingCount = ratingCount;
+  if (productImage) entry.productImage = productImage;
   return entry;
 }
 
@@ -325,26 +366,40 @@ async function detectWidgetStyle(page: import("playwright").Page): Promise<Widge
   }
 }
 
-// Core per-lens scraper. Returns null when no matching product is found. No
+// Core per-subject scraper. Returns null when no matching product is found. No
 // side-effects — callers decide what to persist. Shared by `main()` below and
 // the smoke test in amazon-scrape-test.ts.
 export async function scrapeAmazonLens(
   page: import("playwright").Page,
-  lens: Lens,
+  subject: RetailSubject,
+  isBodies = false,
 ): Promise<AmazonScrapeResult | null> {
-  if (!lens.amazon?.searchLink) return null;
+  // Fast path — we already know the ASIN, so skip the fragile search/match
+  // flow and navigate directly to the product page via `refreshAmazonAsin`.
+  // If that fails (captcha, ASIN retired, page structure changed), fall
+  // through to the search flow instead of giving up on the subject.
+  const known = subject.amazon?.asins?.[0];
+  if (known) {
+    console.log(`  ⚡ ASIN cached (${known.asin}) — skipping search 🚀`);
+    const refreshed = await refreshAmazonAsin(page, subject, known);
+    if (refreshed) return { asins: [refreshed.entry], reviews: refreshed.reviews };
+    console.log(`  🔁 direct navigation failed — falling back to search`);
+  }
 
-  console.log(`  → navigating to search page`);
-  await page.goto(lens.amazon.searchLink, { waitUntil: "domcontentloaded" });
-  console.log(`  → waiting for results to render`);
+  if (!subject.amazon?.searchLink) return null;
+
+  console.log(`  🔍 searching Amazon`);
+  console.log(`  🌐 → navigating to search page`);
+  await page.goto(subject.amazon.searchLink, { waitUntil: "domcontentloaded" });
+  console.log(`  ⏳ → waiting for results to render`);
   const style = await detectWidgetStyle(page);
   if (!style) {
-    console.log(`  no recognizable search-result widgets on page — skipping`);
+    console.log(`  😕 no recognizable search-result widgets on page — skipping`);
     return null;
   }
-  console.log(`  → detected ${style} widget layout`);
+  console.log(`  🔍 → detected ${style} widget layout`);
 
-  console.log(`  → scanning result widgets`);
+  console.log(`  👀 → scanning result widgets`);
   const asinEntries: AsinEntry[] = [];
   const MAX_INDEX = 20;
 
@@ -358,26 +413,26 @@ export async function scrapeAmazonLens(
     await result.scrollIntoViewIfNeeded().catch(() => {});
 
     if (await isSponsored(result)) {
-      console.log(`  skipped sponsored result at position ${i}`);
+      console.log(`  💸 skipped sponsored result at position ${i}`);
       continue;
     }
 
     const titleSpans = page.locator(`xpath=${widgetXpath}//h2/span`);
     const spanTexts = await titleSpans.allTextContents();
     const titleAriaLabel = spanTexts.join("").trim();
-    if (!titleMatches(titleAriaLabel, lens)) continue;
+    if (!titleMatches(titleAriaLabel, subject, isBodies)) continue;
 
-    console.log(`  → clicking into "${titleAriaLabel.slice(0, 60)}"`);
+    console.log(`  🖱️  → clicking into "${titleAriaLabel.slice(0, 60)}"`);
     // Small settle pause before the click — gives the page a beat after the
     // scroll and looks a touch less robotic.
     await page.waitForTimeout(500 + Math.random() * 700);
-    await titleSpans.nth(1).dblclick();
+    await humanDblClick(page, titleSpans.nth(1));
     await page.locator('#titleSection').waitFor({ state: "visible", timeout: 15000 });
     await page.waitForLoadState("domcontentloaded");
 
     const asin = extractAsin(page.url());
     if (!asin) {
-      console.log(`  could not extract ASIN from ${page.url()}`);
+      console.log(`  🤦 could not extract ASIN from ${page.url()}`);
       break;
     }
 
@@ -387,7 +442,7 @@ export async function scrapeAmazonLens(
 
   if (asinEntries.length === 0) return null;
 
-  const reviews = await scrapeReviews(page, lens.id);
+  const reviews = await scrapeReviews(page, subject.id);
   return { asins: asinEntries, reviews };
 }
 
@@ -400,150 +455,88 @@ export interface AmazonRefreshResult {
 // history. Skips the search step entirely — we already know the exact product.
 export async function refreshAmazonAsin(
   page: import("playwright").Page,
-  lens: Lens,
+  subject: RetailSubject,
   existing: AsinEntry,
 ): Promise<AmazonRefreshResult | null> {
   // Prefer the URL we captured during discovery — that's the exact URL Amazon
   // served us. Fall back to a constructed /dp/{asin} only for legacy entries
   // that predate URL storage (it'll get upgraded on this refresh).
   const productUrl = existing.url ?? `https://www.amazon.com/dp/${existing.asin}`;
-  console.log(`  → navigating to ${productUrl}`);
+  console.log(`  🎯 → navigating direct to ${productUrl}`);
   await page.goto(productUrl, { waitUntil: "domcontentloaded" });
 
   try {
     await page.locator("#titleSection").waitFor({ state: "visible", timeout: 15000 });
   } catch {
-    console.log(`  product page did not render — skipping`);
+    console.log(`  💀 product page did not render — skipping`);
     return null;
   }
 
   const entry = await scrapeProductData(page, existing.asin);
-  const reviews = await scrapeReviews(page, lens.id);
+  const reviews = await scrapeReviews(page, subject.id);
   return { entry, reviews };
 }
 
 export async function launchAmazonContext() {
-  console.log("Launching Chromium…");
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext({
-    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    viewport: { width: 1280, height: 800 },
-  });
-  const page = await context.newPage();
-  console.log("Browser ready — putting on my trench coat and sunglasses 🕶️\n");
-  return { browser, context, page };
+  const handle = await launchChromiumContext({ stealth: true, headless: true });
+  return { browser: handle.browser!, context: handle.context, page: handle.page };
 }
 
 export { randomDelay };
 
 async function main() {
-  const lenses: Lens[] = JSON.parse(readFileSync(LENSES_FILE, "utf8"));
-  // const discoverTargets = lenses.filter((l) => l.amazon?.searchLink && !l.amazon?.asins?.length);
-  // const refreshTargets = lenses.filter((l) => (l.amazon?.asins?.length ?? 0) > 0);
+  const isBodies = process.argv.includes("--bodies");
+  const sourceFile = isBodies ? "bodies.json" : LENSES_FILE;
+  const subjects: RetailSubject[] = JSON.parse(readFileSync(sourceFile, "utf8"));
+  console.log(`Mode: ${isBodies ? "bodies" : "lenses"} — ${subjects.length} subjects from ${sourceFile}`);
 
-    console.log(`Phase 0 (DO IT ALL): ${lenses.length} lenses to scan...`);
-  // console.log(`Phase 1 (discover): ${discoverTargets.length} lens${discoverTargets.length === 1 ? "" : "es"} without ASINs`);
-  // console.log(`Phase 2 (refresh):  ${refreshTargets.length} lens${refreshTargets.length === 1 ? "" : "es"} with existing ASINs`);
+  let succeeded = 0;
+  let failed = 0;
 
-  // if (discoverTargets.length === 0 && refreshTargets.length === 0) {
-  //   console.log("Nothing to do.");
-  //   return;
-  // }
+  for (let i = 0; i < subjects.length; i++) {
+    const subject = subjects[i];
+    console.log(`\n📸 [${i + 1}/${subjects.length}] ${subject.brand} ${subject.name}`);
 
-  const { browser, page } = await launchAmazonContext();
-
-  // let discoverSucceeded = 0;
-  // let discoverFailed = 0;
-  // let refreshSucceeded = 0;
-  // let refreshFailed = 0;
-  let lensesMatched = 0;
-  let lensesFailed = 0;
-
-  // ── Phase 1: discover ASINs for lenses that don't have one yet ────────────
-  if (lenses.length > 0) {
-    console.log(`\n=== Scanning the shit out of amazon listings ===`);
-    for (const lens of lenses) {
-      console.log(`\n[${lensesMatched}/${lenses.length}] ${lens.brand} ${lens.name}`);
-
-      try {
-        const result = await scrapeAmazonLens(page, lens);
-        if (!result) {
-          console.log(`  no matches found in top results — skipping (${lens.amazon!.searchLink})`);
-          lensesFailed++;
-        } else {
-          const lensEntry = lenses.find((l) => l.id === lens.id)!;
-          lensEntry.amazon = { searchLink: lens.amazon!.searchLink, asins: result.asins };
-          writeFileSync(LENSES_FILE, JSON.stringify(lenses, null, 2));
-          for (const a of result.asins) {
-            if (a.price != null) recordPrice(lens.id, "amazon", a.price, a.priceScrapedAt!);
-          }
-          console.log(`  ✓ saved ${result.asins.length} ASIN${result.asins.length === 1 ? "" : "s"} to lenses.json`);
-
-          if (result.reviews.length > 0) {
-            saveReviews(lens.id, "amazon", result.reviews);
-            console.log(`  ✓ saved ${result.reviews.length} verified review${result.reviews.length === 1 ? "" : "s"} to reviews.json`);
-          }
-
-          lensesMatched++;
-        }
-      } catch (err) {
-        console.log(`  error: ${err instanceof Error ? err.message : err}`);
-        lensesFailed++;
-      }
-
-      await randomDelay();
+    if (subject.discontinued) {
+      console.log(`  ⏭ discontinued — skipping price/retailer scrape`);
+      failed++;
+      continue;
     }
+
+    const { browser, page } = await launchAmazonContext();
+    try {
+      const result = await scrapeAmazonLens(page, subject, isBodies);
+      if (!result) {
+        console.log(`  🤷 no matches found in top results — skipping (${subject.amazon?.searchLink ?? "no search link"})`);
+        failed++;
+      } else {
+        const subjectEntry = subjects.find((s) => s.id === subject.id)!;
+        subjectEntry.amazon = { searchLink: subject.amazon!.searchLink, asins: result.asins };
+        writeFileSync(sourceFile, JSON.stringify(subjects, null, 2));
+        for (const a of result.asins) {
+          if (a.price != null) recordPrice(subject.id, "amazon", a.price, a.priceScrapedAt!);
+        }
+        console.log(`  ✓ saved ${result.asins.length} ASIN${result.asins.length === 1 ? "" : "s"} to ${sourceFile}`);
+
+        if (result.reviews.length > 0) {
+          saveReviews(subject.id, "amazon", result.reviews);
+          console.log(`  ✓ saved ${result.reviews.length} verified review${result.reviews.length === 1 ? "" : "s"} to reviews.json`);
+        }
+
+        succeeded++;
+      }
+    } catch (err) {
+      console.log(`  💥 error: ${err instanceof Error ? err.message : err}`);
+      failed++;
+    } finally {
+      await browser.close();
+    }
+
+    await randomDelay();
   }
 
-  // ── Phase 2: refresh existing ASINs to pick up new fields + price history ─
-  // if (refreshTargets.length < 0) {
-  //   console.log(`\n=== Phase 2: refreshing existing ASINs ===`);
-  //   let lensIdx = 0;
-  //   for (const lens of refreshTargets) {
-  //     lensIdx++;
-  //     console.log(`\n[${lensIdx}/${refreshTargets.length}] ${lens.brand} ${lens.name}`);
-
-  //     const lensEntry = lenses.find((l) => l.id === lens.id)!;
-  //     for (const existing of lensEntry.amazon!.asins) {
-  //       try {
-  //         const result = await refreshAmazonAsin(page, lens, existing);
-  //         if (!result) {
-  //           refreshFailed++;
-  //           continue;
-  //         }
-
-  //         // Update in place. recordPrice always appends, so re-runs accumulate.
-  //         existing.official = result.entry.official;
-  //         if (result.entry.url) existing.url = result.entry.url;
-  //         if (result.entry.price != null) {
-  //           existing.price = result.entry.price;
-  //           existing.priceScrapedAt = result.entry.priceScrapedAt;
-  //         }
-  //         if (result.entry.avgRating != null) existing.avgRating = result.entry.avgRating;
-  //         writeFileSync(LENSES_FILE, JSON.stringify(lenses, null, 2));
-  //         if (result.entry.price != null) recordPrice(lens.id, "amazon", result.entry.price, result.entry.priceScrapedAt!);
-
-  //         if (result.reviews.length > 0) {
-  //           saveReviews(lens.id, "amazon", result.reviews);
-  //           console.log(`  ✓ refreshed ${result.reviews.length} review${result.reviews.length === 1 ? "" : "s"}`);
-  //         }
-
-  //         refreshSucceeded++;
-  //       } catch (err) {
-  //         console.log(`  refresh error for ${existing.asin}: ${err instanceof Error ? err.message : err}`);
-  //         refreshFailed++;
-  //       }
-
-  //       await randomDelay();
-  //     }
-  //   }
-  // }
-
-  await browser.close();
-  console.log(`\nDone.`);
-  if (lensesMatched > 0) console.log(`  Scanned ${lenses.length} lenses - ${lensesMatched} succeeded, ${lensesFailed} failed.`);
-  // if (refreshTargets.length > 0) console.log(`  Phase 2: ${refreshSucceeded} ASINs refreshed, ${refreshFailed} failed.`);
-  console.log("Re-run anytime. Bye!");
+  console.log(`\n🏁 Done. ${succeeded} succeeded, ${failed} failed.`);
+  console.log("🔄 Re-run anytime to fill in failures.");
 }
 
 // Only run main() when invoked as a CLI, not when imported by the smoke test.

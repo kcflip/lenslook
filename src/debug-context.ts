@@ -5,7 +5,7 @@ const LENS = process.argv[2] ?? "tamron-20-2.8-macro";
 const KEYWORD = process.argv[3] ?? "expensive";
 const WINDOW = 30;
 
-const data = JSON.parse(readFileSync("output/results.json", "utf8"));
+const data = JSON.parse(readFileSync("output/sonyResults.json", "utf8"));
 const hits: { source: string; postRef: string; ctx: string; scoped: boolean }[] = [];
 
 function scan(text: string, source: string, postRef: string) {

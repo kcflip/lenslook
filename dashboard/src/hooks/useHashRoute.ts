@@ -2,14 +2,19 @@ import { useEffect, useState } from 'react';
 
 export type Route =
   | { type: 'home' }
+  | { type: 'bodies' }
   | { type: 'lens'; lensId: string }
-  | { type: 'brand'; brand: string };
+  | { type: 'brand'; brand: string }
+  | { type: 'body'; bodyId: string };
 
 function parseHash(hash: string): Route {
   const lensMatch = hash.match(/^#\/lens\/(.+)$/);
   if (lensMatch) return { type: 'lens', lensId: decodeURIComponent(lensMatch[1]) };
   const brandMatch = hash.match(/^#\/brand\/(.+)$/);
   if (brandMatch) return { type: 'brand', brand: decodeURIComponent(brandMatch[1]) };
+  const bodyMatch = hash.match(/^#\/body\/(.+)$/);
+  if (bodyMatch) return { type: 'body', bodyId: decodeURIComponent(bodyMatch[1]) };
+  if (hash === '#/bodies') return { type: 'bodies' };
   return { type: 'home' };
 }
 
@@ -34,4 +39,8 @@ export function lensHref(lensId: string): string {
 
 export function brandHref(brand: string): string {
   return `#/brand/${encodeURIComponent(brand)}`;
+}
+
+export function bodyHref(bodyId: string): string {
+  return `#/body/${encodeURIComponent(bodyId)}`;
 }

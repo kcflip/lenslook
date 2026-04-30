@@ -1,65 +1,94 @@
 # Lenslook — Architecture
 
-> **Version:** 1.0.0 &middot; **Generated:** 2026-04-20
+> **Version:** 1.1.0 &middot; **Generated:** 2026-04-29
 > Regenerate via `/regenerate-docs` (see `.claude/commands/regenerate-docs.md`).
 
 ## System overview
 
-Lenslook is a pipeline of independent collectors that each enrich a shared `lenses.json` catalog and write JSON blobs into `output/`. A Vite + React dashboard reads the JSON directly from disk at load time.
+Lenslook is a pipeline of independent collectors that enrich two static catalogs (`lenses.json`, `bodies.json`) and write JSON blobs into `output/`. A Vite + React dashboard reads the JSON from disk at load time and renders both a v1 view and a v2 "Spectrum" view from the same data.
 
 ```mermaid
 flowchart TB
     subgraph Sources["External sources"]
         REDDIT[Reddit public JSON]
         AMZ[Amazon product pages]
-        BH[B&amp;H Photo search]
+        BH[B&amp;H Photo]
+        ADO[Adorama]
+        PR[Phillip Reeve]
         YTAPI[YouTube Data API v3]
         YTTRN[YouTube transcripts]
         CLAUDE[Anthropic Claude API]
     end
 
-    subgraph Catalog["Static catalog"]
-        LENSES[(lenses.json<br/>id, brand, name,<br/>aliases, tags,<br/>asins?, bh?)]
-        BRANDS[(brands.json)]
+    subgraph Catalog["Static catalogs"]
+        LENSES[(lenses.json)]
+        BODIES[(bodies.json)]
     end
 
-    subgraph Reddit["Reddit pipeline — npm start"]
-        SCRAPER[src/scraper.ts<br/>fetchPosts / fetchBatch]
-        MATCHER[src/matcher.ts<br/>matchLensesWithPositions]
-        SENT[src/sentiment.ts<br/>phraseSentiment + weight]
-        INDEX[src/index.ts<br/>aggregate LensStat]
+    subgraph Pipeline["Reddit pipeline — npm start"]
+        SCRAPER[src/scraper.ts]
+        MATCHER[src/matcher.ts]
+        SENT[src/sentiment.ts]
+        WEIGHT[shared/weight.ts]
+        INDEX[src/index.ts]
     end
 
-    subgraph Enrich["Enrichment pipelines"]
+    subgraph Enrich["Enrichment + retail scrapers"]
         CLAUDESENT[src/claude-sentiment.ts]
         YT[src/youtube-sentiment.ts]
+        AUDIT[src/audit-lexicon.ts]
+        RERUN[src/sentiment-rerun.ts]
         AMZS[src/amazon-scrape.ts]
         BHS[src/bh-scrape.ts]
-        RERUN[src/sentiment-rerun.ts]
+        ADOS[src/adorama-scrape.ts]
+        PRS[src/phillipreeve-scrape.ts]
+        SHRD[src/scraper-shared.ts]
     end
 
     subgraph Output["output/ — gitignored"]
-        RES[(results.json)]
+        RES[(sonyResults.json)]
         LSENT[(lens-sentiment.json)]
         CSENT[(claude-sentiment.json)]
         YSENT[(youtube-sentiment.json)]
+        REVS[(reviews.json)]
+        PRICE[(price-history.json)]
+        TECH[(technical-reviews.json)]
     end
 
     subgraph Dashboard["dashboard/ — Vite + React"]
         HOOK[useDashboardData]
+        APP[App.tsx system+view switch]
         OVR[OverviewTab]
+        BODT[BodiesTab]
         LENS[LensDetailPage]
-        BRAND[BrandDetailPage]
-        CLAUDETAB[ClaudeSentimentTab]
-        TBL[TablesTab]
+        BODY[BodyDetailPage]
+        SPEC[SpectrumTab v2]
     end
 
-    REDDIT --> SCRAPER --> MATCHER --> SENT --> INDEX --> RES
+    REDDIT --> SCRAPER --> INDEX
     LENSES --> MATCHER
+    BODIES --> MATCHER
+    MATCHER --> INDEX
+    SENT --> INDEX
+    WEIGHT --> INDEX
+    INDEX --> RES
     INDEX --> LSENT
     RES --> RERUN --> LSENT
 
+    AMZ --> AMZS --> LENSES
+    BH --> BHS --> LENSES
+    ADO --> ADOS --> LENSES
+    PR --> PRS --> TECH
+    AMZS --> REVS
+    BHS --> REVS
+    ADOS --> REVS
+    AMZS --> PRICE
+    BHS --> PRICE
+    ADOS --> PRICE
+    SHRD -.-> AMZS & BHS & ADOS
+
     RES --> CLAUDESENT
+    REVS --> CLAUDESENT
     CLAUDE --> CLAUDESENT --> CSENT
 
     RES --> YT
@@ -67,20 +96,19 @@ flowchart TB
     YTTRN --> YT
     CLAUDE --> YT --> YSENT
 
-    AMZ --> AMZS --> LENSES
-    BH --> BHS --> LENSES
+    RES --> AUDIT
+    REVS --> AUDIT
+    CLAUDE --> AUDIT
 
     RES --> HOOK
     LSENT --> HOOK
     CSENT --> HOOK
     YSENT --> HOOK
+    REVS --> HOOK
     LENSES --> HOOK
+    BODIES --> HOOK
 
-    HOOK --> OVR
-    HOOK --> LENS
-    HOOK --> BRAND
-    HOOK --> CLAUDETAB
-    HOOK --> TBL
+    HOOK --> APP --> OVR & BODT & LENS & BODY & SPEC
 ```
 
 ## Runtime flows
@@ -93,143 +121,110 @@ sequenceDiagram
     participant Scraper as scraper.ts
     participant Matcher as matcher.ts
     participant Sentiment as sentiment.ts
-    participant FS as output/results.json
+    participant Weight as shared/weight.ts
+    participant FS as output/sonyResults.json
 
-    Index->>Scraper: fetchPosts(subreddits, sorts)
-    Scraper-->>Index: Post[]
-    loop each post
-        Index->>Matcher: matchLensesWithPositions(title+selftext)
-        Matcher-->>Index: postLensIds
-        Index->>Matcher: matchLensesWithPositions(comment.body)
-        Matcher-->>Index: commentLensIds
-        Index->>Sentiment: phraseSentiment(comments, lensIds)
-        Sentiment-->>Index: LensSentimentEntry
+    Note over Index: compileBodies(bodies.json) once
+    loop each (subreddit × sort × timeframe × query)
+        Index->>Scraper: fetchPosts | fetchSearch
+        Scraper-->>Index: Post[]
+        loop each new post above score threshold
+            Index->>Matcher: matchProductsWithPositions(title+selftext, bodyPool)
+            Matcher-->>Index: { matches, normalized }
+            Index->>Sentiment: analyzePhraseSentiment per match
+        end
     end
-    Index->>Index: aggregate → LensStat[]<br/>scoreSentiment = mean(weight)·log(1+n)
-    Index->>FS: write ResultsData
+    loop each post above threshold
+        Index->>Scraper: fetchComments
+        Scraper-->>Index: Comment[]
+        Note over Index: collapse same-author repeats per (author, lens-set)
+        loop each comment
+            Index->>Matcher: matchProductsWithPositions(comment.body, bodyPool)
+            Index->>Sentiment: analyzePhraseSentiment(source="comment")
+        end
+    end
+    Note over Index: aggregate per-product
+    loop each matched post
+        Index->>Weight: calcWeight(post)
+    end
+    Index->>FS: write { fetchedAt, subreddits, runs, stats, posts }
+    Index->>FS: write output/lens-sentiment.json
 ```
 
-### 2. Claude enrichment (`npm run claude-sentiment`)
+Crash-safe: `seenPosts` and `commentData` are module-scope, so the `.catch(...)` handler in `src/index.ts` calls `writeOutput(allMatched, partial=true)` and emits whatever was collected.
 
-Batches top-N lenses by `scoreSentiment`, feeds matched comments into Claude with `cache_control: ephemeral`, stores `ClaudeSentimentResult` per lens.
+### 2. Claude enrichment (`npm run claude-sentiment [--bodies]`)
+
+For each lens (or body) with mentions, gathers Reddit posts/comments + retailer reviews into a unified `ReviewItem[]`, batches `BATCH_SIZE` products per request, calls Claude with a `cache_control: ephemeral` system prompt that requires verbatim quotes, and runs `verifyCitations` to drop any quote not in the input text. Lens vs body mode picks one of two structurally identical system prompts (`LENS_SYSTEM_PROMPT` vs `BODY_SYSTEM_PROMPT`).
 
 ### 3. YouTube enrichment (`npm run youtube-sentiment`)
 
-Two-step API use: `search.list` for candidate videos, `videos.list` for `viewCount`. Videos over `VIEW_COUNT_THRESHOLD` are transcribed (`youtube-transcript`), then Claude extracts **verbatim quotes** into `VideoSentiment`. One object per video, grouped under each lens id.
+Two-step Data API: `search.list` for candidate IDs, `videos.list` for view counts and durations. Filters: `viewCount >= VIEW_COUNT_THRESHOLD` (20k) and `duration >= MIN_DURATION_SECONDS` (180). Up to `MAX_VIDEOS_PER_LENS` (6) per lens, top-N-per-brand by `scoreSentiment` (`TOP_LENSES_PER_BRAND` = 15). Transcripts from `youtube-transcript`, capped at 20k chars. One `VideoSentiment` per video.
 
-### 4. Price scrapers (`amazon-scrape`, `bh-scrape`)
+### 4. Retail scrapers (`npm run amazon-scrape | bh-scrape | adorama-scrape [-- --bodies]`)
 
-Headful Playwright. Search by `brand + focal + aperture`, match title heuristics, click through on first official result, extract product ID + price, write back onto the lens entry.
+Headful Playwright via `launchChromiumContext`. Common helpers in `src/scraper-shared.ts`: `randomDelay` (tri-modal: base / long pause / coffee break), `humanClick` / `humanScroll`, `baseTitleMatches` / `baseBodyTitleMatches` / `looksLikeKit`, `checkMpn` for MPN-vs-stored verification.
 
-## Consolidation opportunities
+- **Amazon**: discover phase finds an ASIN per lens via search; refresh phase navigates `/dp/{asin}` and re-scrapes price + rating + official-store badge + ~8 embedded reviews.
+- **B&H**: search by `brand + name` with brand filter, then by model number; reads BH# + MPN from the codeCrumb DOM, scrapes header rating/count, click-to-load reviews.
+- **Adorama**: PerimeterX-guarded. Persistent profile, injected `_px3` cookies from `adorama-cookies.json`, organic Google/DDG search referer, captcha-streak detection that prompts for cookie refresh and rewinds. Parses schema.org JSON-LD instead of DOM selectors.
+- **Phillip Reeve**: plain HTTP fetch + regex (WordPress HTML). Curated URLs via `lens.reviews.phillipreeve`; flags multi-lens articles instead of ingesting them.
 
-The pipeline grew organically and several patterns now appear in multiple files. Below are the concrete duplications and a suggested shape for the shared helpers.
-
-### 1. `Lens` interface declared in four files
-
-`Lens` is redeclared in `src/amazon-scrape.ts`, `src/bh-scrape.ts`, `src/matcher.ts`, and `dashboard/src/types.ts`. They have diverged — the scrapers each carry only the fields they care about (`bh?`, `asins?`), and drift from `dashboard/src/types.ts`.
-
-**Fix:** introduce `src/types.ts` at the project root mirroring `dashboard/src/types.ts`; import from it in every scraper. Consider a single source of truth (e.g., `shared/types.ts`) re-exported by both trees.
-
-### 2. Price-scraper duplication (`amazon-scrape.ts` ↔ `bh-scrape.ts`)
-
-Both files share ~70% of their skeleton:
-
-| Concern | Duplication |
-|---|---|
-| `randomDelay()` with 4–7s jitter + "sneaky guy" ASCII | verbatim in both |
-| `titleMatches(title, lens)` | near-identical junk-word filter |
-| `scrapePrice(page)` | same selector-iteration loop, different selector list |
-| Playwright setup (`launch` + context + UA string) | copy-paste |
-| Per-lens outer loop (filter `!l.<field>`, write back, tally pass/fail) | same shape |
-
-**Fix:** extract a `src/scrape/common.ts` module:
-```ts
-export function randomDelay(minMs, maxMs): Promise<void>
-export function titleMatches(title: string, lens: Lens, extraJunk?: string[]): boolean
-export async function firstVisiblePrice(page, selectors: string[]): Promise<number | null>
-export async function withBrowser<T>(fn: (page) => Promise<T>): Promise<T>
-export async function runScraper<Entry>(opts: {
-  field: "asins" | "bh",
-  buildSearchUrl: (lens: Lens) => string,
-  extractEntry: (page, lens) => Promise<Entry | null>,
-}): Promise<void>
-```
-Each site-specific scraper shrinks to the selectors + extractor.
-
-### 3. Claude JSON-extraction boilerplate
-
-`claude-sentiment.ts` and `youtube-sentiment.ts` both:
-1. Build a system prompt.
-2. Call `anthropic.messages.create` with `cache_control: ephemeral`.
-3. Regex-slice `{...}` out of the text block.
-4. `JSON.parse` with try/catch.
-
-**Fix:** `src/claude/jsonCall.ts`:
-```ts
-export async function callClaudeJson<T>(opts: {
-  system: string;
-  user: string;
-  cache?: boolean;
-  maxTokens?: number;
-}): Promise<T>
-```
-Centralizes retry, JSON extraction, token accounting, and logging.
-
-### 4. Dead animation code in `scraper.ts`
-
-`buildFigureFrames`, `startAnimator`, and the jumping-jack frame constants are unreachable after the simplification to the "sneaky guy" log frames. Delete; keep only the three-line frame print.
-
-### 5. Dashboard fetch fan-out
-
-`useDashboardData` hardcodes five `fetch().then(r => r.ok ? r.json() : fallback)` calls. Each new enrichment adds another literal block.
-
-**Fix:** define a `DATA_SOURCES` array of `{ url, fallback, key }` and `Promise.all(DATA_SOURCES.map(...))` with a shared `fetchWithFallback` helper. New pipelines become one-line additions.
-
-### 6. Sentiment re-run vs in-pipeline sentiment
-
-`src/sentiment-rerun.ts` duplicates the aggregation pass from `src/index.ts` so it can operate on existing `results.json`. If `index.ts` exposed `aggregateSentiment(posts, lenses)` as a pure function, both entry points could import it.
-
-### 7. Matcher input normalization
-
-Every caller concatenates `title + " " + selftext` before calling `matchLensesWithPositions`. Move that concatenation into the matcher (`matchPost(post)`) and drop the boilerplate at call sites (`index.ts`, `test.ts`, `sentiment-rerun.ts`, `backfill-comment-lensids.ts`).
-
-### 8. Output schemas should live in one place
-
-`results.json`, `lens-sentiment.json`, `claude-sentiment.json`, `youtube-sentiment.json` have their shapes implicit in the writer code and re-declared in `dashboard/src/types.ts`. Move interfaces to `shared/types.ts` (see #1) so writer and reader can't drift.
-
-## Suggested target layout
+## Module map
 
 ```
 lenslook/
 ├── shared/
-│   └── types.ts              ← Lens, Post, LensStat, *SentimentResult, DashboardData
+│   ├── types.ts             # 30+ types — Lens, Body, Post, ReviewItem, *SentimentResult, etc.
+│   ├── weight.ts            # calcWeight(post) — single source
+│   └── youtube-transcript.d.ts
 ├── src/
-│   ├── pipeline/
-│   │   ├── scraper.ts
-│   │   ├── matcher.ts
-│   │   ├── sentiment.ts
-│   │   └── aggregate.ts      ← extracted from index.ts
-│   ├── enrich/
-│   │   ├── claude-sentiment.ts
-│   │   └── youtube-sentiment.ts
-│   ├── scrape/
-│   │   ├── common.ts         ← randomDelay, titleMatches, firstVisiblePrice, runScraper
-│   │   ├── amazon.ts
-│   │   └── bh.ts
-│   ├── claude/
-│   │   └── jsonCall.ts
-│   ├── index.ts
-│   ├── sentiment-rerun.ts
-│   └── test.ts
+│   ├── scraper.ts           # Reddit fetchers
+│   ├── matcher.ts           # lens + body matchers; ALL_LENSES re-export
+│   ├── sentiment.ts         # phrase-lexicon scoring
+│   ├── index.ts             # main Reddit pipeline
+│   ├── test.ts              # smoke run with formula breakdown
+│   ├── sentiment-rerun.ts   # rebuild lens-sentiment.json from existing sonyResults.json
+│   ├── backfill-comment-lensids.ts  # one-off post-level re-match
+│   ├── claude-sentiment.ts
+│   ├── youtube-sentiment.ts
+│   ├── audit-lexicon.ts
+│   ├── amazon-scrape.ts
+│   ├── bh-scrape.ts
+│   ├── adorama-scrape.ts
+│   ├── adorama-scrape-missing.ts
+│   ├── phillipreeve-scrape.ts
+│   ├── scraper-shared.ts    # Playwright + retail helpers
+│   ├── reviews.ts           # output/reviews.json read/write + isEnglish
+│   ├── price-history.ts     # output/price-history.json append
+│   ├── technical-reviews.ts
+│   ├── search.ts            # Google/DDG site:-search helper used by Adorama
+│   ├── classify-tags.ts     # one-off Lens.category backfill
+│   ├── backfill-model-from-mpn.ts
+│   ├── debug-context.ts
+│   ├── export-safari-cookies.ts
+│   ├── missing-sources.ts
+│   ├── scrapers/            # empty — planned home for retail scrapers (see TODO.md)
+│   └── tests/               # *-scrape-test.ts smoke files
 └── dashboard/
-    └── src/types.ts          ← re-export from ../../shared/types.ts
+    ├── src/types.ts         # re-exports from ../../shared/types
+    ├── src/utils.ts         # display + brand helpers; calcWeight re-export
+    ├── src/hooks/useDashboardData.ts
+    ├── src/hooks/useHashRoute.ts
+    ├── src/App.tsx          # System (Sony/Nikon) × View (v1/v2) switch
+    ├── src/tabs/            # v1: Overview, Bodies, lens/body/brand detail
+    ├── src/components/      # shared UI primitives
+    └── src/spectrum/        # v2 layout
 ```
 
-## Priority
+## Open consolidation opportunities
 
-1. **Shared types** (#1, #8) — highest leverage, unlocks everything else.
-2. **Scraper common module** (#2) — largest line-count win, makes adding a third retailer trivial.
-3. **Claude JSON helper** (#3) — small, high-quality-of-life.
-4. **Dead code removal** (#4) — 2-minute cleanup.
-5. **Dashboard fetch loop** (#5) and **aggregate extraction** (#6) — nice-to-have.
+Concrete duplications still worth folding (the 04-20 list is mostly done — `shared/types.ts`, `shared/weight.ts`, `matchPost` helper, dead animation code, fetch fan-out via `fetchJson`/`fetchLensesMap` are all in).
+
+1. **`callClaudeJson<T>()` helper.** `claude-sentiment.ts`, `youtube-sentiment.ts`, `audit-lexicon.ts` repeat the same shape: `messages.create` with cached system prompt → strip markdown fence → regex-slice `{...}` → parse with try/catch → throw on `stop_reason === "max_tokens"`. See `TODO.md`.
+
+2. **Per-lens stat aggregation.** `src/index.ts:writeOutput` and `src/backfill-comment-lensids.ts` both build the same `statsMap`/`sentimentMap` from `posts[]`. Backfill is rarely run, so leaving as-is for now; flag if it diverges.
+
+3. **Retail scraper directory shape.** `src/scrapers/` exists empty. Move `amazon-scrape.ts`, `bh-scrape.ts`, `adorama-scrape.ts`, `phillipreeve-scrape.ts`, `scraper-shared.ts`, and `adorama-scrape-missing.ts` in. See `TODO.md`.
+
+4. **Multi-system support.** Output filename + dashboard data hook both already key by system, but only Sony has data; Nikon button is disabled. Adding Nikon is mostly catalog work.

@@ -6,16 +6,20 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "sentiment": "tsx src/sentiment-rerun.ts",
-    "test": "tsx --test src/alias.test.ts",
     "dashboard": "cd dashboard && npm run dev",
     "dashboard:static": "npx serve . -l 3000",
     "claude-sentiment": "tsx src/claude-sentiment.ts",
     "youtube-sentiment": "tsx src/youtube-sentiment.ts",
     "sentiment:all": "npm run claude-sentiment && npm run youtube-sentiment",
     "amazon-scrape": "tsx src/amazon-scrape.ts",
-    "amazon-scrape:test": "tsx src/amazon-scrape-test.ts",
+    "amazon-scrape:test": "tsx src/tests/amazon-scrape-test.ts",
     "bh-scrape": "tsx src/bh-scrape.ts",
-    "bh-scrape:test": "tsx src/bh-scrape-test.ts"
+    "bh-scrape:test": "tsx src/tests/bh-scrape-test.ts",
+    "adorama-scrape": "tsx src/adorama-scrape.ts",
+    "adorama-scrape:test": "tsx src/tests/adorama-scrape-test.ts",
+    "phillipreeve-scrape": "tsx src/phillipreeve-scrape.ts",
+    "phillipreeve-scrape:test": "tsx src/tests/phillipreeve-scrape-test.ts",
+    "audit-lexicon": "tsx src/audit-lexicon.ts"
   },
   "keywords": [],
   "author": "",

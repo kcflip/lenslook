@@ -6,12 +6,13 @@ import lensData from "../lenses.json" with { type: "json" };
 import type { Lens, ResultsData, VideoSentiment, YouTubeSentimentResult } from "../shared/types.js";
 
 const OUTPUT = "output/youtube-sentiment.json";
-const RESULTS_FILE = "output/results.json";
+const RESULTS_FILE = "output/sonyResults.json";
 const MODEL = "claude-sonnet-4-6";
 const MAX_TRANSCRIPT_CHARS = 20000;
 const TOP_LENSES_PER_BRAND = 15;
-const VIEW_COUNT_THRESHOLD = 50_000;
-const MAX_VIDEOS_PER_LENS = 3;
+const VIEW_COUNT_THRESHOLD = 20_000;
+const MAX_VIDEOS_PER_LENS = 6;
+const MIN_DURATION_SECONDS = 180; // filter out Shorts and sub-3-minute clips
 const YT_API_BASE = "https://youtube.googleapis.com/youtube/v3";
 
 // ── Manual video overrides ────────────────────────────────────────────────────
@@ -61,6 +62,13 @@ interface VideoSearchResult {
   viewCount: number;
 }
 
+// Parse ISO 8601 duration (e.g. "PT3M30S", "PT1H5M") to total seconds.
+function parseDuration(iso: string): number {
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  return (parseInt(m[1] ?? "0") * 3600) + (parseInt(m[2] ?? "0") * 60) + parseInt(m[3] ?? "0");
+}
+
 async function searchVideos(query: string, apiKey: string): Promise<VideoSearchResult[]> {
   // Step 1 — search.list: get video IDs matching the query (costs 100 quota units)
   const searchUrl = `${YT_API_BASE}/search?part=snippet&q=${encodeURIComponent(query)}&type=video&order=viewCount&maxResults=10&key=${apiKey}`;
@@ -74,12 +82,18 @@ async function searchVideos(query: string, apiKey: string): Promise<VideoSearchR
 
   const videoIds = searchData.items.map((item) => item.id.videoId).filter(Boolean).join(",");
 
-  // Step 2 — videos.list: fetch statistics for those IDs (costs 1 quota unit per video)
-  // viewCount is not returned by search.list — requires a separate videos.list call
-  const statsUrl = `${YT_API_BASE}/videos?part=snippet,statistics&id=${videoIds}&key=${apiKey}`;
+  // Step 2 — videos.list: fetch statistics + contentDetails for those IDs (costs 1 quota unit per video)
+  // viewCount is not returned by search.list — requires a separate videos.list call.
+  // contentDetails gives us duration so we can filter out Shorts and sub-3-minute clips.
+  const statsUrl = `${YT_API_BASE}/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKey}`;
   const statsRes = await fetch(statsUrl);
   const statsData = await statsRes.json() as {
-    items?: Array<{ id: string; snippet: { title: string; channelTitle: string }; statistics: { viewCount?: string } }>;
+    items?: Array<{
+      id: string;
+      snippet: { title: string; channelTitle: string };
+      statistics: { viewCount?: string };
+      contentDetails: { duration: string };
+    }>;
     error?: { message: string; code: number };
   };
   if (statsData.error) throw new Error(`videos.list API error ${statsData.error.code}: ${statsData.error.message}`);
@@ -93,10 +107,18 @@ async function searchVideos(query: string, apiKey: string): Promise<VideoSearchR
     title: v.snippet.title,
     channelTitle: v.snippet.channelTitle,
     viewCount: parseInt(v.statistics.viewCount ?? "0", 10),
+    durationSeconds: parseDuration(v.contentDetails.duration),
   }));
-  const passing = all.filter((v) => v.viewCount >= VIEW_COUNT_THRESHOLD);
-  if (passing.length === 0 && all.length > 0) {
-    console.log(`  (${all.length} results found but all below ${(VIEW_COUNT_THRESHOLD / 1000).toFixed(0)}k view threshold — top was "${all[0].title.slice(0, 50)}" at ${(all[0].viewCount / 1000).toFixed(0)}k)`);
+
+  const afterDuration = all.filter((v) => {
+    if (v.durationSeconds >= MIN_DURATION_SECONDS) return true;
+    console.log(`  ⏱ skipped short (${v.durationSeconds}s): "${v.title.slice(0, 60)}"`);
+    return false;
+  });
+
+  const passing = afterDuration.filter((v) => v.viewCount >= VIEW_COUNT_THRESHOLD);
+  if (passing.length === 0 && afterDuration.length > 0) {
+    console.log(`  (${afterDuration.length} results found but all below ${(VIEW_COUNT_THRESHOLD / 1000).toFixed(0)}k view threshold — top was "${afterDuration[0].title.slice(0, 50)}" at ${(afterDuration[0].viewCount / 1000).toFixed(0)}k)`);
   }
   return passing.sort((a, b) => b.viewCount - a.viewCount);
 }
@@ -109,7 +131,7 @@ function buildSearchQuery(lens: Lens): string {
 // ── Transcript + Claude helpers ───────────────────────────────────────────────
 
 async function ytFetchTranscript(videoId: string): Promise<string> {
-  const segments = await fetchTranscript(videoId);
+  const segments = await fetchTranscript(videoId) as Array<{ text: string }>;
   const full = segments.map((s) => s.text).join(" ");
   return full.length > MAX_TRANSCRIPT_CHARS ? full.slice(0, MAX_TRANSCRIPT_CHARS) : full;
 }

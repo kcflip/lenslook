@@ -1,4 +1,4 @@
-const POSITIVE_WORDS = [
+export const POSITIVE_WORDS = [
   "sharp", "sharpness", "fast", "tack", "crisp", "stunning", "beautiful",
   "incredible", "amazing", "excellent", "love", "perfect", "smooth", "creamy",
   "silent", "quiet", "lightweight", "compact", "contrasty", "render",
@@ -7,7 +7,7 @@ const POSITIVE_WORDS = [
   "best", "favorite", "favourite", "keeper", "goto",
 ];
 
-const NEGATIVE_WORDS = [
+export const NEGATIVE_WORDS = [
   "soft", "blurry", "slow", "loud", "heavy", "bulky", "expensive", "overpriced",
   "disappointing", "bad", "terrible", "awful", "hate", "regret", "return",
   "chromatic", "vignetting", "distortion", "flare", "noisy", "fragile",
@@ -17,13 +17,13 @@ const NEGATIVE_WORDS = [
 // Multi-word phrases — matched before single words. Keep post-normalization form
 // (lowercase, apostrophes stripped, punctuation → space, whitespace collapsed).
 // Phrase hits consume their constituent tokens so we don't double-count.
-const POSITIVE_PHRASES = [
+export const POSITIVE_PHRASES = [
   "the best", "my favorite", "my favourite", "blown away", "game changer",
   "must have", "worth every penny", "go to", "love it", "love this",
   "highly recommend", "worth it",
 ];
 
-const NEGATIVE_PHRASES = [
+export const NEGATIVE_PHRASES = [
   "waste of money", "fell apart", "got rid", "returned it", "buyers remorse",
   "not worth it",
 ];
@@ -132,6 +132,9 @@ export function analyzePhraseSentiment(
   ];
 
   const result = scoreTokens(windowWords);
+  // Two forms exist for the same thing: src/index.ts emits "comment" when
+  // building post-time SentimentMentions; the unified ReviewSource enum used
+  // elsewhere is "reddit_comment". Accept both so callers don't have to map.
   if (source === "comment" || source === "reddit_comment") result.rawScore *= COMMENT_DISCOUNT;
   return result;
 }

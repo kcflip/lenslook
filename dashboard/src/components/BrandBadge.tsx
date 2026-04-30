@@ -1,7 +1,7 @@
 import { brandKey } from '../utils';
 import { brandHref } from '../hooks/useHashRoute';
 
-const KNOWN = ['sony','sigma','tamron','zeiss','samyang','viltrox','ttartisan','laowa'];
+const KNOWN = ['sony','sigma','tamron','zeiss','samyang','viltrox','ttartisan','laowa','voigtlander'];
 
 interface BrandBadgeProps {
   brand: string;

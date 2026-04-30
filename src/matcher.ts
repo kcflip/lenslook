@@ -3,6 +3,18 @@ import type { Lens } from "../shared/types.js";
 
 const lenses = lensData as Lens[];
 
+// Re-export for callers that need the same lens list the matcher compiled
+// against. Avoids a second `JSON.parse(readFileSync("lenses.json"))` at
+// startup in src/index.ts and src/test.ts.
+export const ALL_LENSES: readonly Lens[] = lenses;
+
+// Minimal interface satisfied by both Lens and Body for product-pool matching.
+export interface Matchable {
+  id: string;
+  name: string;
+  aliases: string[];
+}
+
 // Token emitted at sentence boundaries — consumed by sentiment.ts to cap context windows
 // at sentence edges. Must be a token that can't occur naturally in lens or sentiment text.
 export const EOS = "__eos__";
@@ -284,6 +296,93 @@ export function matchLensesWithPositions(text: string): {
   return { matches, normalized: norm };
 }
 
+// ── Body / generic product matching ─────────────────────────────────────────
+// Bodies don't have focal length or aperture, so we match by normalized
+// name/alias patterns only. Two pattern types:
+//   • Code: single token, len >= 3 (e.g. "a7iv", "a6700", "a7m4")
+//   • Phrase: multi-word (e.g. "a7 iv", "ilce 7m4")
+// For multi-word normalized aliases we also compile the concatenated form
+// ("ilce7m4") to catch dash-free spellings.
+
+export interface CompiledProduct {
+  id: string;
+  patterns: RegExp[];
+}
+
+function buildProductPatterns(subject: Matchable): RegExp[] {
+  const seen = new Set<string>();
+  const patterns: RegExp[] = [];
+
+  // Use only aliases — the name field often has special chars (α, Ⅳ) that
+  // normalize to generic fragments ("7 iv") and produce false positives.
+  for (const raw of subject.aliases) {
+    const norm = normalize(raw);
+    const tokens = norm.split(/\s+/).filter(Boolean);
+
+    if (tokens.length === 1) {
+      if (tokens[0].length >= 3 && !seen.has(tokens[0])) {
+        seen.add(tokens[0]);
+        patterns.push(new RegExp(`\\b${escapeRegex(tokens[0])}\\b`));
+      }
+    } else if (tokens.length >= 2) {
+      // Exact phrase
+      const phraseKey = tokens.join(" ");
+      if (!seen.has(phraseKey)) {
+        seen.add(phraseKey);
+        patterns.push(new RegExp(`\\b${tokens.map(escapeRegex).join("\\s+")}\\b`));
+      }
+      // Concatenated form handles e.g. "ilce7m4" written without the dash
+      const concat = tokens.join("");
+      if (concat.length >= 3 && !seen.has(concat)) {
+        seen.add(concat);
+        patterns.push(new RegExp(`\\b${escapeRegex(concat)}\\b`));
+      }
+    }
+  }
+
+  return patterns;
+}
+
+export function compileBodies(subjects: Matchable[]): CompiledProduct[] {
+  return subjects.map((s) => ({ id: s.id, patterns: buildProductPatterns(s) }));
+}
+
+function collectProductMatches(
+  norm: string,
+  products: CompiledProduct[],
+  onMatch: (id: string, pos: number) => void,
+): void {
+  for (const p of products) {
+    for (const re of p.patterns) {
+      const m = re.exec(norm);
+      if (m) {
+        onMatch(p.id, m.index);
+        break; // first pattern match per product is enough
+      }
+    }
+  }
+}
+
+// Combined lens + body match. bodyPool comes from compileBodies() called once
+// at startup in index.ts. Falls back to lens-only when bodyPool is empty.
+export function matchProductsWithPositions(
+  text: string,
+  bodyPool: CompiledProduct[],
+): { matches: PositionedMatch[]; normalized: string } {
+  const norm = normalize(text);
+  const firstIdx = new Map<string, number>();
+  const record = (id: string, idx: number) => {
+    const prev = firstIdx.get(id);
+    if (prev === undefined || idx < prev) firstIdx.set(id, idx);
+  };
+  collectSentenceMatches(norm, record);
+  collectCodeMatches(norm, record);
+  collectProductMatches(norm, bodyPool, record);
+  const matches = [...firstIdx.entries()].map(([id, index]) => ({ id, index }));
+  return { matches, normalized: norm };
+}
+
+// ── Post convenience wrappers ────────────────────────────────────────────────
 // Post convenience wrappers. Every caller was concatenating title + selftext —
 // centralize that so the join rule (including the `?? ""` guard for
 // link/image posts) lives in one place.

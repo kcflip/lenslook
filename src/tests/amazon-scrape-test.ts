@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { scrapeAmazonLens, launchAmazonContext, randomDelay } from "./amazon-scrape.js";
-import type { Lens } from "../shared/types.js";
+import { scrapeAmazonLens, launchAmazonContext, randomDelay } from "../amazon-scrape.js";
+import type { Lens } from "../../shared/types.js";
 
 const LENSES_FILE = "lenses.json";
 const OUTPUT = "output/scrape-test-amazon.json";
@@ -30,7 +30,7 @@ async function main() {
   const { browser, page } = await launchAmazonContext();
 
   interface TestRecord {
-    lensId: string;
+    productId: string;
     brand: string;
     name: string;
     ok: boolean;
@@ -41,7 +41,7 @@ async function main() {
 
   for (const lens of targets) {
     console.log(`\n[${records.length + 1}/${targets.length}] ${lens.brand} ${lens.name}`);
-    const record: TestRecord = { lensId: lens.id, brand: lens.brand, name: lens.name, ok: false };
+    const record: TestRecord = { productId: lens.id, brand: lens.brand, name: lens.name, ok: false };
     try {
       const result = await scrapeAmazonLens(page, lens);
       record.ok = result !== null;
