@@ -62,7 +62,7 @@ interface PostState {
   postMentions: SentimentMention[];
 }
 interface CommentData {
-  matchedComments: { id: string; body: string; score: number; lensIds: string[]; bodyIds: string[] }[];
+  matchedComments: { id: string; body: string; score: number; lensIds: string[]; bodyIds: string[]; created_utc?: number }[];
   commentMentions: SentimentMention[];
   commentLensIds: string[];
   commentBodyIds: string[];
@@ -97,8 +97,8 @@ function buildAllMatched(): MatchedPost[] {
   return out;
 }
 
-async function main() {
-  const bodies: Body[] = existsSync("bodies.json")
+async function main(mode: "both" | "lenses" | "bodies" = "both") {
+  const bodies: Body[] = mode !== "lenses" && existsSync("bodies.json")
     ? JSON.parse(readFileSync("bodies.json", "utf8"))
     : [];
   const bodyPool: CompiledProduct[] = compileBodies(bodies);
@@ -108,15 +108,15 @@ async function main() {
 
   const searchQueries = buildSearchQueries();
   type QueryRun = { query: string | null; sort: string; timeframe: string };
-  const plan: { sub: string; mode: "listing" | "search"; runs: QueryRun[] }[] = [
+  const plan: { sub: string; fetchMode: "listing" | "search"; runs: QueryRun[] }[] = [
     ...LISTING_SUBREDDITS.map((sub) => ({
       sub,
-      mode: "listing" as const,
+      fetchMode: "listing" as const,
       runs: RUNS.map((r) => ({ query: null, sort: r.sort, timeframe: r.timeframe })),
     })),
     ...SEARCH_SUBREDDITS.map((sub) => ({
       sub,
-      mode: "search" as const,
+      fetchMode: "search" as const,
       runs: searchQueries.flatMap((q) =>
         q.runs.map((r) => ({ query: q.query, sort: r.sort, timeframe: r.timeframe })),
       ),
@@ -145,8 +145,8 @@ async function main() {
   console.log(`  Total runs     : ${totalRuns}`);
   console.log(`${"=".repeat(70)}\n`);
 
-  for (const { sub, mode, runs } of plan) {
-    const subHeader = `r/${sub}  (${mode}, ${runs.length} run${runs.length === 1 ? "" : "s"})`;
+  for (const { sub, fetchMode, runs } of plan) {
+    const subHeader = `r/${sub}  (${fetchMode}, ${runs.length} run${runs.length === 1 ? "" : "s"})`;
     console.log(`\n${"─".repeat(70)}`);
     console.log(`  ${subHeader}`);
     console.log(`${"─".repeat(70)}`);
@@ -169,7 +169,7 @@ async function main() {
         : `r/${sub} — ${sort}/${timeframe}`;
       console.log(`    ${progress} ${runSpec} fetching…`);
 
-      const fetchPromise = mode === "listing"
+      const fetchPromise = fetchMode === "listing"
         ? fetchPosts(sub, sort as "top", LIMIT, timeframe as "all")
         : fetchSearch(sub, query!, sort as SearchSort, LIMIT, timeframe as "all");
       const posts = await withCabinetAnimation(label, fetchPromise);
@@ -184,8 +184,8 @@ async function main() {
           post.title + " " + (post.selftext ?? ""),
           bodyPool,
         );
-        const lensMatches = matches.filter((m) => !m.id.startsWith("body-"));
-        const bodyMatches = matches.filter((m) => m.id.startsWith("body-"));
+        const lensMatches = mode !== "bodies" ? matches.filter((m) => !m.id.startsWith("body-")) : [];
+        const bodyMatches = mode !== "lenses" ? matches.filter((m) => m.id.startsWith("body-")) : [];
         const postLensIds = [...new Set(lensMatches.map((m) => m.id))];
         const postBodyIds = [...new Set(bodyMatches.map((m) => m.id))];
         const postMentions: SentimentMention[] = lensMatches.map((m) => ({
@@ -241,7 +241,7 @@ async function main() {
       console.warn(`  ⚠ Rate limit retries exhausted fetching comments for post ${post.id} — skipping.`);
       continue;
     }
-    const matchedComments: { id: string; body: string; score: number; lensIds: string[]; bodyIds: string[] }[] = [];
+    const matchedComments: { id: string; body: string; score: number; lensIds: string[]; bodyIds: string[]; created_utc?: number }[] = [];
     const commentMentions: SentimentMention[] = [];
     const lensIdSet = new Set<string>();
     const bodyIdSet = new Set<string>();
@@ -264,8 +264,8 @@ async function main() {
       if (comment.score < COMMENT_MIN_SCORE) continue;
       const { matches, normalized } = matchProductsWithPositions(comment.body, bodyPool);
       if (matches.length === 0) continue;
-      const lensMatchesC = matches.filter((m) => !m.id.startsWith("body-"));
-      const bodyMatchesC = matches.filter((m) => m.id.startsWith("body-"));
+      const lensMatchesC = mode !== "bodies" ? matches.filter((m) => !m.id.startsWith("body-")) : [];
+      const bodyMatchesC = mode !== "lenses" ? matches.filter((m) => m.id.startsWith("body-")) : [];
       const commentLensSet = new Set<string>(lensMatchesC.map((m) => m.id));
       const commentBodySetC = new Set<string>(bodyMatchesC.map((m) => m.id));
       const enriched: Enriched = { comment, matches: lensMatchesC, normalized, commentLensSet, commentBodySet: commentBodySetC };
@@ -300,7 +300,7 @@ async function main() {
         });
       }
       for (const id of commentBodySet) bodyIdSet.add(id);
-      matchedComments.push({ id: comment.id, body: comment.body, score: comment.score, lensIds: [...commentLensSet], bodyIds: [...commentBodySet] });
+      matchedComments.push({ id: comment.id, body: comment.body, score: comment.score, lensIds: [...commentLensSet], bodyIds: [...commentBodySet], created_utc: comment.created_utc });
     }
     // Exclude lenses/bodies already matched in the title — they shouldn't be double-counted as comment matches.
     const commentLensIds = [...lensIdSet].filter((id) => !state.postLensIds.includes(id));
@@ -335,8 +335,10 @@ function writeOutput(allMatched: MatchedPost[], partial = false) {
   if (partial) {
     console.warn(`\n⚠ Writing partial output — ${allMatched.length} matched posts collected before failure.`);
   }
-  console.log("\n⚙️  Aggregating lens stats...");
-  const statsMap = new Map<string, { scores: number[]; ratios: number[]; comments: number[]; weights: number[]; commentCount: number }>();
+  console.log("\n⚙️  Aggregating lens and body stats...");
+  type StatBucket = { scores: number[]; ratios: number[]; comments: number[]; weights: number[]; commentCount: number };
+  const statsMap = new Map<string, StatBucket>();
+  const bodyStatsMap = new Map<string, StatBucket>();
   const sentimentMap = new Map<string, { rawScores: number[]; positiveHits: WordHit[]; negativeHits: WordHit[] }>();
 
   for (const post of allMatched) {
@@ -350,6 +352,15 @@ function writeOutput(allMatched: MatchedPost[], partial = false) {
       s.weights.push(weight);
       if (post.commentLensIds.includes(id)) s.commentCount++;
     }
+    for (const id of post.bodyIds ?? []) {
+      if (!bodyStatsMap.has(id)) bodyStatsMap.set(id, { scores: [], ratios: [], comments: [], weights: [], commentCount: 0 });
+      const s = bodyStatsMap.get(id)!;
+      s.scores.push(post.score);
+      s.ratios.push(post.upvote_ratio);
+      s.comments.push(post.num_comments);
+      s.weights.push(weight);
+      if ((post.commentBodyIds ?? []).includes(id)) s.commentCount++;
+    }
     for (const m of post.sentimentMentions ?? []) {
       if (!sentimentMap.has(m.lensId)) sentimentMap.set(m.lensId, { rawScores: [], positiveHits: [], negativeHits: [] });
       const s = sentimentMap.get(m.lensId)!;
@@ -360,25 +371,30 @@ function writeOutput(allMatched: MatchedPost[], partial = false) {
   }
 
   const avg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
+  const toStat = (lensId: string, s: StatBucket, phraseSentiment: ReturnType<typeof computePhraseSentiment>): LensStat => ({
+    lensId,
+    postCount: s.scores.length - s.commentCount,
+    commentCount: s.commentCount,
+    avgScore: Math.round(avg(s.scores)),
+    avgUpvoteRatio: parseFloat(avg(s.ratios).toFixed(3)),
+    avgComments: Math.round(avg(s.comments)),
+    scoreSentiment: parseFloat((avg(s.weights) * Math.log(1 + s.weights.length)).toFixed(3)),
+    phraseSentiment,
+  });
 
   const stats: LensStat[] = [...statsMap.entries()]
-    .map(([lensId, s]) => ({
-      lensId,
-      postCount: s.scores.length - s.commentCount,
-      commentCount: s.commentCount,
-      avgScore: Math.round(avg(s.scores)),
-      avgUpvoteRatio: parseFloat(avg(s.ratios).toFixed(3)),
-      avgComments: Math.round(avg(s.comments)),
-      scoreSentiment: parseFloat((avg(s.weights) * Math.log(1 + s.weights.length)).toFixed(3)),
-      phraseSentiment: computePhraseSentiment(sentimentMap.get(lensId), s.scores.length - s.commentCount, s.commentCount),
-    }))
+    .map(([lensId, s]) => toStat(lensId, s, computePhraseSentiment(sentimentMap.get(lensId), s.scores.length - s.commentCount, s.commentCount)))
     .sort((a, b) => b.scoreSentiment - a.scoreSentiment);
 
-  console.log(`📊 Aggregated stats for ${stats.length} distinct lenses.`);
+  const bodyStats: LensStat[] = [...bodyStatsMap.entries()]
+    .map(([lensId, s]) => toStat(lensId, s, null))
+    .sort((a, b) => b.scoreSentiment - a.scoreSentiment);
+
+  console.log(`📊 Aggregated stats for ${stats.length} lenses, ${bodyStats.length} bodies.`);
 
   mkdirSync("output", { recursive: true });
   const fetchedAt = new Date().toISOString();
-  const output = { fetchedAt, subreddits: SUBREDDITS, runs: RUNS, stats, posts: allMatched };
+  const output = { fetchedAt, subreddits: SUBREDDITS, runs: RUNS, stats, bodyStats, posts: allMatched };
   writeFileSync("output/sonyResults.json", JSON.stringify(output, null, 2));
   console.log("💾 Written to output/sonyResults.json");
 
@@ -399,7 +415,10 @@ function writeOutput(allMatched: MatchedPost[], partial = false) {
   console.log(`${"=".repeat(50)}\n`);
 }
 
-main().catch((e) => {
+const mode = process.argv.includes("--lenses") ? "lenses"
+  : process.argv.includes("--bodies") ? "bodies"
+  : "both";
+main(mode).catch((e) => {
   console.error(`\n⚠ Fatal error: ${e.message}`);
   const partial = buildAllMatched();
   if (partial.length > 0) writeOutput(partial, true);

@@ -9,12 +9,13 @@ const RESULTS_INPUT = "output/sonyResults.json";
 const OUTPUT = "output/claude-sentiment.json";
 const BATCH_SIZE = 6;
 const REVIEW_CAP = 20;
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "claude-haiku-4-5-20251001";
 
 type Mode = "lenses" | "bodies";
 const MODE: Mode = process.argv.includes("--bodies") ? "bodies" : "lenses";
 
-const REDDIT_CAP    = 50;
+const REDDIT_POST_CAP    = 30;
+const REDDIT_COMMENT_CAP = 60;
 const SELFTEXT_CAP  = MODE === "bodies" ? 4000 : 2000;
 
 interface LensReviews {
@@ -30,7 +31,7 @@ const SHARED_OUTPUT_SCHEMA = `For each product, analyze only the qualifying item
 - positives: array of citation objects (max 5), each with:
     - aspect: short phrase describing the positive ("sharp wide open", "fast autofocus")
     - quote: a DIRECT VERBATIM excerpt copied from one of the provided items' "text" field — character-for-character identical to the source. Do not paraphrase, rewrite, translate, fix typos, re-case, or stitch multiple excerpts together. You may trim surrounding context from either end, but the returned string must appear exactly as-is somewhere in the original "text".
-    - source: the "source" value of the item the quote came from ("reddit_post", "reddit_comment", "amazon", or "bh")
+    - source: the "source" value of the item the quote came from ("reddit_post", "reddit_comment", "amazon", "bh", or "adorama")
 - negatives: array of citation objects (max 5), same shape as positives
 - mentionCount: total number of items provided
 
@@ -44,21 +45,21 @@ Return a JSON object where each key is the product id and the value is the senti
 
 const LENS_SYSTEM_PROMPT = `You are a camera lens sentiment analyst. You will receive batches of opinion data for specific camera lenses and must return structured sentiment analysis as JSON.
 
-Each lens includes a mix of sources — Reddit posts ("reddit_post"), Reddit comments ("reddit_comment"), Amazon verified-purchase reviews ("amazon"), and B&H verified-buyer reviews ("bh"). Amazon and B&H items include a 1–5 star rating and represent customer experience with an actual purchased product. Reddit items carry community discussion signal but may lack purchase context.
+Each lens includes a mix of sources — Reddit posts ("reddit_post"), Reddit comments ("reddit_comment"), Amazon verified-purchase reviews ("amazon"), B&H verified-buyer reviews ("bh"), and Adorama verified-buyer reviews ("adorama"). Amazon, B&H, and Adorama items include a 1–5 star rating and represent customer experience with an actual purchased product. Reddit items carry community discussion signal but may lack purchase context.
 
 Only consider items that express an opinion about the lens's optical or build quality — sharpness, bokeh, autofocus, distortion, size, value, reliability, etc. Disregard items where the lens is merely named without judgment (gear lists, sale posts, "which lens should I buy" questions). Do not infer sentiment from neutral or off-topic mentions.
 
-Weight structured reviews (amazon, bh) somewhat more heavily than Reddit mentions when they agree or disagree with Reddit sentiment, since they reflect actual ownership.
+Weight structured reviews (amazon, bh, adorama) somewhat more heavily than Reddit mentions when they agree or disagree with Reddit sentiment, since they reflect actual ownership.
 
 ${SHARED_OUTPUT_SCHEMA}`;
 
 const BODY_SYSTEM_PROMPT = `You are a camera body sentiment analyst. You will receive batches of opinion data for specific camera bodies and must return structured sentiment analysis as JSON.
 
-Each body includes a mix of sources — Reddit posts ("reddit_post"), Reddit comments ("reddit_comment"), Amazon verified-purchase reviews ("amazon"), and B&H verified-buyer reviews ("bh"). Amazon and B&H items include a 1–5 star rating and represent customer experience with an actual purchased product. Reddit items carry community discussion signal but may lack purchase context.
+Each body includes a mix of sources — Reddit posts ("reddit_post"), Reddit comments ("reddit_comment"), Amazon verified-purchase reviews ("amazon"), B&H verified-buyer reviews ("bh"), and Adorama verified-buyer reviews ("adorama"). Amazon, B&H, and Adorama items include a 1–5 star rating and represent customer experience with an actual purchased product. Reddit items carry community discussion signal but may lack purchase context.
 
 Only consider items that express an opinion about the body's performance, usability, or build — autofocus tracking and acquisition speed, low-light AF capability, EVF resolution and lag, IBIS effectiveness, burst rate and buffer depth, video capabilities (rolling shutter, overheating, codec quality, log profiles), battery life, ergonomics, weather sealing, and value. Disregard items where the body is merely named without judgment (gear lists, sale posts). Do not infer sentiment from neutral or off-topic mentions.
 
-Weight structured reviews (amazon, bh) somewhat more heavily than Reddit mentions when they agree or disagree with Reddit sentiment, since they reflect actual ownership.
+Weight structured reviews (amazon, bh, adorama) somewhat more heavily than Reddit mentions when they agree or disagree with Reddit sentiment, since they reflect actual ownership.
 
 ${SHARED_OUTPUT_SCHEMA}`;
 
@@ -70,27 +71,32 @@ function redditItems(data: ResultsData, productById: Record<string, Lens | Body>
     map.get(id)!.push(item);
   };
 
+  const postIdField   = MODE === "bodies" ? "postBodyIds"    : "postLensIds";
+  const commentIdField = MODE === "bodies" ? "commentBodyIds" : "commentLensIds";
+  const commentMatchField = MODE === "bodies" ? "bodyIds" : "lensIds";
+
   for (const post of data.posts) {
     const postText = post.title + (post.selftext && post.selftext !== "[removed]"
       ? ": " + post.selftext.slice(0, SELFTEXT_CAP)
       : "");
 
-    for (const lensId of post.postLensIds ?? []) {
-      push(lensId, {
+    for (const id of (post[postIdField] ?? []) as string[]) {
+      push(id, {
         sourceType: "reddit_post",
-        productId: lensId,
+        productId: id,
         text: postText,
         upvoteScore: post.score,
         images: [],
       });
     }
 
-    for (const lensId of post.commentLensIds ?? []) {
+    for (const id of (post[commentIdField] ?? []) as string[]) {
       for (const comment of post.matchedComments ?? []) {
-        if (comment.lensIds && !comment.lensIds.includes(lensId)) continue;
-        push(lensId, {
+        const ids = comment[commentMatchField] as string[] | undefined;
+        if (ids && !ids.includes(id)) continue;
+        push(id, {
           sourceType: "reddit_comment",
-          productId: lensId,
+          productId: id,
           text: comment.body,
           upvoteScore: comment.score,
           images: [],
@@ -99,10 +105,15 @@ function redditItems(data: ResultsData, productById: Record<string, Lens | Body>
     }
   }
 
-  // Cap per product, preferring higher-scored items
+  // Cap posts and comments independently per product, preferring higher-scored items
   for (const [id, items] of map) {
-    items.sort((a, b) => (b.upvoteScore ?? 0) - (a.upvoteScore ?? 0));
-    map.set(id, items.slice(0, REDDIT_CAP));
+    const posts    = items.filter(i => i.sourceType === "reddit_post")
+                         .sort((a, b) => (b.upvoteScore ?? 0) - (a.upvoteScore ?? 0))
+                         .slice(0, REDDIT_POST_CAP);
+    const comments = items.filter(i => i.sourceType === "reddit_comment")
+                         .sort((a, b) => (b.upvoteScore ?? 0) - (a.upvoteScore ?? 0))
+                         .slice(0, REDDIT_COMMENT_CAP);
+    map.set(id, [...posts, ...comments]);
   }
 
   return map;
@@ -119,7 +130,7 @@ function mergeSources(
   for (const id of allIds) {
     if (!productById[id]) continue;
     const reddit = redditMap.get(id) ?? [];
-    const reviews = (reviewsByLens[id] ?? []).filter(r => r.sourceType === "amazon" || r.sourceType === "bh").slice(0, REVIEW_CAP);
+    const reviews = (reviewsByLens[id] ?? []).filter(r => r.sourceType === "amazon" || r.sourceType === "bh" || r.sourceType === "adorama").slice(0, REVIEW_CAP);
     const items = [...reviews, ...reddit];
     if (items.length === 0) continue;
     const product = productById[id];

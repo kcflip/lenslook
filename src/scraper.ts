@@ -149,6 +149,7 @@ export async function fetchComments(
           score: d.score as number,
           parent_id: d.parent_id as string,
           author: (d.author as string | undefined) ?? "[deleted]",
+          created_utc: d.created_utc as number | undefined,
         });
       }
       if (d.replies && typeof d.replies === "object") {

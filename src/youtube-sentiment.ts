@@ -7,10 +7,10 @@ import type { Lens, ResultsData, VideoSentiment, YouTubeSentimentResult } from "
 
 const OUTPUT = "output/youtube-sentiment.json";
 const RESULTS_FILE = "output/sonyResults.json";
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "claude-haiku-4-5-20251001";
 const MAX_TRANSCRIPT_CHARS = 20000;
 const TOP_LENSES_PER_BRAND = 15;
-const VIEW_COUNT_THRESHOLD = 20_000;
+const VIEW_COUNT_THRESHOLD = 10_000;
 const MAX_VIDEOS_PER_LENS = 6;
 const MIN_DURATION_SECONDS = 180; // filter out Shorts and sub-3-minute clips
 const YT_API_BASE = "https://youtube.googleapis.com/youtube/v3";
@@ -37,6 +37,10 @@ const MANUAL_VIDEOS: Array<{ lensId: string; videoId: string; reviewer?: string 
 //     overall value for the optical performance delivered.
 const SYSTEM_PROMPT = `You are a camera lens review analyst. You will receive a transcript from a YouTube lens review (likely auto-generated, so expect no punctuation and run-on sentences) and must return a structured sentiment analysis as JSON.
 
+FIRST: Verify the transcript is primarily a review of the lens named in the user message. If the transcript is primarily about a different lens (e.g. a comparison video where the named lens is secondary, or the wrong lens entirely), return exactly: { "skip": true }
+
+The transcript contains [M:SS] timestamp markers injected roughly every 15 seconds so you can locate quotes in the video.
+
 Only consider statements that express an opinion about the lens's optical or build quality: sharpness, bokeh, autofocus speed and accuracy, distortion, chromatic aberration, vignetting, build quality, size, weight, weather sealing, and value relative to optical performance.
 
 Ignore: unboxing narration, price and availability commentary, sponsor segments, channel promotion, and comparisons where the reviewer is primarily discussing a different lens.
@@ -47,8 +51,10 @@ Return a JSON object with:
 - score: number from -1 (very negative) to 1 (very positive)
 - label: "positive", "negative", "neutral", or "mixed"
 - summary: 2-3 sentence summary of the reviewer's overall verdict on optical and build quality
-- positives: array of direct verbatim quotes from the transcript expressing positive opinions (max 6, each under 100 characters — trim to the most expressive clause if needed, keep the reviewer's exact words)
-- negatives: array of direct verbatim quotes from the transcript expressing negative opinions (max 6, each under 100 characters — trim to the most expressive clause if needed, keep the reviewer's exact words)
+- positives: array of quote objects (max 6), each with:
+    - quote: verbatim words from the transcript, stripped of any [M:SS] markers, trimmed to the most expressive clause (under 100 characters)
+    - timestampSeconds: integer seconds of the nearest preceding [M:SS] marker before this quote
+- negatives: same shape as positives (max 6)
 - mentionCount: number of distinct opinion statements you identified (not total words)
 
 Return only valid JSON, no other text.`;
@@ -59,6 +65,7 @@ interface VideoSearchResult {
   videoId: string;
   title: string;
   channelTitle: string;
+  publishedAt?: string;
   viewCount: number;
 }
 
@@ -90,7 +97,7 @@ async function searchVideos(query: string, apiKey: string): Promise<VideoSearchR
   const statsData = await statsRes.json() as {
     items?: Array<{
       id: string;
-      snippet: { title: string; channelTitle: string };
+      snippet: { title: string; channelTitle: string; publishedAt?: string };
       statistics: { viewCount?: string };
       contentDetails: { duration: string };
     }>;
@@ -106,6 +113,7 @@ async function searchVideos(query: string, apiKey: string): Promise<VideoSearchR
     videoId: v.id,
     title: v.snippet.title,
     channelTitle: v.snippet.channelTitle,
+    publishedAt: v.snippet.publishedAt,
     viewCount: parseInt(v.statistics.viewCount ?? "0", 10),
     durationSeconds: parseDuration(v.contentDetails.duration),
   }));
@@ -128,11 +136,37 @@ function buildSearchQuery(lens: Lens): string {
   return `${lens.brand} ${lens.focalLength} ${lens.maxAperture} review`;
 }
 
+// Require the title to contain the brand and at least one of the focal length numbers
+// so comparison/wrong-lens videos are filtered before we spend transcript quota on them.
+function titleMatchesLens(title: string, lens: Lens): boolean {
+  const t = title.toLowerCase();
+  if (!t.includes(lens.brand.toLowerCase())) return false;
+  const focalNums = lens.focalLength.match(/\d+/g) ?? [];
+  return focalNums.some((n) => t.includes(n));
+}
+
 // ── Transcript + Claude helpers ───────────────────────────────────────────────
 
+const TIMESTAMP_INTERVAL_SECONDS = 15;
+
+function fmtTimestamp(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `[${m}:${s.toString().padStart(2, "0")}]`;
+}
+
 async function ytFetchTranscript(videoId: string): Promise<string> {
-  const segments = await fetchTranscript(videoId) as Array<{ text: string }>;
-  const full = segments.map((s) => s.text).join(" ");
+  const segments = await fetchTranscript(videoId) as Array<{ text: string; start: number }>;
+  let result = "";
+  let lastMarkerAt = -TIMESTAMP_INTERVAL_SECONDS; // force a marker at the very start
+  for (const seg of segments) {
+    if (seg.start - lastMarkerAt >= TIMESTAMP_INTERVAL_SECONDS) {
+      result += ` ${fmtTimestamp(seg.start)}`;
+      lastMarkerAt = seg.start;
+    }
+    result += " " + seg.text;
+  }
+  const full = result.trim();
   return full.length > MAX_TRANSCRIPT_CHARS ? full.slice(0, MAX_TRANSCRIPT_CHARS) : full;
 }
 
@@ -141,7 +175,7 @@ async function analyzeTranscript(
   lensName: string,
   transcript: string,
   reviewer?: string,
-): Promise<Omit<VideoSentiment, "videoId" | "url" | "reviewer">> {
+): Promise<Omit<VideoSentiment, "videoId" | "url" | "reviewer"> | null> {
   const header = reviewer ? `Reviewer: ${reviewer}\n\n` : "";
   const response = await client.messages.create({
     model: MODEL,
@@ -156,7 +190,9 @@ async function analyzeTranscript(
   const text = response.content.find((b) => b.type === "text")?.text ?? "{}";
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error(`No JSON in response: ${text.slice(0, 200)}`);
-  return JSON.parse(match[0]);
+  const parsed = JSON.parse(match[0]);
+  if (parsed.skip === true) return null;
+  return parsed;
 }
 
 
@@ -208,6 +244,7 @@ async function main() {
     videoId: string;
     title?: string;
     channelTitle?: string;
+    publishedAt?: string;
     viewCount?: number;
     reviewer?: string;
   }
@@ -228,8 +265,13 @@ async function main() {
 
     try {
       const found = await searchVideos(query, apiKey);
+      const titleMatched = found.filter((v) => {
+        if (titleMatchesLens(v.title, lens)) return true;
+        console.log(`  ✗ title mismatch: "${v.title.slice(0, 70)}"`);
+        return false;
+      });
       const existing = new Set((videoMap.get(lensId) ?? []).map((v) => v.videoId));
-      const newVideos = found
+      const newVideos = titleMatched
         .filter((v) => !existing.has(v.videoId))
         .slice(0, MAX_VIDEOS_PER_LENS - (videoMap.get(lensId)?.length ?? 0));
 
@@ -240,13 +282,14 @@ async function main() {
             videoId: v.videoId,
             title: v.title,
             channelTitle: v.channelTitle,
+            publishedAt: v.publishedAt,
             viewCount: v.viewCount,
           });
           console.log(`     ✓ "${v.title.slice(0, 70)}" — ${v.channelTitle} (${(v.viewCount / 1000).toFixed(0)}k views)`);
         }
       }
 
-      console.log(`  ${found.length} results above ${(VIEW_COUNT_THRESHOLD / 1000).toFixed(0)}k views, using ${newVideos.length}`);
+      console.log(`  ${found.length} above threshold, ${titleMatched.length} title-matched, using ${newVideos.length}`);
     } catch (err) {
       console.log(`failed — ${err instanceof Error ? err.message : err}`);
     }
@@ -289,11 +332,16 @@ async function main() {
 
         process.stdout.write(`${tag} sending to Claude... `);
         const result = await analyzeTranscript(client, lensName, transcript, video.reviewer);
+        if (result === null) {
+          console.log(`skipped (wrong lens per Claude)`);
+          continue;
+        }
         videoSentiments.push({
           videoId: video.videoId,
           url: `https://www.youtube.com/watch?v=${video.videoId}`,
           title: video.title,
           channelTitle: video.channelTitle,
+          publishedAt: video.publishedAt,
           viewCount: video.viewCount,
           reviewer: video.reviewer,
           ...result,

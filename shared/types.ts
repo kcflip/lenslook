@@ -149,6 +149,30 @@ export interface RetailSubject {
   amazon?: AmazonEntry;
 }
 
+export interface LensSpecs {
+  // Optics
+  focalLength?: { min: number; max: number };   // mm; primes: min === max
+  maxAperture?: number;                          // f-number, e.g. 1.8
+  minAperture?: number;                          // f-number, e.g. 22
+  opticalDesign?: { elements?: number; groups?: number };
+  apertureBlades?: number;
+  format?: SensorSize;                           // sensor coverage
+
+  // Focus
+  autofocus?: boolean;
+  minimumFocusDistanceM?: number;                // meters
+  maximumMagnification?: number;                 // e.g. 0.25 for 1:4
+
+  // Build
+  filterDiameter?: number;                       // mm
+  weightG?: number;
+  diameterMm?: number;
+  lengthMm?: number;
+  weatherSealed?: boolean;
+  imageStabilization?: boolean;
+  mount?: string;
+}
+
 export interface Lens {
   id: string;
   system: string;
@@ -161,6 +185,7 @@ export interface Lens {
   aliases: string[];
   category: string[];
   discontinued?: boolean;
+  specs?: LensSpecs;
   amazon?: AmazonEntry;
   bh?: BHEntry;
   adorama?: AdoramaEntry;
@@ -176,6 +201,7 @@ export interface Comment {
   score: number;
   parent_id: string;
   author: string;
+  created_utc?: number;
 }
 
 export interface PostImage {
@@ -206,6 +232,7 @@ export interface MatchedComment {
   score: number;
   lensIds?: string[];
   bodyIds?: string[];
+  created_utc?: number;
 }
 
 // ── Sentiment primitives (sentiment.ts internals exposed for results.json) ──
@@ -253,6 +280,7 @@ export interface ResultsData {
   subreddits: string[];
   sorts: string[];
   stats: LensStat[];
+  bodyStats?: LensStat[];
   posts: Post[];
 }
 
@@ -304,18 +332,24 @@ export interface ClaudeSentimentResult {
 
 // ── YouTube sentiment (output/youtube-sentiment.json) ───────────────────────
 
+export interface VideoQuote {
+  quote: string;
+  timestampSeconds?: number;
+}
+
 export interface VideoSentiment {
   videoId: string;
   url: string;
   title?: string;
   channelTitle?: string;
+  publishedAt?: string;
   viewCount?: number;
   reviewer?: string;
   score: number;
   label: SentimentLabel;
   summary: string;
-  positives: string[];
-  negatives: string[];
+  positives: VideoQuote[];
+  negatives: VideoQuote[];
   mentionCount: number;
 }
 
@@ -354,6 +388,7 @@ export interface TechnicalReview {
   url: string;
   title: string;
   author?: string;
+  authorUrl?: string;
   publishedDate?: string;   // ISO date string when parseable, else raw text
 
   // Structured extractions we attempt per source. Any may be absent.
@@ -361,6 +396,7 @@ export interface TechnicalReview {
   score?: number;           // DPReview explicit score; others usually null
   pros?: string[];
   cons?: string[];
+  average?: string[];
 
   // Source-specific numeric metrics (e.g. Lensrentals variation scores).
   metrics?: Record<string, number | string>;

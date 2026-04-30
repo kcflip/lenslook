@@ -30,6 +30,22 @@ Sentiment + popularity tracker for Sony-ecosystem lenses and bodies. Pulls from 
 
 ## Recent journal
 
+### 2026-04-30 — sentiment pipeline + date surfacing
+
+- **Claude sentiment**: switched to Haiku, added Adorama reviews, split Reddit cap into per-post (30) and per-comment (60) limits
+- **YouTube sentiment**: timestamp markers injected into transcripts every 15s; Claude returns `{ quote, timestampSeconds }` objects; quotes on the dashboard link to `&t=NNs` in the video. Wrong-lens filtering: title must match brand + focal length, Claude returns `{ skip: true }` for mismatches
+- **Dates**: `created_utc` added to `Comment`/`MatchedComment` and threaded into `sonyResults.json`; `publishedAt` added to `VideoSentiment` from YouTube API; posts table, comments table, and YouTube cards now show dates in the dashboard
+
+### 2026-04-30 — body pipeline fixes + scraper hardening
+
+- **Brand pollution fix** — body IDs (`body-` prefix) were bleeding into the lens brand-pulse section. Fixed by splitting `matchProductsWithPositions` output into separate `postLensIds`/`postBodyIds` arrays at the pipeline level so `post.lensIds` stays lens-only.
+- **Unified CLI flags** — all scrapers + Reddit runner now accept `--lenses` (lenses only), `--bodies` (bodies only), or no args (lenses then bodies). Consistent across `src/index.ts`, amazon/bh/adorama scrapers.
+- **`LensSpecs` type** added to `shared/types.ts`; `Lens.specs` field added. Phillip Reeve scraper can now parse spec tables and write back into `lenses.json`.
+- **Phillip Reeve scraper overhauled** — correct selectors for WordPress structure (`/blog/author/` author links, text-content date parsing), sample-image extraction (only "Sample images" section), spec table parser. Removed hard multi-lens gate (now logs a notice and continues).
+- **Amazon review body fix** — scroll to each card, wait for `top-customer-reviews-widget` visibility, switched selector to `review-collapsed` + `innerText()`. Screenshot captured on empty review body.
+- **Body stats in sentiment** — `src/index.ts` now emits `bodyStats[]` alongside `stats[]` in `sonyResults.json`. `claude-sentiment.ts` routes to `postBodyIds`/`commentBodyIds` in `--bodies` mode.
+- **YouTube sentiment filtering** — two-stage: (1) title must contain brand + focal length numbers before video is accepted post-search; (2) Claude returns `{ skip: true }` if transcript is primarily about a different lens; caller discards it.
+
 ### 2026-04-29 — doc + code consolidation
 
 Sweep pass before adding new features.

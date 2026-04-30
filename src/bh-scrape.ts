@@ -614,8 +614,7 @@ export async function launchBhContext() {
 
 export { randomDelay, readingDelay };
 
-async function main() {
-  const isBodies = process.argv.includes("--bodies");
+async function main(isBodies: boolean) {
   const sourceFile = isBodies ? "bodies.json" : LENSES_FILE;
   const subjects: RetailSubject[] = JSON.parse(readFileSync(sourceFile, "utf8"));
   console.log(`Mode: ${isBodies ? "bodies" : "lenses"} — ${subjects.length} subjects from ${sourceFile}`);
@@ -670,5 +669,10 @@ async function main() {
 // Only run main() when invoked as a CLI, not when imported by the smoke test.
 import { fileURLToPath } from "url";
 if (process.argv[1] && process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => { console.error(err); process.exit(1); });
+  const hasLenses = process.argv.includes("--lenses");
+  const hasBodies = process.argv.includes("--bodies");
+  const run = hasLenses ? main(false)
+    : hasBodies ? main(true)
+    : main(false).then(() => main(true));
+  run.catch((err) => { console.error(err); process.exit(1); });
 }

@@ -675,7 +675,13 @@ export function LensDetailPageV2({ data, lensId }: Props) {
                   <div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: CLAUDE_POS.text, marginBottom: 8 }}>Positives</div>
                     <ul style={{ margin: 0, paddingLeft: 16 }}>
-                      {v.positives.map((q, i) => <li key={i} style={{ fontFamily: 'var(--font-serif)', fontSize: 13, fontStyle: 'italic', color: 'var(--dim)', marginBottom: 4 }}>&ldquo;{q}&rdquo;</li>)}
+                      {v.positives.map((q, i) => (
+                        <li key={i} style={{ fontFamily: 'var(--font-serif)', fontSize: 13, fontStyle: 'italic', color: 'var(--dim)', marginBottom: 4 }}>
+                          {q.timestampSeconds != null
+                            ? <a href={`${v.url}&t=${q.timestampSeconds}s`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline dotted' }}>&ldquo;{q.quote}&rdquo;</a>
+                            : <>&ldquo;{q.quote}&rdquo;</>}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}
@@ -683,7 +689,13 @@ export function LensDetailPageV2({ data, lensId }: Props) {
                   <div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: CLAUDE_NEG.text, marginBottom: 8 }}>Negatives</div>
                     <ul style={{ margin: 0, paddingLeft: 16 }}>
-                      {v.negatives.map((q, i) => <li key={i} style={{ fontFamily: 'var(--font-serif)', fontSize: 13, fontStyle: 'italic', color: 'var(--dim)', marginBottom: 4 }}>&ldquo;{q}&rdquo;</li>)}
+                      {v.negatives.map((q, i) => (
+                        <li key={i} style={{ fontFamily: 'var(--font-serif)', fontSize: 13, fontStyle: 'italic', color: 'var(--dim)', marginBottom: 4 }}>
+                          {q.timestampSeconds != null
+                            ? <a href={`${v.url}&t=${q.timestampSeconds}s`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline dotted' }}>&ldquo;{q.quote}&rdquo;</a>
+                            : <>&ldquo;{q.quote}&rdquo;</>}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}

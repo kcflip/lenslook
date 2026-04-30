@@ -399,7 +399,7 @@ export function LensDetailPage({ data, lensId }: Props) {
 
   // Top comments that actually mention this lens
   const topComments = useMemo(() => {
-    const items: Array<{ body: string; score: number; postTitle: string; postUrl: string; subreddit: string; commentPermalink?: string }> = [];
+    const items: Array<{ body: string; score: number; postTitle: string; postUrl: string; subreddit: string; commentPermalink?: string; created_utc?: number }> = [];
     for (const post of results.posts) {
       for (const c of post.matchedComments ?? []) {
         // Prefer per-comment attribution when available; fall back to post-level for older data.
@@ -409,7 +409,7 @@ export function LensDetailPage({ data, lensId }: Props) {
           ? commentPermalink(post, c.id)
           : undefined;
         const postUrl = post.id && post.subreddit ? postCommentsUrl(post) : post.url;
-        items.push({ body: c.body, score: c.score, postTitle: post.title, postUrl, subreddit: post.subreddit, commentPermalink: permalink });
+        items.push({ body: c.body, score: c.score, postTitle: post.title, postUrl, subreddit: post.subreddit, commentPermalink: permalink, created_utc: c.created_utc });
       }
     }
     items.sort((a, b) => b.score - a.score);
@@ -820,11 +820,10 @@ export function LensDetailPage({ data, lensId }: Props) {
                   <a href={v.url} target="_blank" rel="noopener" style={{ fontWeight: 600, fontSize: '0.95rem' }}>
                     {[v.channelTitle ?? v.reviewer, v.title].filter(Boolean).join(' — ') || v.videoId}
                   </a>
-                  {typeof v.viewCount === 'number' && (
-                    <div style={{ color: '#888', fontSize: '0.78rem', marginTop: '0.2rem' }}>
-                      {v.viewCount.toLocaleString()} views
-                    </div>
-                  )}
+                  <div style={{ color: '#888', fontSize: '0.78rem', marginTop: '0.2rem' }}>
+                    {typeof v.viewCount === 'number' && `${v.viewCount.toLocaleString()} views`}
+                    {v.publishedAt && <span style={{ marginLeft: typeof v.viewCount === 'number' ? '0.5rem' : 0 }}>{new Date(v.publishedAt).toLocaleDateString()}</span>}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
                   <span className="badge" style={{ background: labelColors(v.label).bg, color: labelColors(v.label).color }}>
@@ -843,7 +842,13 @@ export function LensDetailPage({ data, lensId }: Props) {
                   <div>
                     <h3 className="sentiment-heading" style={{ color: '#4ade80' }}>Positives</h3>
                     <ul className="sentiment-list">
-                      {v.positives.map((q, i) => <li key={i} style={{ fontStyle: 'italic' }}>"{q}"</li>)}
+                      {v.positives.map((q, i) => (
+                        <li key={i} style={{ fontStyle: 'italic' }}>
+                          {q.timestampSeconds != null
+                            ? <a href={`${v.url}&t=${q.timestampSeconds}s`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>"{q.quote}"</a>
+                            : `"${q.quote}"`}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}
@@ -851,7 +856,13 @@ export function LensDetailPage({ data, lensId }: Props) {
                   <div>
                     <h3 className="sentiment-heading" style={{ color: '#f87171' }}>Negatives</h3>
                     <ul className="sentiment-list">
-                      {v.negatives.map((q, i) => <li key={i} style={{ fontStyle: 'italic' }}>"{q}"</li>)}
+                      {v.negatives.map((q, i) => (
+                        <li key={i} style={{ fontStyle: 'italic' }}>
+                          {q.timestampSeconds != null
+                            ? <a href={`${v.url}&t=${q.timestampSeconds}s`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>"{q.quote}"</a>
+                            : `"${q.quote}"`}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}
@@ -872,6 +883,7 @@ export function LensDetailPage({ data, lensId }: Props) {
               <tr>
                 <th>Post</th>
                 <th>Subreddit</th>
+                <th className="num-header">Date</th>
                 <th className="num-header">Score</th>
                 <th className="num-header">Comments</th>
                 <th className="num-header">Weight</th>
@@ -886,6 +898,7 @@ export function LensDetailPage({ data, lensId }: Props) {
                     </a>
                   </td>
                   <td>r/{post.subreddit}</td>
+                  <td className="num" style={{ whiteSpace: 'nowrap', color: '#888', fontSize: '0.8rem' }}>{new Date(post.created_utc * 1000).toLocaleDateString()}</td>
                   <td className="num">{post.score.toLocaleString()}</td>
                   <td className="num">{post.num_comments}</td>
                   <td className="num">{weight.toFixed(2)}</td>
@@ -906,6 +919,7 @@ export function LensDetailPage({ data, lensId }: Props) {
             <thead>
               <tr>
                 <th>Comment</th>
+                <th className="num-header">Date</th>
                 <th className="num-header">Score</th>
                 <th>From</th>
               </tr>
@@ -928,6 +942,7 @@ export function LensDetailPage({ data, lensId }: Props) {
                       </a>
                     ) : shortBody}
                   </td>
+                  <td className="num" style={{ whiteSpace: 'nowrap', color: '#888', fontSize: '0.8rem' }}>{c.created_utc ? new Date(c.created_utc * 1000).toLocaleDateString() : '—'}</td>
                   <td className="num">{c.score.toLocaleString()}</td>
                   <td style={{ fontSize: '0.78rem' }}>
                     <a href={c.postUrl} target="_blank" rel="noopener">

@@ -12,14 +12,19 @@
 //   mentions of more than one tracked lens. If we detect more than one, we
 //   refuse to ingest content (but still persist a flagged stub with the URL
 //   so the run log shows something happened).
-// - Published date comes from the <time class="entry-date" datetime="…">
-//   WordPress emits. We keep the ISO string so downstream UI can format as
-//   it likes.
+// - Published date is in a bare <time> element with no datetime attribute;
+//   we parse the text content ("November 27, 2023") into an ISO date string.
+// - Author is an <a href="/blog/author/..."> link with no rel attribute.
+// - Specs live in a <ul><li>Key: value</li></ul> block under <h2>Specifications</h2>
+//   and are parsed into LensSpecs, which gets written back to lenses.json.
+// - Sample images are scoped to sections whose heading matches "Sample Images";
+//   this excludes sharpness crops, vignetting graphs, and other test charts.
 
 import "dotenv/config";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import type {
   Lens,
+  LensSpecs,
   TechnicalReview,
   TechnicalSource,
 } from "../shared/types.js";
@@ -44,6 +49,7 @@ export interface ScrapeOptions {
   lensIds?: string[];     // limit to specific lenses
   limit?: number;         // max lenses to process
   force?: boolean;        // re-scrape even if a review is already cached
+  isBodies?: boolean;     // no-op: phillipreeve only covers lenses
 }
 
 export interface ScrapeResult {
@@ -51,6 +57,7 @@ export interface ScrapeResult {
   status: "saved" | "flagged" | "skipped" | "error";
   reason?: string;
   review?: TechnicalReview;
+  specs?: LensSpecs;
 }
 
 // ── HTML helpers ────────────────────────────────────────────────────────────
@@ -106,30 +113,39 @@ function extractTitle(html: string): string {
 }
 
 function extractAuthor(html: string): string | undefined {
-  const raw = firstMatch(
-    html,
-    /<[^>]+rel="author"[^>]*>([\s\S]*?)<\/[^>]+>/,
-  );
+  const raw = firstMatch(html, /<a\b[^>]+href="[^"]*\/blog\/author\/[^"]*"[^>]*>([\s\S]*?)<\/a>/);
   return raw ? stripTags(raw) : undefined;
 }
 
+const MONTHS: Record<string, string> = {
+  january: "01", february: "02", march: "03", april: "04",
+  may: "05", june: "06", july: "07", august: "08",
+  september: "09", october: "10", november: "11", december: "12",
+};
+
 function extractPublishedDate(html: string): string | undefined {
-  const iso = firstMatch(
-    html,
-    /<time[^>]*class="[^"]*entry-date[^"]*"[^>]*datetime="([^"]+)"/,
-  );
+  // Try ISO datetime attribute first (some posts may still have it).
+  const iso = firstMatch(html, /<time[^>]*datetime="([^"]+)"/);
   if (iso) return iso;
-  // Fallback: first <time> inside the article header area.
-  return firstMatch(html, /<time[^>]*datetime="([^"]+)"/) ?? undefined;
+  // Fall back to text content: "November 27, 2023"
+  const text = firstMatch(html, /<time[^>]*>([^<]+)<\/time>/);
+  if (text) {
+    const m = text.trim().match(/^(\w+)\s+(\d{1,2}),?\s+(\d{4})$/);
+    if (m) {
+      const month = MONTHS[m[1].toLowerCase()];
+      if (month) return `${m[3]}-${month}-${m[2].padStart(2, "0")}`;
+    }
+  }
+  return undefined;
 }
 
-// Grab image URLs that live inside the article body. Skip lazy-load 1x1
-// placeholders and avatars by filtering on path.
-function extractImages(body: string): string[] {
+// Grab image URLs from a raw HTML string. Skips avatars, plugin assets, and
+// inline data URIs. Called per-section so callers control scope.
+function extractImages(rawHtml: string): string[] {
   const urls = new Set<string>();
   const re = /<img[^>]+src="([^"]+)"/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(body))) {
+  while ((m = re.exec(rawHtml))) {
     const u = m[1];
     if (!u) continue;
     if (/gravatar\.com/i.test(u)) continue;
@@ -140,33 +156,80 @@ function extractImages(body: string): string[] {
   return [...urls];
 }
 
-// Split article body into {heading, text} sections keyed by h1–h4. Phillip
-// Reeve's theme uses bare <h1> for section breaks, but we filter out the
-// post's own entry-title h1 and any widget/navigation headings by class.
-// Section text runs from the heading's closing tag up to the next heading or
-// the end of the body.
+// Split article body into sections keyed by h1–h4 heading text. Returns both
+// stripped text and raw HTML per section so callers can run extractImages on
+// a specific section without re-scanning the whole body.
 const SKIP_HEADING_CLASSES = /(entry-title|widget-title|page-title|screen-reader)/i;
 
-function extractSections(
-  body: string,
-): { heading: string; text: string }[] {
+function extractSections(body: string): { heading: string; text: string; rawHtml: string }[] {
   const re = /<h([1-4])(\b[^>]*)>([\s\S]*?)<\/h\1>/g;
   const marks: { heading: string; tagStart: number; tagEnd: number }[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(body))) {
     const attrs = m[2] ?? "";
     if (SKIP_HEADING_CLASSES.test(attrs)) continue;
-    marks.push({
-      heading: stripTags(m[3]),
-      tagStart: m.index,
-      tagEnd: m.index + m[0].length,
-    });
+    marks.push({ heading: stripTags(m[3]), tagStart: m.index, tagEnd: m.index + m[0].length });
   }
   return marks.map((mark, i) => {
     const start = mark.tagEnd;
     const end = i + 1 < marks.length ? marks[i + 1].tagStart : body.length;
-    return { heading: mark.heading, text: stripTags(body.slice(start, end)) };
+    const rawHtml = body.slice(start, end);
+    return { heading: mark.heading, text: stripTags(rawHtml), rawHtml };
   });
+}
+
+// Only collect images from sections whose heading matches "Sample Images" or
+// "More Sample Images". Excludes sharpness crops, vignetting graphs, etc.
+const SAMPLE_HEADING = /^(more\s+)?sample\s+images?$/i;
+
+function extractSampleImages(sections: { heading: string; rawHtml: string }[]): string[] {
+  const urls = new Set<string>();
+  for (const s of sections.filter(s => SAMPLE_HEADING.test(s.heading))) {
+    for (const u of extractImages(s.rawHtml)) urls.add(u);
+  }
+  return [...urls];
+}
+
+// Parse <ul><li>Key: value</li></ul> under <h2>Specifications</h2> into LensSpecs.
+function extractSpecs(sections: { heading: string; rawHtml: string }[]): LensSpecs | undefined {
+  const sec = sections.find(s => /^specifications?$/i.test(s.heading));
+  if (!sec) return undefined;
+
+  const specs: LensSpecs = {};
+  const liRe = /<li>([\s\S]*?)<\/li>/g;
+  let m: RegExpExecArray | null;
+
+  while ((m = liRe.exec(sec.rawHtml))) {
+    const text = stripTags(m[1]).trim();
+    const colon = text.indexOf(":");
+    if (colon === -1) continue;
+    const key = text.slice(0, colon).trim().toLowerCase();
+    const val = text.slice(colon + 1).trim();
+
+    if (key === "diameter") {
+      const n = parseFloat(val); if (!isNaN(n)) specs.diameterMm = n;
+    } else if (key === "length") {
+      const n = parseFloat(val); if (!isNaN(n)) specs.lengthMm = n;
+    } else if (key === "weight") {
+      const n = parseFloat(val); if (!isNaN(n)) specs.weightG = n;
+    } else if (key === "filter diameter") {
+      const n = parseFloat(val); if (!isNaN(n)) specs.filterDiameter = n;
+    } else if (key === "number of aperture blades") {
+      const n = parseInt(val, 10); if (!isNaN(n)) specs.apertureBlades = n;
+    } else if (key === "elements/groups") {
+      const eg = val.match(/(\d+)\/(\d+)/);
+      if (eg) specs.opticalDesign = { elements: parseInt(eg[1], 10), groups: parseInt(eg[2], 10) };
+    } else if (key === "close focusing distance") {
+      const n = parseFloat(val); if (!isNaN(n)) specs.minimumFocusDistanceM = n;
+    } else if (key === "maximum magnification") {
+      const ratio = val.match(/1:([\d.]+)/);
+      if (ratio) specs.maximumMagnification = parseFloat((1 / parseFloat(ratio[1])).toFixed(4));
+    } else if (key === "mount") {
+      specs.mount = val.split("(")[0].trim();
+    }
+  }
+
+  return Object.keys(specs).length > 0 ? specs : undefined;
 }
 
 // ── Multi-lens detection ────────────────────────────────────────────────────
@@ -279,29 +342,13 @@ export async function scrapeLens(
 
   const multi = detectMultiLens(title, lens, allLenses);
   if (multi.multi) {
-    const stub: TechnicalReview = {
-      source: SOURCE,
-      url,
-      title,
-      author: extractAuthor(html),
-      publishedDate: extractPublishedDate(html),
-      flagged: {
-        reason: "multi-lens",
-        detail: `also mentions: ${multi.mentionedLensIds.join(", ")}`,
-        mentionedLensIds: multi.mentionedLensIds,
-      },
-      scrapedAt: new Date().toISOString(),
-    };
-    saveTechnicalReview(lens.id, stub);
-    console.log(
-      `  ⚠ multi-lens post — refusing to ingest (also mentions ${multi.mentionedLensIds.length} other lenses)`,
-    );
-    return { lensId: lens.id, status: "flagged", reason: "multi-lens", review: stub };
+    console.log(`  ℹ also mentions ${multi.mentionedLensIds.join(", ")} — scraping anyway`);
   }
 
   const fullText = stripTags(body);
-  const sampleImages = extractImages(body);
+  const sampleImages = extractSampleImages(sections);
   const verdict = extractVerdict(sections);
+  const specs = extractSpecs(sections);
 
   const review: TechnicalReview = {
     source: SOURCE,
@@ -318,14 +365,18 @@ export async function scrapeLens(
 
   saveTechnicalReview(lens.id, review);
   console.log(
-    `  ✓ ${title} — ${fullText.length} chars, ${sampleImages.length} images, verdict ${
-      verdict ? "✓" : "—"
-    }`,
+    `  ✓ ${title} — ${fullText.length} chars, ${sampleImages.length} sample images, specs ${
+      specs ? "✓" : "—"
+    }, verdict ${verdict ? "✓" : "—"}`,
   );
-  return { lensId: lens.id, status: "saved", review };
+  return { lensId: lens.id, status: "saved", review, specs };
 }
 
 export async function scrapeAll(opts: ScrapeOptions = {}): Promise<ScrapeResult[]> {
+  if (opts.isBodies) {
+    console.log("Phillip Reeve covers lenses only — skipping bodies.");
+    return [];
+  }
   const lenses: Lens[] = JSON.parse(readFileSync(LENSES_FILE, "utf8"));
   let pool = lenses.filter((l) => !!l.reviews?.phillipreeve);
   if (opts.lensIds && opts.lensIds.length > 0) {
@@ -341,6 +392,16 @@ export async function scrapeAll(opts: ScrapeOptions = {}): Promise<ScrapeResult[
     if (i > 0) await delay();
     const r = await scrapeLens(lens, lenses);
     results.push(r);
+  }
+
+  const specsById = new Map(results.filter(r => r.specs).map(r => [r.lensId, r.specs!]));
+  if (specsById.size > 0) {
+    for (const lens of lenses) {
+      const s = specsById.get(lens.id);
+      if (s) lens.specs = s;
+    }
+    writeFileSync(LENSES_FILE, JSON.stringify(lenses, null, 2) + "\n");
+    console.log(`Updated specs for ${specsById.size} lenses in ${LENSES_FILE}`);
   }
 
   const tally = {
@@ -368,6 +429,10 @@ function parseArgs(): ScrapeOptions {
       opts.limit = parseInt(args[++i], 10);
     } else if (a === "--force") {
       opts.force = true;
+    } else if (a === "--lenses") {
+      opts.isBodies = false;
+    } else if (a === "--bodies") {
+      opts.isBodies = true;
     }
   }
   return opts;
@@ -377,8 +442,10 @@ const invokedDirectly =
   import.meta.url === `file://${process.argv[1]}` ||
   process.argv[1]?.endsWith("phillipreeve-scrape.ts");
 if (invokedDirectly) {
-  scrapeAll(parseArgs()).catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+  const baseOpts = parseArgs();
+  const hasMode = process.argv.includes("--lenses") || process.argv.includes("--bodies");
+  const run = hasMode
+    ? scrapeAll(baseOpts)
+    : scrapeAll({ ...baseOpts, isBodies: false }).then(() => scrapeAll({ ...baseOpts, isBodies: true }));
+  run.catch((err) => { console.error(err); process.exit(1); });
 }

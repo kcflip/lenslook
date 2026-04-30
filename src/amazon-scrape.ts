@@ -145,6 +145,8 @@ async function scrapeReviews(page: import("playwright").Page, productId: string)
       const card = cards.nth(i);
       const tag = `    [${i + 1}/${total}]`;
 
+      await card.scrollIntoViewIfNeeded().catch(() => {});
+      await page.locator("[data-hook='top-customer-reviews-widget']").waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
       const verifiedHits = await card.locator("[data-hook='avp-badge']").count().catch(() => 0);
       if (verifiedHits === 0) {
         skippedUnverified++;
@@ -157,10 +159,12 @@ async function scrapeReviews(page: import("playwright").Page, productId: string)
       const ratingMatch = ratingText?.match(/a-star-(\d+)/);
       const rating = ratingMatch ? parseInt(ratingMatch[1], 10) : undefined;
 
-      const text = (await card.locator("[data-hook='review-body'] span").first().textContent().catch(() => "") ?? "").trim();
+      const text = (await card.locator("[data-hook='review-collapsed']").first().innerText().catch(() => "") ?? "").trim();
       if (!text) {
         skippedEmpty++;
-        console.log(`${tag} 📭 skipped — empty review body`);
+        const screenshotPath = `output/screenshots/amazon-empty-review-${productId}-${i}.png`;
+        await page.screenshot({ path: screenshotPath, fullPage: false }).catch(() => {});
+        console.log(`${tag} 📭 skipped — empty review body (screenshot: ${screenshotPath})`);
         continue;
       }
 
@@ -484,8 +488,7 @@ export async function launchAmazonContext() {
 
 export { randomDelay };
 
-async function main() {
-  const isBodies = process.argv.includes("--bodies");
+async function main(isBodies: boolean) {
   const sourceFile = isBodies ? "bodies.json" : LENSES_FILE;
   const subjects: RetailSubject[] = JSON.parse(readFileSync(sourceFile, "utf8"));
   console.log(`Mode: ${isBodies ? "bodies" : "lenses"} — ${subjects.length} subjects from ${sourceFile}`);
@@ -542,5 +545,10 @@ async function main() {
 // Only run main() when invoked as a CLI, not when imported by the smoke test.
 import { fileURLToPath } from "url";
 if (process.argv[1] && process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => { console.error(err); process.exit(1); });
+  const hasLenses = process.argv.includes("--lenses");
+  const hasBodies = process.argv.includes("--bodies");
+  const run = hasLenses ? main(false)
+    : hasBodies ? main(true)
+    : main(false).then(() => main(true));
+  run.catch((err) => { console.error(err); process.exit(1); });
 }

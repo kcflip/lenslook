@@ -23,3 +23,47 @@ Make each positive/negative quote in the YouTube reviews section jump to its mom
 - Is the `youtube-transcript` segment `offset` in seconds or milliseconds? Verify before shipping — library versions have differed on this.
 - When a quote spans two segments, use the earlier segment's offset, or nudge forward by the quote's position within the concat'd text? Probably the former — simpler, and the user sees the context anyway.
 - Fuzzy-match fallback for paraphrased quotes (Levenshtein over the transcript words)? Start without it; see how many quotes land first.
+
+---
+
+## `callClaudeJson` helper
+
+`src/claude-sentiment.ts`, `src/youtube-sentiment.ts`, and `src/audit-lexicon.ts` all duplicate the same pattern: build a system prompt with `cache_control: ephemeral`, call `client.messages.create`, find the text block, regex-slice `{...}`, `JSON.parse` with try/catch, throw on `stop_reason === "max_tokens"`. Pull this into `src/claude/jsonCall.ts`:
+
+```ts
+export async function callClaudeJson<T>(opts: {
+  client: Anthropic;
+  model: string;
+  system: string;
+  user: string;
+  maxTokens?: number;
+  cache?: boolean;
+}): Promise<T>
+```
+
+Three-line caller becomes one. New pipelines drop into the same shape. Centralizes the markdown-fence stripping (`text.replace(/^```(?:json)?\s*/m, "")`) currently only in `claude-sentiment.ts`.
+
+---
+
+## Reorganize `src/scrapers/` and `src/tests/`
+
+`src/scrapers/` exists as an empty directory; per-retailer scrapers (`amazon-scrape.ts`, `bh-scrape.ts`, `adorama-scrape.ts`, `phillipreeve-scrape.ts`) currently live at `src/` root next to pipeline code, debug scripts, and one-offs. Worth moving:
+
+- `src/scrapers/amazon.ts`, `src/scrapers/bh.ts`, `src/scrapers/adorama.ts`, `src/scrapers/phillipreeve.ts`
+- `src/scrapers/_shared.ts` ← move `src/scraper-shared.ts` (it's only retail-scraper helpers)
+- `src/scrapers/missing.ts` ← `src/adorama-scrape-missing.ts`
+- Keep `src/tests/` for the smoke-test scripts; rename per-retailer test files to match.
+- Update `package.json` script paths.
+
+Pipeline code (`scraper.ts`, `matcher.ts`, `index.ts`, `sentiment.ts`, etc.) stays at `src/` root.
+
+---
+
+## `Lens.discontinued` — finish or remove
+
+The `discontinued?: boolean` field exists on `Lens` in `shared/types.ts:163` but nothing reads it: the matcher matches discontinued lenses, retailer scrapers scrape them, and the dashboard shows them. Either:
+
+- Wire it up: filter from the matcher pool, gate retailer scraping, badge the dashboard card.
+- Or remove the field and stop tracking it on lens entries.
+
+Was added speculatively; deciding either direction is fine, but the half-state invites confusion.

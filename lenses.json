@@ -7,6 +7,10 @@
     "focalLength": "14mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
+    "reviews": {
+      "phillipreeve:": "https://phillipreeve.net/blog/review-sony-fe-14mm-1-8-gm/",
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-14mm-1-8-gm/"
+    },
     "aliases": [
       "14GM",
       "14mm GM",
@@ -23,7 +27,7 @@
           "official": true,
           "url": "https://www.amazon.com/Sony-14mm-1-8-Prime-Lens/dp/B09316YPCH",
           "price": 1698,
-          "priceScrapedAt": "2026-04-29T00:42:38.688Z",
+          "priceScrapedAt": "2026-04-30T04:20:46.038Z",
           "avgRating": 4.7,
           "ratingCount": 149,
           "productImage": "https://m.media-amazon.com/images/I/71FlYE88A2L.jpg"
@@ -74,7 +78,7 @@
       },
       "mpn": "SEL14F18GM",
       "price": 1698,
-      "priceScrapedAt": "2026-04-24T02:46:07.282Z",
+      "priceScrapedAt": "2026-04-30T04:40:45.263Z",
       "starCount": 5,
       "ratingCount": 79
     },
@@ -96,6 +100,19 @@
       "priceScrapedAt": "2026-04-25T02:30:31.889Z",
       "starCount": 4.8,
       "ratingCount": 31
+    },
+    "specs": {
+      "diameterMm": 83,
+      "lengthMm": 100,
+      "weightG": 458,
+      "apertureBlades": 9,
+      "opticalDesign": {
+        "elements": 14,
+        "groups": 11
+      },
+      "minimumFocusDistanceM": 0.25,
+      "maximumMagnification": 0.1111,
+      "mount": "Sony E"
     }
   },
   {
@@ -106,6 +123,10 @@
     "focalLength": "16mm",
     "maxAperture": "f/1.8",
     "mount": "FE (Full-Frame)",
+    "reviews": {
+      "phillipreeve:": "https://phillipreeve.net/blog/review-sony-fe-16mm-1-8-g/",
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-16mm-1-8-g/"
+    },
     "aliases": [
       "16mm 1.8 G",
       "SEL16F18G",
@@ -119,7 +140,7 @@
           "official": true,
           "url": "https://www.amazon.com/Sony-SEL16F18G-FE-16mm-1-8/dp/B0DYK97L9M",
           "price": 898,
-          "priceScrapedAt": "2026-04-29T00:45:25.771Z",
+          "priceScrapedAt": "2026-04-30T04:23:39.325Z",
           "avgRating": 4.4,
           "ratingCount": 40,
           "productImage": "https://m.media-amazon.com/images/I/71M3CgrrApL.jpg"
@@ -156,7 +177,7 @@
       },
       "mpn": "SEL16F18G",
       "price": 898,
-      "priceScrapedAt": "2026-04-24T02:13:23.772Z",
+      "priceScrapedAt": "2026-04-30T04:42:45.419Z",
       "starCount": 5,
       "ratingCount": 22
     },
@@ -178,6 +199,20 @@
       "priceScrapedAt": "2026-04-24T19:35:24.094Z",
       "starCount": 4,
       "ratingCount": 4
+    },
+    "specs": {
+      "diameterMm": 74,
+      "lengthMm": 75,
+      "weightG": 304,
+      "filterDiameter": 67,
+      "apertureBlades": 11,
+      "opticalDesign": {
+        "elements": 15,
+        "groups": 12
+      },
+      "minimumFocusDistanceM": 0.13,
+      "maximumMagnification": 0.2857,
+      "mount": "Sony E"
     }
   },
   {
@@ -204,7 +239,7 @@
           "official": true,
           "url": "https://www.amazon.com/Sony-Full-Frame-Large-Aperture-Ultra-Wide-Angle/dp/B08556WW56",
           "price": 998,
-          "priceScrapedAt": "2026-04-29T00:47:52.089Z",
+          "priceScrapedAt": "2026-04-30T04:25:58.806Z",
           "avgRating": 4.8,
           "ratingCount": 647,
           "productImage": "https://m.media-amazon.com/images/I/81SJROFwEeL.jpg"
@@ -255,7 +290,7 @@
       },
       "mpn": "SEL20F18G",
       "price": 998,
-      "priceScrapedAt": "2026-04-24T02:13:50.194Z",
+      "priceScrapedAt": "2026-04-30T04:43:47.186Z",
       "starCount": 5,
       "ratingCount": 251
     },
@@ -277,6 +312,23 @@
       "priceScrapedAt": "2026-04-24T19:35:42.563Z",
       "starCount": 4.8,
       "ratingCount": 166
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-20mm-1-8g/"
+    },
+    "specs": {
+      "diameterMm": 74,
+      "lengthMm": 85,
+      "weightG": 372,
+      "filterDiameter": 67,
+      "apertureBlades": 9,
+      "opticalDesign": {
+        "elements": 14,
+        "groups": 12
+      },
+      "minimumFocusDistanceM": 0.19,
+      "maximumMagnification": 0.2632,
+      "mount": "Sony E"
     }
   },
   {
@@ -301,9 +353,9 @@
           "official": true,
           "url": "https://www.amazon.com/Sony-mount-Frame-Wide-angle-SEL24F14GM/dp/B07HJXVHSS",
           "price": 1498,
-          "priceScrapedAt": "2026-04-29T00:54:40.771Z",
+          "priceScrapedAt": "2026-04-30T04:28:55.475Z",
           "avgRating": 4.7,
-          "ratingCount": 608,
+          "ratingCount": 607,
           "productImage": "https://m.media-amazon.com/images/I/51HVRB6DjoL.jpg"
         }
       ]
@@ -352,7 +404,7 @@
       },
       "mpn": "SEL24F14GM",
       "price": 1498,
-      "priceScrapedAt": "2026-04-24T02:14:06.309Z",
+      "priceScrapedAt": "2026-04-30T04:44:44.603Z",
       "starCount": 5,
       "ratingCount": 258
     },
@@ -374,6 +426,23 @@
       "priceScrapedAt": "2026-04-24T19:36:04.123Z",
       "starCount": 4.8,
       "ratingCount": 150
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-24mm-1-4-gm/"
+    },
+    "specs": {
+      "diameterMm": 75,
+      "lengthMm": 92,
+      "weightG": 445,
+      "filterDiameter": 67,
+      "apertureBlades": 11,
+      "opticalDesign": {
+        "elements": 13,
+        "groups": 10
+      },
+      "minimumFocusDistanceM": 0.25,
+      "maximumMagnification": 0.1695,
+      "mount": "Sony-E"
     }
   },
   {
@@ -426,6 +495,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/3ebdd413-3d26-5af6-99a9-a2db7bbe672d",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/2034c51e-d28b-57f7-a380-93501207723e"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel24f28g_fe_24mm_f_2_8_g_1616494845_1630080.jpg",
       "properties": {
         "focalLength": "24mm",
         "mount": "Sony E",
@@ -442,7 +512,7 @@
       },
       "mpn": "SEL24F28G",
       "price": 748,
-      "priceScrapedAt": "2026-04-24T01:05:25.508Z",
+      "priceScrapedAt": "2026-04-30T04:45:47.825Z",
       "starCount": 5,
       "ratingCount": 48
     },
@@ -522,6 +592,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b4160de7-071d-5bf8-b077-5c284d1521a9",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/10c72996-8701-50e8-86d7-172bbf1e714e"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel28f20_fe_28mm_f_2_lens_1636393765_1126139.jpg",
       "properties": {
         "focalLength": "28mm",
         "mount": "Sony E",
@@ -538,7 +609,7 @@
       },
       "mpn": "SEL28F20",
       "price": 498,
-      "priceScrapedAt": "2026-04-24T01:05:43.313Z",
+      "priceScrapedAt": "2026-04-30T04:47:36.075Z",
       "starCount": 4.5,
       "ratingCount": 155
     },
@@ -560,6 +631,9 @@
       "priceScrapedAt": "2026-04-24T19:36:43.630Z",
       "starCount": 4.6,
       "ratingCount": 114
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/sony-fe-28mm-f2-review/"
     }
   },
   {
@@ -618,6 +692,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b5689b41-545b-5f8a-93aa-b7e254d62af3",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/08e1d4ca-1b1e-5fda-98dd-3d2b4226d58c"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe35f14gm_fe_35mm_f_1_4_gm_1610533223_1613424.jpg",
       "properties": {
         "focalLength": "35mm",
         "mount": "Sony E",
@@ -634,9 +709,9 @@
       },
       "mpn": "SEL35F14GM",
       "price": 1498,
-      "priceScrapedAt": "2026-04-24T01:06:01.339Z",
+      "priceScrapedAt": "2026-04-30T04:48:37.623Z",
       "starCount": 5,
-      "ratingCount": 193
+      "ratingCount": 194
     },
     "system": "Sony",
     "category": [
@@ -656,6 +731,9 @@
       "priceScrapedAt": "2026-04-24T19:37:02.550Z",
       "starCount": 4.9,
       "ratingCount": 91
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-35mm-1-4-gm-the-perfect-35mm-lens/"
     }
   },
   {
@@ -714,6 +792,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/8ad41d7f-9a1f-5fdf-a3e5-d398e5df68f8",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fdd4ee90-0036-5ad5-9149-088b78456a3d"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel35f14z_distagon_t_fe_35mm_1676285733_1126137.jpg",
       "properties": {
         "focalLength": "35mm",
         "mount": "Sony E",
@@ -730,7 +809,7 @@
       },
       "mpn": "SEL35F14Z",
       "price": 1098,
-      "priceScrapedAt": "2026-04-24T01:06:17.946Z",
+      "priceScrapedAt": "2026-04-30T04:52:05.555Z",
       "starCount": 4.5,
       "ratingCount": 101
     },
@@ -752,6 +831,9 @@
       "priceScrapedAt": "2026-04-24T19:37:18.337Z",
       "starCount": 4.8,
       "ratingCount": 67
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-35mm-1-4-za/"
     }
   },
   {
@@ -810,6 +892,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b69eefbe-9f5b-5d93-9be9-d3a2949a8c06",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/8fb3d1af-d453-509f-8861-6bc2026b0eea"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel35f28z_sonnar_t_fe_35mm_1559909365_1008123.jpg",
       "properties": {
         "focalLength": "35mm",
         "mount": "Sony E",
@@ -826,7 +909,7 @@
       },
       "mpn": "SEL35F28Z",
       "price": 648,
-      "priceScrapedAt": "2026-04-24T01:07:26.676Z",
+      "priceScrapedAt": "2026-04-30T04:53:11.205Z",
       "starCount": 4.5,
       "ratingCount": 156
     },
@@ -848,6 +931,22 @@
       "priceScrapedAt": "2026-04-24T19:37:36.517Z",
       "starCount": 4.7,
       "ratingCount": 109
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-carl-zeiss-sonnar-fe-2-835-za-t/"
+    },
+    "specs": {
+      "diameterMm": 61.5,
+      "lengthMm": 36.5,
+      "weightG": 120,
+      "filterDiameter": 49,
+      "apertureBlades": 7,
+      "opticalDesign": {
+        "elements": 7,
+        "groups": 5
+      },
+      "minimumFocusDistanceM": 35,
+      "mount": "Sony FE"
     }
   },
   {
@@ -898,6 +997,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/175d8432-20f0-5b65-8db3-1b41f8fa2de9",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fc49e2d0-626c-5c1b-ba11-e12c98b63e9e"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel35f18f_35mm_f_1_8_fe_lens_1677771030_1492866.jpg",
       "properties": {
         "focalLength": "35mm",
         "mount": "Sony E",
@@ -914,7 +1014,7 @@
       },
       "mpn": "SEL35F18F",
       "price": 798,
-      "priceScrapedAt": "2026-04-24T01:07:47.457Z",
+      "priceScrapedAt": "2026-04-30T04:54:07.533Z",
       "starCount": 4.5,
       "ratingCount": 115
     },
@@ -936,6 +1036,9 @@
       "priceScrapedAt": "2026-04-24T19:37:53.911Z",
       "starCount": 4.8,
       "ratingCount": 57
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-35mm-f1-8/"
     }
   },
   {
@@ -994,6 +1097,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f85f2db2-f108-5a5d-8fda-e59d5b66a517",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/1f025605-b122-54f9-9811-05eff942f1b8"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel40f25g_fe_40mm_f_2_5_g_1616495752_1630081.jpg",
       "properties": {
         "focalLength": "40mm",
         "mount": "Sony E",
@@ -1010,7 +1114,7 @@
       },
       "mpn": "SEL40F25G",
       "price": 748,
-      "priceScrapedAt": "2026-04-24T01:08:13.557Z",
+      "priceScrapedAt": "2026-04-30T04:55:16.998Z",
       "starCount": 5,
       "ratingCount": 63
     },
@@ -1032,6 +1136,23 @@
       "priceScrapedAt": "2026-04-24T19:38:15.128Z",
       "starCount": 4.8,
       "ratingCount": 38
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-40mm-2-5-g/"
+    },
+    "specs": {
+      "diameterMm": 68,
+      "lengthMm": 45,
+      "weightG": 171,
+      "filterDiameter": 49,
+      "apertureBlades": 7,
+      "opticalDesign": {
+        "elements": 9,
+        "groups": 9
+      },
+      "minimumFocusDistanceM": 0.28,
+      "maximumMagnification": 0.25,
+      "mount": "Sony E"
     }
   },
   {
@@ -1093,6 +1214,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d46e7dfa-b716-5d96-b5cb-abf102a9c994",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/bf35e0fb-6ec0-53f2-8b34-dfff347c6ae4"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel50f12gm_fe_50mm_f_1_2_gm_1615895153_1630079.jpg",
       "properties": {
         "focalLength": "50mm",
         "mount": "Sony E",
@@ -1109,7 +1231,7 @@
       },
       "mpn": "SEL50F12GM",
       "price": 2198,
-      "priceScrapedAt": "2026-04-24T01:08:33.872Z",
+      "priceScrapedAt": "2026-04-30T04:56:16.697Z",
       "starCount": 5,
       "ratingCount": 198
     },
@@ -1131,6 +1253,23 @@
       "priceScrapedAt": "2026-04-24T19:38:28.210Z",
       "starCount": 4.8,
       "ratingCount": 70
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-50mm-1-2-gm/"
+    },
+    "specs": {
+      "diameterMm": 87,
+      "lengthMm": 108,
+      "weightG": 778,
+      "filterDiameter": 72,
+      "apertureBlades": 11,
+      "opticalDesign": {
+        "elements": 14,
+        "groups": 10
+      },
+      "minimumFocusDistanceM": 0.4,
+      "maximumMagnification": 0.1786,
+      "mount": "Sony E"
     }
   },
   {
@@ -1186,6 +1325,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/344b71b0-10df-5e01-b810-6a604a51387f",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/3c247038-1cc4-52ee-af55-1307f7f32a38"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_50mm_f_1_4_gm_1676974518_1752166.jpg",
       "properties": {
         "focalLength": "50mm",
         "mount": "Sony E",
@@ -1202,7 +1342,7 @@
       },
       "mpn": "SEL50F14GM",
       "price": 1398,
-      "priceScrapedAt": "2026-04-24T01:09:49.897Z",
+      "priceScrapedAt": "2026-04-30T04:57:21.587Z",
       "starCount": 5,
       "ratingCount": 54
     },
@@ -1329,6 +1469,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/60637349-a3e2-594c-9d02-4482ec0a9e9a",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/77dcd074-dc71-543f-99db-c8ac6179fa33"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel50f18f_fe_50mm_f_1_8_lens_1459251297_1242613.jpg",
       "properties": {
         "focalLength": "50mm",
         "mount": "Sony E",
@@ -1345,7 +1486,7 @@
       },
       "mpn": "SEL50F18F",
       "price": 198,
-      "priceScrapedAt": "2026-04-24T01:11:18.475Z",
+      "priceScrapedAt": "2026-04-30T05:00:04.664Z",
       "starCount": 4,
       "ratingCount": 406
     },
@@ -1367,6 +1508,18 @@
       "priceScrapedAt": "2026-04-24T19:50:44.132Z",
       "starCount": 4.5,
       "ratingCount": 214
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-1-850/"
+    },
+    "specs": {
+      "diameterMm": 68,
+      "lengthMm": 59,
+      "weightG": 186,
+      "filterDiameter": 49,
+      "apertureBlades": 7,
+      "minimumFocusDistanceM": 0.45,
+      "mount": "Sony E"
     }
   },
   {
@@ -1418,6 +1571,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ba22ba4c-57b0-523a-87de-bfb43db2ce1b",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/7591edd3-b1a2-58c6-aa52-9df1759c9de5"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel50f25g_fe_50mm_f_2_5_g_1616495752_1630082.jpg",
       "properties": {
         "focalLength": "50mm",
         "mount": "Sony E",
@@ -1434,7 +1588,7 @@
       },
       "mpn": "SEL50F25G",
       "price": 648,
-      "priceScrapedAt": "2026-04-24T01:11:40.370Z",
+      "priceScrapedAt": "2026-04-30T05:01:10.515Z",
       "starCount": 5,
       "ratingCount": 40
     },
@@ -1456,6 +1610,23 @@
       "priceScrapedAt": "2026-04-24T19:51:04.329Z",
       "starCount": 4.9,
       "ratingCount": 16
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-50mm-2-5-g/"
+    },
+    "specs": {
+      "diameterMm": 68,
+      "lengthMm": 45,
+      "weightG": 174,
+      "filterDiameter": 49,
+      "apertureBlades": 7,
+      "opticalDesign": {
+        "elements": 9,
+        "groups": 9
+      },
+      "minimumFocusDistanceM": 0.31,
+      "maximumMagnification": 0.2326,
+      "mount": "Sony E"
     }
   },
   {
@@ -1513,6 +1684,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b3bde365-49cb-53fc-863a-56d5df2829a4",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/e26df8ae-ec16-53c2-873c-03bbc7d6f134"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel50m28_fe_50mm_f_2_8_macro_1472552476_1277527.jpg",
       "properties": {
         "focalLength": "50mm",
         "mount": "Sony E",
@@ -1529,7 +1701,7 @@
       },
       "mpn": "SEL50M28",
       "price": 698,
-      "priceScrapedAt": "2026-04-24T01:11:57.532Z",
+      "priceScrapedAt": "2026-04-30T05:02:16.970Z",
       "starCount": 4.5,
       "ratingCount": 65
     },
@@ -1552,6 +1724,9 @@
       "priceScrapedAt": "2026-04-24T19:51:57.297Z",
       "starCount": 4.5,
       "ratingCount": 22
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/rolling-review-sony-fe-2-850-macro/"
     }
   },
   {
@@ -1611,6 +1786,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d875ba70-55a2-5072-be2a-9399a494ad2d",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/66048d73-e772-5165-99cd-bb0e76cb2517"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel55f18z_sonnar_t_fe_55mm_1677769538_1008124.jpg",
       "properties": {
         "focalLength": "55mm",
         "mount": "Sony E",
@@ -1627,7 +1803,7 @@
       },
       "mpn": "SEL55F18Z",
       "price": 1098,
-      "priceScrapedAt": "2026-04-24T01:12:25.763Z",
+      "priceScrapedAt": "2026-04-30T05:03:41.309Z",
       "starCount": 5,
       "ratingCount": 354
     },
@@ -1649,6 +1825,9 @@
       "priceScrapedAt": "2026-04-24T19:52:54.177Z",
       "starCount": 4.9,
       "ratingCount": 232
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/sony-fe-1-855-za-sonnar-t-review/"
     }
   },
   {
@@ -1721,7 +1900,24 @@
       "url": "https://www.adorama.com/sony-fe-85-mm-f-1-4-gm-lens/p/iso8514gm",
       "guessed": false
     },
-    "discontinued": true
+    "discontinued": true,
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-85mm-1-4-gm/"
+    },
+    "specs": {
+      "diameterMm": 89,
+      "lengthMm": 107,
+      "weightG": 825,
+      "filterDiameter": 77,
+      "apertureBlades": 11,
+      "opticalDesign": {
+        "elements": 11,
+        "groups": 8
+      },
+      "minimumFocusDistanceM": 0.8,
+      "maximumMagnification": 0.1266,
+      "mount": "Sony-E"
+    }
   },
   {
     "id": "sony-fe-85-1.4-gm2",
@@ -1763,6 +1959,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/7d15b7a2-ad6e-5d1f-af1a-c9b69b1f7738",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/1b030725-3a14-55f4-bf0f-d68b3389c718"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_85mm_f_1_4_gm_1724849139_1849952.jpg",
       "properties": {
         "focalLength": "85mm",
         "mount": "Sony E",
@@ -1779,7 +1976,7 @@
       },
       "mpn": "SEL85F14GM2",
       "price": 1948,
-      "priceScrapedAt": "2026-04-24T01:13:23.028Z",
+      "priceScrapedAt": "2026-04-30T05:05:54.857Z",
       "starCount": 5,
       "ratingCount": 28
     },
@@ -1801,6 +1998,9 @@
       "priceScrapedAt": "2026-04-24T19:53:13.924Z",
       "starCount": 5,
       "ratingCount": 11
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-85mm-1-4-gm-mk-ii-a-worthy-update/"
     }
   },
   {
@@ -1858,6 +2058,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/04e15b4b-be55-56f8-b1ab-402781c5f725",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/0be62035-1c22-57bb-9aaa-05302a016a8d"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel85f18_fe_85mm_f_1_8_lens_1486462887_1317562.jpg",
       "properties": {
         "focalLength": "85mm",
         "mount": "Sony E",
@@ -1874,7 +2075,7 @@
       },
       "mpn": "SEL85F18",
       "price": 648,
-      "priceScrapedAt": "2026-04-24T01:13:48.750Z",
+      "priceScrapedAt": "2026-04-30T05:07:39.619Z",
       "starCount": 5,
       "ratingCount": 289
     },
@@ -1896,6 +2097,23 @@
       "priceScrapedAt": "2026-04-24T19:55:34.193Z",
       "starCount": 4.9,
       "ratingCount": 295
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-85-mm-1-8/"
+    },
+    "specs": {
+      "diameterMm": 78,
+      "lengthMm": 82,
+      "weightG": 371,
+      "filterDiameter": 67,
+      "apertureBlades": 9,
+      "opticalDesign": {
+        "elements": 9,
+        "groups": 8
+      },
+      "minimumFocusDistanceM": 0.8,
+      "maximumMagnification": 0.1429,
+      "mount": "Sony FE"
     }
   },
   {
@@ -1956,6 +2174,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ef01c90d-bfb7-58f1-ad04-7eab30330cb3",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/38a28aa6-af45-5283-818b-ee8fe95b6a69"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel90m28g_fe_90mm_f_2_8_macro_1676283373_1126140.jpg",
       "properties": {
         "focalLength": "90mm",
         "mount": "Sony E",
@@ -1972,7 +2191,7 @@
       },
       "mpn": "SEL90M28G",
       "price": 948,
-      "priceScrapedAt": "2026-04-24T01:14:15.526Z",
+      "priceScrapedAt": "2026-04-30T05:08:59.789Z",
       "starCount": 5,
       "ratingCount": 347
     },
@@ -1995,6 +2214,9 @@
       "priceScrapedAt": "2026-04-24T19:56:26.193Z",
       "starCount": 4.7,
       "ratingCount": 339
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-90mm-f2-8-macro-oss-one-of-sonys-finest/"
     }
   },
   {
@@ -2132,6 +2354,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/95cc064d-9789-5e26-b404-6d44382d903b",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/2cb25c4e-69a0-56c8-804f-342ca65a3832"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel100f28gm_fe_100mm_f_2_8_stf_1486462887_1317561.jpg",
       "properties": {
         "focalLength": "100mm",
         "mount": "Sony E",
@@ -2148,7 +2371,7 @@
       },
       "mpn": "SEL100F28GM",
       "price": 1698,
-      "priceScrapedAt": "2026-04-24T01:15:33.161Z",
+      "priceScrapedAt": "2026-04-30T05:11:25.111Z",
       "starCount": 5,
       "ratingCount": 21
     },
@@ -2170,6 +2393,9 @@
       "priceScrapedAt": "2026-04-24T19:58:06.989Z",
       "starCount": 4.7,
       "ratingCount": 15
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-100-f-2-8-stf-gm-oss-lens/"
     }
   },
   {
@@ -2230,6 +2456,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/bea23f79-282e-5e80-852c-4d5ffd425839",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/7b1dd039-1ed1-58ab-b06f-470c344ebed2"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel135f18gm_fe_135mm_f_1_8_gm_1551177473_1462821.jpg",
       "properties": {
         "focalLength": "135mm",
         "mount": "Sony E",
@@ -2246,7 +2473,7 @@
       },
       "mpn": "SEL135F18GM",
       "price": 2248,
-      "priceScrapedAt": "2026-04-24T01:15:59.276Z",
+      "priceScrapedAt": "2026-04-30T05:12:20.788Z",
       "starCount": 5,
       "ratingCount": 135
     },
@@ -2268,6 +2495,23 @@
       "priceScrapedAt": "2026-04-24T19:58:23.520Z",
       "starCount": 4.9,
       "ratingCount": 90
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-135mm-f1-8-gm/"
+    },
+    "specs": {
+      "diameterMm": 89,
+      "lengthMm": 127,
+      "weightG": 950,
+      "filterDiameter": 82,
+      "apertureBlades": 11,
+      "opticalDesign": {
+        "elements": 13,
+        "groups": 10
+      },
+      "minimumFocusDistanceM": 0.7,
+      "maximumMagnification": 0.25,
+      "mount": "Sony E"
     }
   },
   {
@@ -2424,6 +2668,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/c5a34e3c-415c-582f-bac1-01403f8b16d7",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6ba39a4d-d6e9-5750-a1c0-ae64b1632ffb"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_400mm_f_2_8_gm_1530093975_1369634.jpg",
       "properties": {
         "focalLength": "400mm",
         "mount": "Fixed and Rotating Collar",
@@ -2440,7 +2685,7 @@
       },
       "mpn": "SEL400F28GM",
       "price": 12998,
-      "priceScrapedAt": "2026-04-24T01:17:48.238Z",
+      "priceScrapedAt": "2026-04-30T05:14:18.656Z",
       "starCount": 5,
       "ratingCount": 32
     },
@@ -2520,6 +2765,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d775fa5d-f812-5f81-ab69-bef76b6bfde9",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b68ffbc2-0d9d-5fbf-aae6-71c3ad04bcfe"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel600f40gm_fe_600mm_f_4_gm_1560248447_1485539.jpg",
       "properties": {
         "focalLength": "600mm",
         "mount": "Fixed and Rotating Collar",
@@ -2536,7 +2782,7 @@
       },
       "mpn": "SEL600F40GM",
       "price": 14098,
-      "priceScrapedAt": "2026-04-24T01:18:14.888Z",
+      "priceScrapedAt": "2026-04-30T05:16:58.589Z",
       "starCount": 5,
       "ratingCount": 72
     },
@@ -2616,6 +2862,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ad4248dd-404d-5aec-ba13-1ef4e1970e77",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/41f7454f-82ee-5bba-930d-15ae5cee06ca"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel1224gm_12_24mm_f_2_8_gm_lens_1594117237_1573884.jpg",
       "properties": {
         "focalLength": "12 to 24mm",
         "mount": "Sony E",
@@ -2632,7 +2879,7 @@
       },
       "mpn": "SEL1224GM",
       "price": 3148,
-      "priceScrapedAt": "2026-04-24T01:18:33.107Z",
+      "priceScrapedAt": "2026-04-30T05:17:58.167Z",
       "starCount": 5,
       "ratingCount": 68
     },
@@ -2654,6 +2901,22 @@
       "priceScrapedAt": "2026-04-24T20:02:12.742Z",
       "starCount": 5,
       "ratingCount": 33
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-12-24mm-2-8-gm/"
+    },
+    "specs": {
+      "diameterMm": 98,
+      "lengthMm": 137,
+      "weightG": 847,
+      "apertureBlades": 9,
+      "opticalDesign": {
+        "elements": 17,
+        "groups": 14
+      },
+      "minimumFocusDistanceM": 0.28,
+      "maximumMagnification": 0.1493,
+      "mount": "Sony-E"
     }
   },
   {
@@ -2712,6 +2975,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/93caa767-2729-50c0-9819-535f471bc83d",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/a0fb4571-9a80-5c29-b4d0-c06bdf63ecf2"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel1224g_fe_12_24mm_f_4_g_1495023744_1338517.jpg",
       "properties": {
         "focalLength": "12 to 24mm",
         "mount": "Sony E",
@@ -2727,7 +2991,7 @@
       },
       "mpn": "SEL1224G",
       "price": 2298,
-      "priceScrapedAt": "2026-04-24T01:18:54.532Z",
+      "priceScrapedAt": "2026-04-30T05:18:52.921Z",
       "starCount": 4.5,
       "ratingCount": 66
     },
@@ -2793,6 +3057,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/49d214ef-44a3-5143-aeee-f86f60310ae5",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/4d4ef70a-4d7f-5436-9732-e898031209b1"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_16_25mm_f_2_8_g_1713262831_1823773.jpg",
       "properties": {
         "focalLength": "16 to 25mm",
         "mount": "Sony E",
@@ -2809,7 +3074,7 @@
       },
       "mpn": "SEL1625G",
       "price": 1298,
-      "priceScrapedAt": "2026-04-24T01:20:15.924Z",
+      "priceScrapedAt": "2026-04-30T05:19:51.462Z",
       "starCount": 5,
       "ratingCount": 12
     },
@@ -2946,6 +3211,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/64d7254b-60d0-517f-8740-c5a6d22c77b7",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/58be3d60-e51a-5c26-b431-ac68c95feb02"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_16_35mm_f_2_8_gm_1693305035_1784822.jpg",
       "properties": {
         "focalLength": "16 to 35mm",
         "mount": "Sony E",
@@ -2962,9 +3228,9 @@
       },
       "mpn": "SEL1635GM2",
       "price": 2598,
-      "priceScrapedAt": "2026-04-24T01:20:37.507Z",
+      "priceScrapedAt": "2026-04-30T05:20:50.112Z",
       "starCount": 5,
-      "ratingCount": 26
+      "ratingCount": 27
     },
     "system": "Sony",
     "category": [
@@ -3033,6 +3299,9 @@
       "priceScrapedAt": "2026-04-24T20:04:42.361Z",
       "starCount": 4.7,
       "ratingCount": 164
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/sony-fe-16-35mm-f4-za-t-review/"
     }
   },
   {
@@ -3093,6 +3362,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fc6190fe-892d-5643-baa6-269d3a34aaa4",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6b693b56-015e-5b52-a0cb-a94f69b76614"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_20_70mm_f_4_g_1673950533_1745126.jpg",
       "properties": {
         "focalLength": "20 to 70mm",
         "mount": "Sony E",
@@ -3109,7 +3379,7 @@
       },
       "mpn": "SEL2070G",
       "price": 1198,
-      "priceScrapedAt": "2026-04-24T01:22:33.783Z",
+      "priceScrapedAt": "2026-04-30T05:23:22.711Z",
       "starCount": 4.5,
       "ratingCount": 55
     },
@@ -3131,6 +3401,23 @@
       "priceScrapedAt": "2026-04-24T21:13:15.650Z",
       "starCount": 4.9,
       "ratingCount": 37
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-20-70mm-4-0-g/"
+    },
+    "specs": {
+      "diameterMm": 79,
+      "lengthMm": 99,
+      "weightG": 484,
+      "filterDiameter": 72,
+      "apertureBlades": 9,
+      "opticalDesign": {
+        "elements": 16,
+        "groups": 13
+      },
+      "minimumFocusDistanceM": 0.25,
+      "maximumMagnification": 0.1316,
+      "mount": "E-mount"
     }
   },
   {
@@ -3170,6 +3457,7 @@
       "images": [
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/019543ba-1c33-518f-baba-9323ccbbb847"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_24_50mm_f_2_8_g_1708511158_1812335.jpg",
       "properties": {
         "focalLength": "24 to 50mm",
         "mount": "Sony E",
@@ -3186,7 +3474,7 @@
       },
       "mpn": "SEL2450G",
       "price": 1198,
-      "priceScrapedAt": "2026-04-24T01:22:51.393Z",
+      "priceScrapedAt": "2026-04-30T05:24:20.033Z",
       "starCount": 4.5,
       "ratingCount": 21
     },
@@ -3208,6 +3496,23 @@
       "priceScrapedAt": "2026-04-24T21:16:12.379Z",
       "starCount": 4.9,
       "ratingCount": 10
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-24-50mm-2-8-g/"
+    },
+    "specs": {
+      "diameterMm": 75,
+      "lengthMm": 92,
+      "weightG": 440,
+      "filterDiameter": 67,
+      "apertureBlades": 11,
+      "opticalDesign": {
+        "elements": 16,
+        "groups": 13
+      },
+      "minimumFocusDistanceM": 0.18,
+      "maximumMagnification": 0.2941,
+      "mount": "E-mount"
     }
   },
   {
@@ -3282,7 +3587,10 @@
       "url": "https://www.adorama.com/sony-fe-24-70-mm-f-2-8-gm-lens/p/iso2470gm",
       "guessed": false
     },
-    "discontinued": true
+    "discontinued": true,
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-2-824-70mm-gm/"
+    }
   },
   {
     "id": "sony-fe-24-70-2.8-gm2",
@@ -3437,6 +3745,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/3b35bd22-e685-50ea-a2ae-51ade5612975",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/74875a39-ba94-5bd5-aaa1-f32390df4c4a"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel2470z_vario_tessar_t_fe_24_70mm_1559909365_1008126.jpg",
       "properties": {
         "focalLength": "24 to 70mm",
         "mount": "Sony E",
@@ -3452,8 +3761,10 @@
         "weight": "1.495 lb"
       },
       "mpn": "SEL2470ZB",
+      "price": 998,
+      "priceScrapedAt": "2026-04-30T05:28:20.007Z",
       "starCount": 4.5,
-      "ratingCount": 172
+      "ratingCount": 183
     },
     "system": "Sony",
     "category": [
@@ -3473,6 +3784,9 @@
       "priceScrapedAt": "2026-04-24T21:17:13.796Z",
       "starCount": 4.4,
       "ratingCount": 153
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/rolling-review-carl-zeiss-vario-tessar-t-fe-424-70-za/"
     }
   },
   {
@@ -3531,6 +3845,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/3065ee18-01fd-5e3d-92a5-be271900688b",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/551636d8-6787-5c97-aa9c-eab53ce745b2"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel24105g_fe_24_105mm_f_4_g_1508901628_1369442.jpg",
       "properties": {
         "focalLength": "24 to 105mm",
         "mount": "Sony E",
@@ -3547,7 +3862,7 @@
       },
       "mpn": "SEL24105G",
       "price": 1398,
-      "priceScrapedAt": "2026-04-24T01:26:45.511Z",
+      "priceScrapedAt": "2026-04-30T05:29:17.695Z",
       "starCount": 4.5,
       "ratingCount": 408
     },
@@ -3608,6 +3923,7 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/629116fe-0c80-5246-ac81-954036904a2d",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/89a4e3b9-81aa-5f4e-a8c6-7e56a45a64f5"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_28_60mm_f_4_5_6_lens_1600125622_1592780.jpg",
       "properties": {
         "focalLength": "28 to 60mm",
         "mount": "Sony E",
@@ -3624,7 +3940,7 @@
       },
       "mpn": "SEL2860",
       "price": 498,
-      "priceScrapedAt": "2026-04-24T01:27:09.901Z",
+      "priceScrapedAt": "2026-04-30T05:30:22.894Z",
       "starCount": 4,
       "ratingCount": 27
     },
@@ -3681,7 +3997,7 @@
       "bhNumber": "SO28702GM",
       "url": "https://www.bhphotovideo.com/c/product/1862825-REG/sony_fe_28_70mm_f_2_gm.html",
       "title": "Sony FE 28-70mm f/2 GM Lens (Sony E)",
-      "official": false,
+      "official": true,
       "images": [
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/a3e11066-35b4-5cf5-9b39-a77b2d818a1b",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f05771d5-9bc4-5be3-afa0-14969acbcfd0",
@@ -3701,8 +4017,23 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f1ac9564-53e7-5b7d-b34d-fe84818a6f5a",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6804034a-0796-59fa-9ae0-7341ba4c3682"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_28_70mm_f_2_gm_1732016228_1862825.jpg",
+      "properties": {
+        "focalLength": "28 to 70mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "minimumFocusDistance": "1.2' / 38 cm",
+        "magnification": "1:4.35 Macro Reproduction Ratio0.23x Magnification",
+        "opticalDesign": "20 Elements in 14 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "86 mm (Front)",
+        "dimensions": "9.4 x 5.8 x 5.5\"",
+        "weight": "3.295 lb"
+      },
+      "mpn": "SEL2870GM",
       "price": 3298,
-      "priceScrapedAt": "2026-04-22T04:41:04.029Z",
+      "priceScrapedAt": "2026-04-30T05:31:15.131Z",
       "starCount": 5,
       "ratingCount": 36
     },
@@ -3760,7 +4091,7 @@
       "bhNumber": "SO501502GM",
       "url": "https://www.bhphotovideo.com/c/product/1891016-REG/sony_fe_50_150mm_f_2_gm.html",
       "title": "Sony FE 50-150mm f/2 GM Lens (Sony E)",
-      "official": false,
+      "official": true,
       "images": [
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/61414818-7862-543e-9284-4d0f52f4183a",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/60190c2c-024f-51a8-8351-f1be5c39863d",
@@ -3781,10 +4112,25 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/5e67aa74-5223-5e72-a214-93f0ca9cf0f6",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/095852f2-d8d9-5569-9251-5582469f28d5"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_50_150mm_f_2_gm_1745317315_1891016.jpg",
+      "properties": {
+        "focalLength": "50 to 150mm",
+        "mount": "Removable and Rotating Collar",
+        "format": "Full-Frame",
+        "minimumFocusDistance": "From Camera Sensor: 1.3' / 40 cm (Wide) to 2.4' / 74 cm (Tele)",
+        "magnification": "1:5 Macro Reproduction Ratio0.2x Magnification",
+        "opticalDesign": "19 Elements in 17 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "95 mm (Front)",
+        "dimensions": "14.1 x 7.2 x 6.9\"",
+        "weight": "5.325 lb"
+      },
+      "mpn": "SEL50150GM",
       "price": 3998,
-      "priceScrapedAt": "2026-04-22T04:41:13.762Z",
+      "priceScrapedAt": "2026-04-30T05:32:24.073Z",
       "starCount": 5,
-      "ratingCount": 34
+      "ratingCount": 36
     },
     "system": "Sony",
     "category": [
@@ -3933,8 +4279,23 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/40232b79-5439-53a1-b2ae-7f51483e72a6",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/4701c3b8-0de6-532c-9839-8396e9f0e47d"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_70_200mm_f_2_8_gm_1634123153_1666363.jpg",
+      "properties": {
+        "focalLength": "70 to 200mm",
+        "mount": "Removable and Rotating Collar",
+        "format": "Full-Frame",
+        "angleOfView": "34° to 12° 30'",
+        "minimumFocusDistance": "15.7\" / 40 cm",
+        "opticalDesign": "17 Elements in 14 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "77 mm (Front)",
+        "dimensions": "12 x 6.2 x 5.5\"",
+        "weight": "4.13 lb"
+      },
+      "mpn": "SEL70200GM2",
       "price": 3098,
-      "priceScrapedAt": "2026-04-22T23:44:11.442Z",
+      "priceScrapedAt": "2026-04-30T05:33:32.328Z",
       "starCount": 5,
       "ratingCount": 195
     },
@@ -3956,6 +4317,9 @@
       "priceScrapedAt": "2026-04-24T21:20:00.918Z",
       "starCount": 5,
       "ratingCount": 137
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-70-200mm-2-8-gm-oss-ii/"
     }
   },
   {
@@ -3996,7 +4360,10 @@
       "url": "https://www.adorama.com/sony-fe-70-200-mm-f-4-g-oss-lens/p/iso70200g",
       "guessed": false
     },
-    "discontinued": true
+    "discontinued": true,
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-470-200-g-oss/"
+    }
   },
   {
     "id": "sony-fe-70-200-4-g2",
@@ -4031,7 +4398,7 @@
       "bhNumber": "SO702004G2",
       "url": "https://www.bhphotovideo.com/c/product/1776284-REG/sony_fe_70_200mm_f_4_g.html",
       "title": "Sony FE 70-200mm f/4 Macro G OSS II Lens (Sony E)",
-      "official": false,
+      "official": true,
       "images": [
         "/cdn-cgi/image/fit=scale-down,width=200/https://video.api.bazaarvoice.com/2bdfd39e-d1d1-4faa-bd0f-f30dca98d938/thumbnail/image-00001.png",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fb04b374-3d46-5d2b-94ba-231a36188755",
@@ -4054,8 +4421,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fe718eed-0e50-517b-a0df-8ec7a6c0e593",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/76ccf185-16ad-510d-a4b0-2578441d6b08"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_70_200mm_f_4_g_1689157242_1776284.jpg",
+      "properties": {
+        "focalLength": "70 to 200mm",
+        "mount": "Removable and Rotating Collar",
+        "format": "Full-Frame",
+        "angleOfView": "34° to 12° 30'",
+        "minimumFocusDistance": "10.2\" / 26 cm",
+        "magnification": "1:2 Macro Reproduction Ratio0.5x Magnification",
+        "opticalDesign": "19 Elements in 13 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "72 mm (Front)",
+        "dimensions": "10.8 x 6.3 x 5.9\"",
+        "weight": "3 lb"
+      },
+      "mpn": "SEL70200G",
       "price": 1698,
-      "priceScrapedAt": "2026-04-22T04:41:49.175Z",
+      "priceScrapedAt": "2026-04-30T05:34:29.317Z",
       "starCount": 5,
       "ratingCount": 55
     },
@@ -4077,6 +4460,9 @@
       "priceScrapedAt": "2026-04-24T21:20:17.321Z",
       "starCount": 4.5,
       "ratingCount": 6
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/review-sony-fe-70-200mm-4-0-g-macro-oss-ii/"
     }
   },
   {
@@ -4135,8 +4521,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/135a6dec-da0a-5c2c-bf4e-aa6a0852a864",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/3b8fb571-545c-5f8c-9e4b-5cbae38947b7"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel70300g_fe_70_300mm_f_4_5_5_6_g_1459251297_1242614.jpg",
+      "properties": {
+        "focalLength": "70 to 300mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "34° to 8° 10'",
+        "minimumFocusDistance": "2.95' / 90 cm",
+        "magnification": "1:3.23 Macro Reproduction Ratio0.31x Magnification",
+        "opticalDesign": "16 Elements in 13 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "72 mm (Front)",
+        "dimensions": "8.7 x 4.8 x 4.65\"",
+        "weight": "2.66 lb"
+      },
+      "mpn": "SEL70300G",
       "price": 1398,
-      "priceScrapedAt": "2026-04-22T23:45:54.005Z",
+      "priceScrapedAt": "2026-04-30T05:35:30.260Z",
       "starCount": 4.5,
       "ratingCount": 160
     },
@@ -4230,6 +4632,9 @@
       "priceScrapedAt": "2026-04-24T21:23:36.978Z",
       "starCount": 4.7,
       "ratingCount": 254
+    },
+    "reviews": {
+      "phillipreeve": "https://phillipreeve.net/blog/sony-gm-100-400-f-4-5-5-6/"
     }
   },
   {
@@ -4288,10 +4693,26 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/20320ec7-1db5-518b-9ef1-3a754c4732a4",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/38b9e36e-fac8-54dd-9f94-b11e4f65b7ae"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_sel200600g_fe_200_600mm_f_5_6_6_3_g_1560248447_1485540.jpg",
+      "properties": {
+        "focalLength": "200 to 600mm",
+        "mount": "Removable and Rotating Collar",
+        "format": "Full-Frame",
+        "angleOfView": "12° 30' to 4° 10'",
+        "minimumFocusDistance": "7.87' / 2.4 m",
+        "magnification": "1:5 Macro Reproduction Ratio0.2x Magnification",
+        "opticalDesign": "24 Elements in 17 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "95 mm (Front)",
+        "dimensions": "20 x 8 x 7\"",
+        "weight": "7.55 lb"
+      },
+      "mpn": "SEL200600G",
       "price": 2098,
-      "priceScrapedAt": "2026-04-22T23:46:28.126Z",
+      "priceScrapedAt": "2026-04-30T05:37:39.205Z",
       "starCount": 4.5,
-      "ratingCount": 469
+      "ratingCount": 470
     },
     "system": "Sony",
     "category": [
@@ -4369,10 +4790,26 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/162b5b83-601e-5241-bd0b-ad3be25dc4a9",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d3e1ca79-381d-5afd-b391-67256f9c7da6"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_fe_400_800mm_f_6_3_8_g_1740562318_1881961.jpg",
+      "properties": {
+        "focalLength": "400 to 800mm",
+        "mount": "Fixed and Rotating Collar with 1/4\"-20 & 3/8\"-16 Female Threads",
+        "format": "Full-Frame",
+        "angleOfView": "6° 10' to 3° 10'",
+        "minimumFocusDistance": "5.6' / 1.7 m (Wide) to 11.5' / 3.5 m (Tele)",
+        "magnification": "1:4.34 Macro Reproduction Ratio0.23x Magnification",
+        "opticalDesign": "27 Elements in 19 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "105 mm (Front)",
+        "dimensions": "22.8 x 7.7 x 7.3\"",
+        "weight": "8.21 lb"
+      },
+      "mpn": "SEL400800G",
       "price": 2698,
-      "priceScrapedAt": "2026-04-22T23:48:44.730Z",
+      "priceScrapedAt": "2026-04-30T05:38:47.888Z",
       "starCount": 4.5,
-      "ratingCount": 39
+      "ratingCount": 40
     },
     "system": "Sony",
     "category": [
@@ -4570,6 +5007,22 @@
       "title": "Sigma 20mm f/2 DG DN Contemporary Lens for Sony E",
       "official": true,
       "images": [],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_20mm_f_2_dg_dn_1649786805_1686859.jpg",
+      "properties": {
+        "focalLength": "20mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "94.5°",
+        "minimumFocusDistance": "8.7\" / 22 cm",
+        "magnification": "1:6.7 Macro Reproduction Ratio0.15x Magnification",
+        "opticalDesign": "13 Elements in 11 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "62 mm (Front)",
+        "dimensions": "7.3 x 4.2 x 4\"",
+        "weight": "1.505 lb"
+      },
+      "mpn": "490965",
       "starCount": 5,
       "ratingCount": 3
     },
@@ -4638,8 +5091,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/012076e4-e3fa-5759-a431-c7f09fd9199a",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d74bb0c0-e7a2-5767-910d-b53c21f60ce3"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_24mm_f_1_4_dg_dn_1659946849_1719339.jpg",
+      "properties": {
+        "focalLength": "24mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "84.1°",
+        "minimumFocusDistance": "9.8\" / 25 cm",
+        "magnification": "1:7.1 Macro Reproduction Ratio0.14x Magnification",
+        "opticalDesign": "17 Elements in 14 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "72 mm (Front)Gel Filter (Rear)",
+        "dimensions": "7.5 x 4.9 x 4.6\"",
+        "weight": "1.855 lb"
+      },
+      "mpn": "405965",
       "price": 879,
-      "priceScrapedAt": "2026-04-22T23:50:01.865Z",
+      "priceScrapedAt": "2026-04-30T05:44:58.555Z",
       "starCount": 4.5,
       "ratingCount": 14
     },
@@ -4700,8 +5169,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/9d0967eb-d5dd-5187-b50e-7909af512d33",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/289941c2-608d-50cc-ba16-a38a97353dcb"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_24mm_f_3_5_dg_dn_1606807418_1605138.jpg",
+      "properties": {
+        "focalLength": "24mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "84.1°",
+        "minimumFocusDistance": "4.3\" / 10.8 cm",
+        "magnification": "1:2 Macro Reproduction Ratio0.5x Magnification",
+        "opticalDesign": "10 Elements in 8 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "55 mm (Front)",
+        "dimensions": "5.4 x 4.2 x 4.1\"",
+        "weight": "1.105 lb"
+      },
+      "mpn": "404965",
       "price": 619,
-      "priceScrapedAt": "2026-04-22T23:50:23.054Z",
+      "priceScrapedAt": "2026-04-30T05:45:54.107Z",
       "starCount": 5,
       "ratingCount": 7
     },
@@ -4793,7 +5278,7 @@
       },
       "mpn": "341969",
       "price": 1499,
-      "priceScrapedAt": "2026-04-24T14:13:33.645Z",
+      "priceScrapedAt": "2026-04-30T05:47:00.577Z",
       "starCount": 3.5,
       "ratingCount": 10
     }
@@ -4985,8 +5470,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/e2e11045-35f4-517f-b379-93936d61a257",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ac9b6fde-ad4b-5cfa-b27c-9cd32d9329a7"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_360965_45mm_f_2_8_dg_dn_1563192399_1492966.jpg",
+      "properties": {
+        "focalLength": "45mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "51.3°",
+        "minimumFocusDistance": "9.45\" / 24 cm",
+        "magnification": "1:4 Macro Reproduction Ratio0.25x Magnification",
+        "opticalDesign": "8 Elements in 7 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "55 mm (Front)",
+        "dimensions": "5.4 x 4.2 x 4.2\"",
+        "weight": "1.035 lb"
+      },
+      "mpn": "360965",
       "price": 449,
-      "priceScrapedAt": "2026-04-22T23:52:21.523Z",
+      "priceScrapedAt": "2026-04-30T05:50:43.360Z",
       "starCount": 4.5,
       "ratingCount": 19
     },
@@ -5115,8 +5616,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d396dd2a-f014-5519-82a1-e64aafcce946",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f0202c34-2e86-54a0-8c60-a30bd347813d"
       ],
-      "price": 939,
-      "priceScrapedAt": "2026-04-22T23:53:58.722Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_315965_50mm_f_1_4_dg_dn_1675754137_1748158.jpg",
+      "properties": {
+        "focalLength": "50mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "46.8°",
+        "minimumFocusDistance": "17.7\" / 45 cm",
+        "magnification": "1:6.8 Macro Reproduction Ratio0.15x Magnification",
+        "opticalDesign": "14 Elements in 11 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "72 mm (Front)",
+        "dimensions": "7 x 4.8 x 4.5\"",
+        "weight": "2.18 lb"
+      },
+      "mpn": "315965",
+      "price": 839,
+      "priceScrapedAt": "2026-04-30T05:54:42.646Z",
       "starCount": 5,
       "ratingCount": 23
     },
@@ -5162,8 +5679,24 @@
       "title": "Sigma 50mm f/2 DG DN Contemporary Lens (Sony E)",
       "official": true,
       "images": [],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_314965_50mm_f_2_dg_dn_1680509736_1757612.jpg",
+      "properties": {
+        "focalLength": "50mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "46.8°",
+        "minimumFocusDistance": "1.5' / 45 cm",
+        "magnification": "1:7.14 Macro Reproduction Ratio0.14x Magnification",
+        "opticalDesign": "11 Elements in 9 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "58 mm (Front)",
+        "dimensions": "7 x 4.9 x 4.2\"",
+        "weight": "1.465 lb"
+      },
+      "mpn": "314965",
       "price": 599,
-      "priceScrapedAt": "2026-04-22T23:54:15.492Z",
+      "priceScrapedAt": "2026-04-30T05:55:39.740Z",
       "starCount": 4.5,
       "ratingCount": 6
     },
@@ -5533,8 +6066,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/0afb3640-a47d-50cc-bb77-218ef604b010",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/4459e7f1-39b7-5b34-8f6b-b15ec298fac3"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_213965_14_24mm_f_2_8_dg_dn_1582028675_1492972.jpg",
+      "properties": {
+        "focalLength": "14 to 24mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "114.2° to 84.1°",
+        "minimumFocusDistance": "11\" / 27.94 cm",
+        "magnification": "1:7.3 Macro Reproduction Ratio0.14x Magnification",
+        "opticalDesign": "18 Elements in 13 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "Gel Filter (Rear)",
+        "dimensions": "7.6 x 4.9 x 4.7\"",
+        "weight": "2.405 lb"
+      },
+      "mpn": "213965",
       "price": 1539,
-      "priceScrapedAt": "2026-04-22T23:59:42.895Z",
+      "priceScrapedAt": "2026-04-30T06:07:06.988Z",
       "starCount": 5,
       "ratingCount": 118
     },
@@ -5610,8 +6159,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6a16ad25-1a57-5d3e-ae73-89004d29c050",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/49ccfdc7-494a-5032-9148-b57531d43b17"
       ],
-      "price": 989,
-      "priceScrapedAt": "2026-04-22T23:59:59.732Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_16_28mm_f_2_8_dg_contemporary_1654075964_1704533.jpg",
+      "properties": {
+        "focalLength": "16 to 28mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "107° to 75.4°",
+        "minimumFocusDistance": "9.8\" / 25 cm",
+        "magnification": "1:5.55 Macro Reproduction Ratio0.18x Magnification",
+        "opticalDesign": "16 Elements in 11 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "72 mm (Front)",
+        "dimensions": "6.2 x 4.8 x 4.8\"",
+        "weight": "1.735 lb"
+      },
+      "mpn": "206965",
+      "price": 939,
+      "priceScrapedAt": "2026-04-30T06:08:04.856Z",
       "starCount": 5,
       "ratingCount": 28
     },
@@ -5757,8 +6322,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/7e8fb4d4-0488-57dd-9e2b-d65e1db58fbb",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/e9b9f909-18ac-5067-a6c5-48a311cf8e9d"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_612e_28_45mm_f1_8_dg_dn_1717400735_1829962.jpg",
+      "properties": {
+        "focalLength": "28 to 45mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "75.4° to 51.3°",
+        "minimumFocusDistance": "11.9\" / 30.2 cm",
+        "magnification": "1:4 Macro Reproduction Ratio0.25x Magnification",
+        "opticalDesign": "18 Elements in 15 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "82 mm (Front)",
+        "dimensions": "11.2 x 6.1 x 6\"",
+        "weight": "3.56 lb"
+      },
+      "mpn": "612965",
       "price": 1414,
-      "priceScrapedAt": "2026-04-23T00:00:37.120Z",
+      "priceScrapedAt": "2026-04-30T06:11:00.506Z",
       "starCount": 5,
       "ratingCount": 25
     },
@@ -5828,8 +6409,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/35bc51cf-100f-5115-9ded-c8270d9859f2",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/3cf5daf8-83d0-52ac-8e35-267c012ffee7"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_592965_28_70mm_f_2_8_contemporary_dg_1656080449_1624216.jpg",
+      "properties": {
+        "focalLength": "28 to 70mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "75.4° to 34.3°",
+        "minimumFocusDistance": "7.5\" / 19 cm",
+        "magnification": "1:4.6 Macro Reproduction Ratio0.21x Magnification",
+        "opticalDesign": "16 Elements in 12 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "6.8 x 4.7 x 4.6\"",
+        "weight": "1.73 lb"
+      },
+      "mpn": "592965",
       "price": 889,
-      "priceScrapedAt": "2026-04-23T00:00:57.978Z",
+      "priceScrapedAt": "2026-04-30T06:11:57.250Z",
       "starCount": 5,
       "ratingCount": 63
     },
@@ -5909,8 +6506,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/c813cb80-0dcc-50a0-af1f-0bf33d56ab5b",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fdc1dada-6f65-518a-8601-f83a518d3c9e"
       ],
-      "price": 1649,
-      "priceScrapedAt": "2026-04-23T00:01:34.115Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_70_200mm_f_2_8_dg_is_1696477548_1789139.jpg",
+      "properties": {
+        "focalLength": "70 to 200mm",
+        "mount": "Removable and Rotating Collar",
+        "format": "Full-Frame",
+        "angleOfView": "34.3° to 12.3°",
+        "minimumFocusDistance": "25.6\" / 65 cm",
+        "magnification": "1:5.2 Macro Reproduction Ratio0.19x Magnification",
+        "opticalDesign": "20 Elements in 15 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "77 mm (Front)",
+        "dimensions": "13.7 x 7 x 6.6\"",
+        "weight": "4.775 lb"
+      },
+      "mpn": "591965",
+      "price": 1549,
+      "priceScrapedAt": "2026-04-30T06:13:07.263Z",
       "starCount": 4.5,
       "ratingCount": 80
     },
@@ -5979,8 +6592,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/dd0e550e-bbb6-5fc2-9fbd-932b9d7271e4",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/5d3c0ac9-84cf-5c7b-a83d-1415df38d426"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_100_400mm_f_5_6_3_dg_dn_1656439538_1568623.jpg",
+      "properties": {
+        "focalLength": "100 to 400mm",
+        "mount": "Removable and Rotating Collar (Not Included)",
+        "format": "Full-Frame",
+        "angleOfView": "24.4° to 6.2°",
+        "minimumFocusDistance": "3.61' / 1.1 m",
+        "magnification": "1:4.2 Macro Reproduction Ratio0.24x Magnification",
+        "opticalDesign": "22 Elements in 16 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "12 x 5.2 x 4.9\"",
+        "weight": "3.585 lb"
+      },
+      "mpn": "750965",
       "price": 999,
-      "priceScrapedAt": "2026-04-23T00:02:12.680Z",
+      "priceScrapedAt": "2026-04-30T06:14:10.363Z",
       "starCount": 4.5,
       "ratingCount": 131
     },
@@ -6086,7 +6715,7 @@
       },
       "mpn": "747969",
       "price": 1549,
-      "priceScrapedAt": "2026-04-24T14:18:44.890Z",
+      "priceScrapedAt": "2026-04-30T06:15:17.574Z",
       "starCount": 5,
       "ratingCount": 82
     }
@@ -6310,9 +6939,33 @@
       "url": "https://www.bhphotovideo.com/c/product/1723545-REG/tamron_a062_20_40mm_f_2_8_di_iii.html",
       "title": "Tamron 20-40mm f/2.8 Di III VXD Lens for Sony E",
       "official": true,
+      "images": [
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ca99d81f-ccf3-5d56-b02f-1cb0a37496a3",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/225a32e7-91ae-50dc-b3f2-99b155346a49",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/9b69460b-c2a0-5bf5-80b7-caafdc4304f0",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/38da879d-0227-58a8-858f-1461b597d83c",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/240f64b9-4ed6-53e8-bf60-f2e77ced59f4",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/16d501a9-a7c0-54d9-a81a-8bf5ed3f2ebd",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/a34fe8e6-0b7f-5bd9-9cec-93238d4ac340",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/767f7dd6-a723-5feb-be04-a0b984189181"
+      ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_a062_20_40mm_f_2_8_di_iii_1668033617_1723545.jpg",
+      "properties": {
+        "focalLength": "20 to 40mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "minimumFocusDistance": "6.7\" / 17 cm",
+        "magnification": "1:3.8 Macro Reproduction Ratio0.26x Magnification",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "67 mm (Front)",
+        "weight": "1.5 lb",
+        "dimensions": "6.8 x 5.5 x 5.3\""
+      },
+      "mpn": "A062",
       "price": 699,
-      "priceScrapedAt": "2026-04-22T00:54:19.903Z",
-      "starCount": 4,
+      "priceScrapedAt": "2026-04-30T06:21:14.723Z",
+      "starCount": 4.5,
       "ratingCount": 36
     },
     "system": "Sony",
@@ -6444,8 +7097,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/3d70a18c-8b31-5b52-9449-abcde1a01cc0",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/0f6c2edf-8971-5a0f-a918-868af191063c"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_a063_28_75mm_f_2_8_di_iii_1628159733_1658157.jpg",
+      "properties": {
+        "focalLength": "28 to 75mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "75° 23' to 32° 11'",
+        "minimumFocusDistance": "7.1\" / 18 cm",
+        "magnification": "1:2.7 Macro Reproduction Ratio0.37x Magnification",
+        "opticalDesign": "17 Elements in 15 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "9.3 x 6.3 x 5.6\"",
+        "weight": "1.95 lb"
+      },
+      "mpn": "AFA063S700",
       "price": 699,
-      "priceScrapedAt": "2026-04-23T00:07:59.615Z",
+      "priceScrapedAt": "2026-04-30T06:22:51.242Z",
       "starCount": 5,
       "ratingCount": 116
     },
@@ -6525,8 +7194,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6b8bfa2d-f827-5f48-bd95-96df3690f99f",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/16f2fd64-3316-5fb3-9f6a-bb48b3f0cfc3"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_a071_28_200mm_f_2_8_5_6_di_iii_1591829127_1568708.jpg",
+      "properties": {
+        "focalLength": "28 to 200mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "75° 23' to 12° 21'",
+        "minimumFocusDistance": "7.5\" / 19.05 cm",
+        "magnification": "1:3.13 Macro Reproduction Ratio0.32x Magnification",
+        "opticalDesign": "18 Elements in 14 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "7.6 x 5 x 4.5\"",
+        "weight": "1.835 lb"
+      },
+      "mpn": "A071",
       "price": 699,
-      "priceScrapedAt": "2026-04-23T00:08:37.933Z",
+      "priceScrapedAt": "2026-04-30T06:23:58.389Z",
       "starCount": 4.5,
       "ratingCount": 176
     },
@@ -6584,9 +7269,31 @@
       "url": "https://www.bhphotovideo.com/c/product/1844008-REG/tamron_a074_28_300mm_f_4_7_1_di_iii.html",
       "title": "Tamron 28-300mm f/4-7.1 Di III VC VXD Lens (Sony E)",
       "official": true,
+      "images": [
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/22106206-118a-51af-8f88-9e68f96fc23a",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/33cffeda-c762-5b3e-af43-a1e36badeaab",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/e02db8fa-7b46-52f6-9649-95b795cb399a",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/c4a86eaf-ba15-59fa-99c1-a492ab0b7b7a"
+      ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_a074_28_300mm_f_4_7_1_di_iii_1722383415_1844008.jpg",
+      "properties": {
+        "focalLength": "28 to 300mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "75° 23' to 8° 15'",
+        "minimumFocusDistance": "7.5\" / 19.1 cm",
+        "magnification": "1:3.8 Macro Reproduction Ratio0.26x Magnification",
+        "opticalDesign": "20 Elements in 13 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "10.7 x 6.1 x 5.5\"",
+        "weight": "2.19 lb"
+      },
+      "mpn": "A074",
       "price": 699,
-      "priceScrapedAt": "2026-04-22T00:54:46.206Z",
-      "starCount": 4,
+      "priceScrapedAt": "2026-04-30T06:24:53.036Z",
+      "starCount": 4.5,
       "ratingCount": 7
     },
     "system": "Sony",
@@ -6644,8 +7351,24 @@
       "title": "Tamron 35-100mm f/2.8 Di III VXD Lens (Sony E)",
       "official": true,
       "images": [],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_afa078s700_35_100mm_f_2_8_di_iii_1771454720_1950503.jpg",
+      "properties": {
+        "focalLength": "35 to 100mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "63° 26' to 24° 25'",
+        "minimumFocusDistance": "8.7\" / 22.1 cm (Wide) to 25.6\" / 65 cm (Tele)",
+        "magnification": "1:3.3 Macro Reproduction Ratio0.3x Magnification",
+        "opticalDesign": "15 Elements in 13 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "8.3 x 6.2 x 5.9\"",
+        "weight": "2.085 lb"
+      },
+      "mpn": "AFA078S700",
       "price": 899,
-      "priceScrapedAt": "2026-04-23T00:11:34.310Z",
+      "priceScrapedAt": "2026-04-30T06:25:57.911Z",
       "starCount": 5,
       "ratingCount": 3
     },
@@ -6784,10 +7507,26 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/72a5b162-8d9e-5bf4-a950-f4e0c2da0246",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/133a5f3d-d27a-5208-a4d6-a49c6cbdaca1"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_a065_70_180mm_f_2_8_di_iii_1705509619_1781149.jpg",
+      "properties": {
+        "focalLength": "70 to 180mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "34° 21' to 13° 42'",
+        "minimumFocusDistance": "11.8\" / 0.3 m",
+        "magnification": "1:2.6 Macro Reproduction Ratio0.21 to 0.38x Magnification",
+        "opticalDesign": "20 Elements in 15 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "11.4 x 6.2 x 5.5\"",
+        "weight": "2.81 lb"
+      },
+      "mpn": "AFA065S-700",
       "price": 999,
-      "priceScrapedAt": "2026-04-23T00:12:52.362Z",
+      "priceScrapedAt": "2026-04-30T06:28:07.694Z",
       "starCount": 5,
-      "ratingCount": 46
+      "ratingCount": 45
     },
     "system": "Sony",
     "category": [
@@ -6946,10 +7685,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/8abd649f-58d6-5251-9f28-87b86a90747a",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/2f697302-c59a-5e74-9c15-9ba66aac70f3"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_a067_50_400mm_f_4_5_6_3_di_iii_1705512626_1719896.jpg",
+      "properties": {
+        "focalLength": "50 to 400mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "minimumFocusDistance": "9.8\" / 24.9 cm",
+        "magnification": "1:2 Macro Reproduction Ratio0.5x Magnification",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "11.9 x 6.3 x 5.7\"",
+        "weight": "3.535 lb"
+      },
+      "mpn": "A067",
       "price": 1199,
-      "priceScrapedAt": "2026-04-23T00:14:10.234Z",
+      "priceScrapedAt": "2026-04-30T06:30:11.728Z",
       "starCount": 4.5,
-      "ratingCount": 87
+      "ratingCount": 89
     },
     "system": "Sony",
     "category": [
@@ -7006,9 +7759,47 @@
       "url": "https://www.bhphotovideo.com/c/product/1636755-REG/tamron_afa057s_700_150_500mm_f_5_6_7_di_iii.html",
       "title": "Tamron 150-500mm f/5-6.7 Di III VC VXD Lens (Sony E)",
       "official": true,
+      "images": [
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/50c75251-7e06-57a3-a19c-2be130f78f1b",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f51d6a16-a21a-5842-b64d-88ccb5ce908b",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/44ae6a63-996a-55f2-8c63-f52c7f5b0d30",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f197c675-3d00-57d8-9486-012b2cd7f214",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d6f74246-0b6b-5238-8bba-73dc26c6070e",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/14088ef3-97bf-51e0-b321-34d5af494519",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f9ceef3f-63c9-5b8b-8af0-029cd8e9fc51",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/30808adf-863e-5494-9d55-14384c3681c0",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/37cc1bbf-a943-54ff-a1ca-5f0965bd0d4a",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/74b72879-2d28-54da-8077-11233d33cc49",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/e6b89c00-46f5-5c25-80b5-cb7589e3dc2e",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fd79e10a-9962-5dbc-a52e-37f93ed4b1c8",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/a2459100-c467-5618-82cb-e5e95f826524",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/892be2b5-766c-5945-9cd2-f9c0c143fb4d",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/82eb9bd8-9de8-5a0c-9461-5075feb027cd",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ade6a640-56a0-58c6-8df9-d008c6fe90ad",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/4d6fe5d3-e41e-5911-9f72-b970034402c5",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/318fad46-8231-53c1-95e8-75bc7bf5b96a",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f5ea1913-e5e2-5d31-9838-81a296d68104",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6fdca8ad-7282-5775-b6c8-1f8e65d84e0e"
+      ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_afa057s_700_150_500mm_f_5_6_7_di_iii_1619095536_1636755.jpg",
+      "properties": {
+        "focalLength": "150 to 500mm",
+        "mount": "Removable and Rotating Collar",
+        "format": "Full-Frame",
+        "angleOfView": "16° 25' to 4° 57'",
+        "minimumFocusDistance": "23.6\" / 60 cm",
+        "magnification": "1:3.1 Macro Reproduction Ratio0.32x Magnification",
+        "opticalDesign": "25 Elements in 16 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "82 mm (Front)",
+        "dimensions": "11.9 x 8.2 x 6.5\"",
+        "weight": "5.57 lb"
+      },
+      "mpn": "AFA057S-700",
       "price": 1199,
-      "priceScrapedAt": "2026-04-22T00:55:27.237Z",
-      "starCount": 4,
+      "priceScrapedAt": "2026-04-30T06:31:14.105Z",
+      "starCount": 4.5,
       "ratingCount": 38
     },
     "system": "Sony",
@@ -7732,8 +8523,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/1dd98fc0-adfe-55b9-879a-42daa8ac4afc",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6088d7e4-f523-5ec9-996e-a3336df43345"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/samyang_af_45mm_f_1_8_fe_1563966357_1478738.jpg",
+      "properties": {
+        "focalLength": "45mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "52.31°",
+        "minimumFocusDistance": "1.48' / 45 cm",
+        "magnification": "1:8 Macro Reproduction Ratio0.12x Magnification",
+        "opticalDesign": "7 Elements in 6 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "49 mm (Front)",
+        "dimensions": "4.9 x 4.8 x 4.7\"",
+        "weight": "0.72 lb"
+      },
+      "mpn": "SYIO45AFE",
       "price": 269.99,
-      "priceScrapedAt": "2026-04-23T00:22:19.240Z",
+      "priceScrapedAt": "2026-04-30T06:41:23.822Z",
       "starCount": 4.5,
       "ratingCount": 34
     },
@@ -8354,7 +9161,9 @@
         "weight": "1.98 lb",
         "dimensions": "6.6 x 5 x 3.6\""
       },
-      "mpn": "A03S"
+      "mpn": "A03S",
+      "price": 429,
+      "priceScrapedAt": "2026-04-30T06:53:27.038Z"
     },
     "adorama": {
       "sku": "TTA2115MS",
@@ -8425,8 +9234,23 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/2f0961cc-2929-51d0-a12c-93074f62e6ce",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/e609fce1-1659-56cf-85ce-28294099f65b"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/ttartisan_a11b_35mm_f_1_4_lens_for_1603446616_1599837.jpg",
+      "properties": {
+        "focalLength": "35mm (35mm Equivalent: 52.5mm)",
+        "mount": "FUJIFILM X",
+        "format": "APS-C",
+        "angleOfView": "45°",
+        "minimumFocusDistance": "11\" / 28 cm",
+        "opticalDesign": "7 Elements in 6 Groups",
+        "focusType": "Manual Focus",
+        "imageStabilization": "No",
+        "filterSize": "39 mm (Front)",
+        "dimensions": "4.25 x 4.25 x 3\"",
+        "weight": "0.7 lb"
+      },
+      "mpn": "A11B",
       "price": 80,
-      "priceScrapedAt": "2026-04-23T00:32:59.712Z",
+      "priceScrapedAt": "2026-04-30T06:55:33.419Z",
       "starCount": 4.5,
       "ratingCount": 97
     },
@@ -8485,34 +9309,34 @@
       "standard"
     ],
     "bh": {
-      "bhNumber": "TTF50095LMB",
-      "url": "https://www.bhphotovideo.com/c/product/1924198-REG/ttartisan_f50095_lm_b_2025_50mm_f_0_95_lens_leica.html",
-      "title": "TTArtisan 50mm f/0.95 Lens (Leica M)",
+      "bhNumber": "TT5095APSCFX",
+      "url": "https://www.bhphotovideo.com/c/product/1704468-REG/ttartisan_c50095_b_x_50mm_f_0_95_aps_c_lens.html",
+      "title": "TTArtisan 50mm f/0.95 Lens for FUJIFILM X",
       "official": true,
       "images": [
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/8c11de9f-d36d-5fea-9e37-2ed8a283b4e8",
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/4d3d5429-f7f0-549b-b5a5-6596794d6f2c",
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/baa11bd3-d0b3-52f1-a7f9-9d51bf0571ad",
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/7d5765d4-1796-5ea4-832e-eeee0a079c48",
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/85e328a8-3d60-5ce5-bf34-3a896becc6ad",
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/390bfa1e-466f-56d0-8140-1d7ca13887a5"
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/2249d222-9878-5835-a3ac-11a482d7a55f",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ebc1ae91-073c-5b03-8886-9ddcfba142b8",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/86f84cb0-747c-536d-8727-213e28cce2b9"
       ],
-      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/ttartisan_f50095_lm_b_2025_50mm_f_0_95_lens_leica_1760706590_1924198.jpg",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/ttartisan_c50095_b_x_50mm_f_0_95_aps_c_lens_1672080625_1704468.jpg",
       "properties": {
-        "focalLength": "50mm",
-        "mount": "Leica M",
-        "minimumFocusDistance": "2.3' / 70 cm",
-        "opticalDesign": "11 Elements in 8 Groups",
+        "focalLength": "50mm (35mm Equivalent: 75mm)",
+        "mount": "FUJIFILM X",
+        "format": "APS-C",
+        "angleOfView": "32°",
+        "minimumFocusDistance": "19.7\" / 50 cm",
+        "opticalDesign": "8 Elements in 6 Groups",
         "focusType": "Manual Focus",
-        "filterSize": "62 mm (Front)",
-        "dimensions": "5.5 x 4.5 x 3.6\"",
-        "weight": "1.97 lb"
+        "imageStabilization": "No",
+        "filterSize": "58 mm (Front)",
+        "weight": "1.245 lb",
+        "dimensions": "5.6 x 4.7 x 3.3\""
       },
-      "mpn": "F50095-LM-B-2025",
-      "price": 755,
-      "priceScrapedAt": "2026-04-24T14:27:46.591Z",
-      "starCount": 4,
-      "ratingCount": 1
+      "mpn": "C50095-B-X",
+      "price": 218,
+      "priceScrapedAt": "2026-04-30T06:57:16.758Z",
+      "starCount": 5,
+      "ratingCount": 4
     }
   },
   {
@@ -8924,8 +9748,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/93391e07-55d0-596d-98eb-661af182537c",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fd75cc16-d50a-5f9b-bf24-92f12aead2f8"
       ],
-      "price": 1159,
-      "priceScrapedAt": "2026-04-23T00:35:22.327Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/zeiss_2136_691_batis_18mm_f_2_8_lens_1460612927_1243591.jpg",
+      "properties": {
+        "focalLength": "18mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "99°",
+        "minimumFocusDistance": "9.84\" / 25 cm",
+        "magnification": "1:10 Macro Reproduction Ratio0.1x Magnification",
+        "opticalDesign": "11 Elements in 10 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "77 mm (Front)",
+        "dimensions": "10.3 x 5.5 x 4.7\"",
+        "weight": "1.795 lb"
+      },
+      "mpn": "2136-691",
+      "price": 1549,
+      "priceScrapedAt": "2026-04-30T07:04:30.239Z",
       "starCount": 5,
       "ratingCount": 122
     },
@@ -9006,8 +9846,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6dd35b56-25f5-5470-8ec5-684b90ca7167",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/3e26c121-272f-513a-a6a4-2b20c9bb3197"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/zeiss_2103_750_25mm_f_2_0_batis_wide_1676292718_1140832.jpg",
+      "properties": {
+        "focalLength": "25mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "82°",
+        "minimumFocusDistance": "7.87\" / 20 cm",
+        "magnification": "1:5.26 Macro Reproduction Ratio0.19x Magnification",
+        "opticalDesign": "10 Elements in 8 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "10 x 5.4 x 4.8\"",
+        "weight": "1.84 lb"
+      },
+      "mpn": "2103-750",
       "price": 999,
-      "priceScrapedAt": "2026-04-23T00:37:17.459Z",
+      "priceScrapedAt": "2026-04-30T07:05:28.616Z",
       "starCount": 5,
       "ratingCount": 116
     },
@@ -9088,8 +9944,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/742ec868-3546-573e-af13-9bcaf58c7972",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/96f793c8-fe98-5a52-8e12-a9b90bf2ba3f"
       ],
-      "price": 999,
-      "priceScrapedAt": "2026-04-23T00:38:14.166Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/zeiss_000000_2239_137_batis_40mm_f_2_cf_1584610657_1436738.jpg",
+      "properties": {
+        "focalLength": "40mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "56°",
+        "minimumFocusDistance": "9.45\" / 24 cm",
+        "magnification": "1:3.33 Macro Reproduction Ratio0.3x Magnification",
+        "opticalDesign": "9 Elements in 8 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "10.1 x 5.4 x 4.7\"",
+        "weight": "1.895 lb"
+      },
+      "mpn": "2239-137",
+      "price": 1349,
+      "priceScrapedAt": "2026-04-30T07:06:27.110Z",
       "starCount": 4.5,
       "ratingCount": 62
     },
@@ -9170,8 +10042,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/5a5b9f35-52e2-5c02-8c85-86f2cb9cb337",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/eb565857-634f-53f1-aceb-ea75d604ca7b"
       ],
-      "price": 929,
-      "priceScrapedAt": "2026-04-23T00:38:28.652Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/zeiss_2103_751_85mm_f_1_8_batis_short_1479206118_1140833.jpg",
+      "properties": {
+        "focalLength": "85mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "29°",
+        "minimumFocusDistance": "2.62' / 80 cm",
+        "magnification": "1:7.7 Macro Reproduction Ratio0.13x Magnification",
+        "opticalDesign": "11 Elements in 8 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "9.95 x 5.4 x 4.75\"",
+        "weight": "2.12 lb"
+      },
+      "mpn": "2103-751",
+      "price": 1249,
+      "priceScrapedAt": "2026-04-30T07:08:13.909Z",
       "starCount": 5,
       "ratingCount": 191
     },
@@ -9322,8 +10210,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/46715f6d-e70e-59d0-8dde-2abd9bb49c34",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b719ee2e-2b49-509b-84d1-b377d5f45794"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/zeiss_2131_999_loxia_21mm_f_2_8_lens_1444669591_1189220.jpg",
+      "properties": {
+        "focalLength": "21mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "91°",
+        "minimumFocusDistance": "9.84\" / 25 cm",
+        "magnification": "1:7.7 Macro Reproduction Ratio0.13x Magnification",
+        "opticalDesign": "11 Elements in 9 Groups",
+        "focusType": "Manual Focus",
+        "imageStabilization": "No",
+        "filterSize": "52 mm (Front)",
+        "dimensions": "8.95 x 5.35 x 4.75\"",
+        "weight": "1.74 lb"
+      },
+      "mpn": "2131-999",
       "price": 1089,
-      "priceScrapedAt": "2026-04-23T00:39:08.281Z",
+      "priceScrapedAt": "2026-04-30T07:10:26.933Z",
       "starCount": 5,
       "ratingCount": 53
     },
@@ -9443,8 +10347,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b16fa09c-3ca2-5e5e-b23d-59baf45e5974",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ff36f650-930e-5edb-af5f-be6189d33a2d"
       ],
-      "price": 679,
-      "priceScrapedAt": "2026-04-23T00:40:28.287Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/zeiss_2103_749_loxia_35mm_f_2_biogon_1410174312_1080388.jpg",
+      "properties": {
+        "focalLength": "35mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "63°",
+        "minimumFocusDistance": "11.81\" / 30 cm",
+        "magnification": "1:5.9 Macro Reproduction Ratio0.17x Magnification",
+        "opticalDesign": "9 Elements in 6 Groups",
+        "focusType": "Manual Focus",
+        "imageStabilization": "No",
+        "filterSize": "52 mm (Front)",
+        "dimensions": "8.9 x 5.45 x 4.65\"",
+        "weight": "1.655 lb"
+      },
+      "mpn": "2103-749",
+      "price": 849,
+      "priceScrapedAt": "2026-04-30T07:11:51.730Z",
       "starCount": 4.5,
       "ratingCount": 47
     },
@@ -9610,8 +10530,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/89e13e8c-7bf1-5d19-8ac4-8d26dec2225d",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b7b0b5df-9268-5bad-8285-12a967b0c3cc"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_e_11mm_f_1_8_lens_1654079397_1709231.jpg",
+      "properties": {
+        "focalLength": "11mm (35mm Equivalent: 16.5mm)",
+        "mount": "Sony E",
+        "format": "APS-C",
+        "angleOfView": "104°",
+        "minimumFocusDistance": "4.7\" / 12 cm",
+        "magnification": "1:5 Macro Reproduction Ratio0.2x Magnification",
+        "opticalDesign": "12 Elements in 11 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "55 mm (Front)",
+        "dimensions": "4.7 x 4.15 x 3.5\"",
+        "weight": "0.71 lb"
+      },
+      "mpn": "SEL11F18",
       "price": 648,
-      "priceScrapedAt": "2026-04-23T00:43:57.246Z",
+      "priceScrapedAt": "2026-04-30T07:13:36.312Z",
       "starCount": 5,
       "ratingCount": 25
     },
@@ -9684,8 +10620,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/30177efe-b6b3-5b77-af55-8d1635f1bf9a",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ddd645e2-bed3-5030-8dd9-9414ae71996f"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sony_e_70_350mm_f_4_5_6_3_g_1566988889_1502821.jpg",
+      "properties": {
+        "focalLength": "70 to 350mm (35mm Equivalent: 105 to 525mm)",
+        "mount": "Sony E",
+        "format": "APS-C",
+        "angleOfView": "22° to 4° 40'",
+        "minimumFocusDistance": "3.61' / 1.1 m",
+        "magnification": "1:4.35 Macro Reproduction Ratio0.23x Magnification",
+        "opticalDesign": "19 Elements in 13 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "9.4 x 4.4 x 4\"",
+        "weight": "1.875 lb"
+      },
+      "mpn": "SEL70350G",
       "price": 1098,
-      "priceScrapedAt": "2026-04-23T00:45:22.726Z",
+      "priceScrapedAt": "2026-04-30T07:14:34.339Z",
       "starCount": 5,
       "ratingCount": 116
     },
@@ -9842,8 +10794,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/a464dba6-9ae3-5e47-879f-04471036f934",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/1cd5bb59-57f9-5576-bb2c-a06ecf6bd40f"
       ],
-      "price": 539,
-      "priceScrapedAt": "2026-04-23T00:48:42.238Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_402965_16mm_f_1_4_dc_dn_1508845059_1369132.jpg",
+      "properties": {
+        "focalLength": "16mm (35mm Equivalent: 24mm)",
+        "mount": "Sony E",
+        "format": "APS-C",
+        "angleOfView": "83.2°",
+        "minimumFocusDistance": "9.8\" / 25 cm",
+        "magnification": "1:10 Macro Reproduction Ratio0.1x Magnification",
+        "opticalDesign": "16 Elements in 13 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "5.8 x 4.3 x 4.3\"",
+        "weight": "1.295 lb"
+      },
+      "mpn": "402965",
+      "price": 464,
+      "priceScrapedAt": "2026-04-30T07:19:02.226Z",
       "starCount": 5,
       "ratingCount": 358
     },
@@ -9898,8 +10866,23 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/210ceeb9-a0e4-55a1-b82d-363e2c078507",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b6b660cf-4864-5f16-a60c-cbab4e025cf1"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_348965_23mm_f_1_4_dc_dn_1680509736_1757614.jpg",
+      "properties": {
+        "focalLength": "23mm",
+        "mount": "Sony E",
+        "format": "APS-C",
+        "minimumFocusDistance": "9.8\" / 25 cm",
+        "magnification": "1:7.3 Macro Reproduction Ratio0.14x Magnification",
+        "opticalDesign": "13 Elements in 10 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "52 mm (Front)",
+        "dimensions": "6.2 x 4.1 x 4.1\"",
+        "weight": "1.245 lb"
+      },
+      "mpn": "348965",
       "price": 659,
-      "priceScrapedAt": "2026-04-23T00:49:00.243Z",
+      "priceScrapedAt": "2026-04-30T07:19:55.075Z",
       "starCount": 5,
       "ratingCount": 6
     },
@@ -9981,8 +10964,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/33afd157-2374-59cd-9f6b-b50d5871cbab",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/e67c2ecc-2a3a-5467-a4bc-77e1d526672c"
       ],
-      "price": 419,
-      "priceScrapedAt": "2026-04-23T00:49:20.783Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_302965_30mm_f_1_4_dc_dn_1456221029_1234027.jpg",
+      "properties": {
+        "focalLength": "30mm (35mm Equivalent: 45mm)",
+        "mount": "Sony E",
+        "format": "APS-C",
+        "angleOfView": "50.7°",
+        "minimumFocusDistance": "11.81\" / 30 cm",
+        "magnification": "1:7.14 Macro Reproduction Ratio0.14x Magnification",
+        "opticalDesign": "9 Elements in 7 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "52 mm (Front)",
+        "dimensions": "5.45 x 4.3 x 4.2\"",
+        "weight": "0.96 lb"
+      },
+      "mpn": "302965",
+      "price": 344,
+      "priceScrapedAt": "2026-04-30T07:20:58.672Z",
       "starCount": 5,
       "ratingCount": 388
     },
@@ -10064,8 +11063,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/c7aea21b-19fa-5b41-8f1c-c4085d83093f",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/4c07da36-f581-52b8-8dc7-1f191fee9dfe"
       ],
-      "price": 579,
-      "priceScrapedAt": "2026-04-23T00:49:45.416Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_56mm_f_1_4_dc_dn_f_sony_1537883590_1436295.jpg",
+      "properties": {
+        "focalLength": "56mm (35mm Equivalent: 84mm)",
+        "mount": "Sony E",
+        "format": "APS-C",
+        "angleOfView": "28.5°",
+        "minimumFocusDistance": "1.6' / 50 cm",
+        "magnification": "1:7.14 Macro Reproduction Ratio0.14x Magnification",
+        "opticalDesign": "10 Elements in 6 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "55 mm (Front)",
+        "dimensions": "4.2 x 4.15 x 3.75\"",
+        "weight": "1.025 lb"
+      },
+      "mpn": "351965",
+      "price": 504,
+      "priceScrapedAt": "2026-04-30T07:21:54.914Z",
       "starCount": 5,
       "ratingCount": 196
     },
@@ -10147,10 +11162,26 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d59c8b86-c7f2-52c5-8cc4-5402d3afee89",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/90c7f937-f035-50f6-9e20-555b8de4a3ef"
       ],
-      "price": 659,
-      "priceScrapedAt": "2026-04-23T00:50:10.394Z",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/sigma_18_50mm_f_2_8_dg_dn_1634631630_1667228.jpg",
+      "properties": {
+        "focalLength": "18 to 50mm (35mm Equivalent: 27 to 75mm)",
+        "mount": "Sony E",
+        "format": "APS-C",
+        "angleOfView": "76.5° to 31.7°",
+        "minimumFocusDistance": "4.8\" / 12.1 cm",
+        "magnification": "1:2.8 Macro Reproduction Ratio0.36x Magnification",
+        "opticalDesign": "13 Elements in 10 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "55 mm (Front)",
+        "dimensions": "5.5 x 4.5 x 4.3\"",
+        "weight": "1 lb"
+      },
+      "mpn": "585965",
+      "price": 584,
+      "priceScrapedAt": "2026-04-30T07:23:34.120Z",
       "starCount": 5,
-      "ratingCount": 255
+      "ratingCount": 257
     },
     "system": "Sony",
     "category": [
@@ -10293,7 +11324,7 @@
       },
       "mpn": "186965",
       "price": 3299,
-      "priceScrapedAt": "2026-04-24T14:32:05.645Z",
+      "priceScrapedAt": "2026-04-30T07:28:01.593Z",
       "starCount": 4.5,
       "ratingCount": 7
     }
@@ -10414,8 +11445,8 @@
         "weight": "2.43 lb"
       },
       "mpn": "AF",
-      "price": 493,
-      "priceScrapedAt": "2026-04-24T14:33:03.517Z",
+      "price": 580,
+      "priceScrapedAt": "2026-04-30T07:29:32.166Z",
       "starCount": 4.5,
       "ratingCount": 83
     },
@@ -10543,10 +11574,26 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/1d75c144-0867-53fb-80cd-2c4252491a7c",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/e49871bf-499c-589b-9f53-69a0238f2f33"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/tamron_b016e_18_300mm_f_3_5_6_3_di_iii_a_1626874564_1654621.jpg",
+      "properties": {
+        "focalLength": "18 to 300mm (35mm Equivalent: 27 to 450mm)",
+        "mount": "Sony E",
+        "format": "APS-C",
+        "angleOfView": "77° 24' to 5° 30'",
+        "minimumFocusDistance": "5.9\" / 15 cm",
+        "magnification": "1:2 Macro Reproduction Ratio0.5x Magnification",
+        "opticalDesign": "19 Elements in 5 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "Yes",
+        "filterSize": "67 mm (Front)",
+        "dimensions": "10.2 x 6 x 5.5\"",
+        "weight": "2.21 lb"
+      },
+      "mpn": "AFB061S700",
       "price": 599,
-      "priceScrapedAt": "2026-04-23T00:53:29.883Z",
+      "priceScrapedAt": "2026-04-30T07:33:36.060Z",
       "starCount": 4.5,
-      "ratingCount": 107
+      "ratingCount": 109
     },
     "system": "Sony",
     "category": [
@@ -10608,8 +11655,23 @@
       "images": [
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d397a2ef-43e8-5a9a-8df9-82e7cb959789"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/ttartisan_af4020_l_s_af_40mm_f_2_lens_1767952710_1939649.jpg",
+      "properties": {
+        "focalLength": "40mm",
+        "mount": "L-Mount",
+        "format": "Full-Frame",
+        "angleOfView": "57°",
+        "minimumFocusDistance": "15.7\" / 40 cm",
+        "opticalDesign": "9 Elements in 6 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "52 mm (Front)",
+        "dimensions": "4.8 x 4.4 x 3.2\"",
+        "weight": "0.73 lb"
+      },
+      "mpn": "AF4020-L-S",
       "price": 168,
-      "priceScrapedAt": "2026-04-23T00:54:46.267Z",
+      "priceScrapedAt": "2026-04-30T07:34:46.494Z",
       "starCount": 3.5,
       "ratingCount": 12
     },
@@ -10742,8 +11804,24 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/932d5d78-0fdb-5a18-9b53-4bc3254505ca",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b98cad9e-1166-5939-8e0c-b842ae2edf93"
       ],
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/venus_optics_ve1028affe_laowa_10mm_f_2_8_zero_d_1708418740_1811367.jpg",
+      "properties": {
+        "focalLength": "10mm",
+        "mount": "Sony E",
+        "format": "Full-Frame",
+        "angleOfView": "130.4°",
+        "minimumFocusDistance": "4.7\" / 12 cm",
+        "magnification": "1:4 Macro Reproduction Ratio0.24x Magnification",
+        "opticalDesign": "15 Elements in 9 Groups",
+        "focusType": "Autofocus",
+        "imageStabilization": "No",
+        "filterSize": "77 mm (Front)",
+        "dimensions": "7.2 x 5.5 x 5.5\"",
+        "weight": "1.68 lb"
+      },
+      "mpn": "VE1028AFFE",
       "price": 799,
-      "priceScrapedAt": "2026-04-23T00:55:25.875Z",
+      "priceScrapedAt": "2026-04-30T07:37:45.360Z",
       "starCount": 4.5,
       "ratingCount": 42
     },
@@ -10959,7 +12037,7 @@
       },
       "mpn": "SEL15F14G",
       "price": 848,
-      "priceScrapedAt": "2026-04-24T14:37:28.573Z",
+      "priceScrapedAt": "2026-04-30T07:40:43.299Z",
       "starCount": 5,
       "ratingCount": 12
     },
@@ -11052,7 +12130,7 @@
       },
       "mpn": "SEL1655G",
       "price": 1598,
-      "priceScrapedAt": "2026-04-24T14:37:58.005Z",
+      "priceScrapedAt": "2026-04-30T07:41:44.723Z",
       "starCount": 5,
       "ratingCount": 64
     },
@@ -11191,7 +12269,7 @@
       },
       "mpn": "SEL35F18",
       "price": 548,
-      "priceScrapedAt": "2026-04-24T14:39:31.857Z",
+      "priceScrapedAt": "2026-04-30T07:43:59.722Z",
       "starCount": 4.5,
       "ratingCount": 246
     },
@@ -11290,7 +12368,7 @@
       },
       "mpn": "SELP1635G",
       "price": 1298,
-      "priceScrapedAt": "2026-04-24T14:40:00.249Z",
+      "priceScrapedAt": "2026-04-30T07:44:52.697Z",
       "starCount": 5,
       "ratingCount": 58
     },
@@ -11388,7 +12466,7 @@
       },
       "mpn": "207965",
       "price": 679,
-      "priceScrapedAt": "2026-04-24T14:40:28.327Z",
+      "priceScrapedAt": "2026-04-30T07:45:50.555Z",
       "starCount": 5,
       "ratingCount": 70
     }
@@ -11472,9 +12550,9 @@
       },
       "mpn": "214965",
       "price": 919,
-      "priceScrapedAt": "2026-04-24T14:41:00.323Z",
+      "priceScrapedAt": "2026-04-30T07:47:29.108Z",
       "starCount": 5,
-      "ratingCount": 55
+      "ratingCount": 57
     },
     "adorama": {
       "sku": "SG1740X",
@@ -11880,7 +12958,7 @@
       },
       "mpn": "AFB060S-700",
       "price": 599,
-      "priceScrapedAt": "2026-04-24T14:44:05.323Z",
+      "priceScrapedAt": "2026-04-30T07:52:00.695Z",
       "starCount": 5,
       "ratingCount": 23
     },
@@ -11985,9 +13063,9 @@
       "aps-c"
     ],
     "bh": {
-      "bhNumber": "VIAF1314XF",
-      "url": "https://www.bhphotovideo.com/c/product/1682924-REG/viltrox_af_13_1_4_xf_af_13mm_f_1_4_lens.html",
-      "title": "Viltrox AF 13mm f/1.4 Lens for FUJIFILM X",
+      "bhNumber": "VIAF1314E",
+      "url": "https://www.bhphotovideo.com/c/product/1713856-REG/viltrox_af_13_1_4_e_13mm_f_1_4_autofocus_lens.html",
+      "title": "Viltrox AF 13mm f/1.4 Lens for Sony E",
       "official": true,
       "images": [
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/4524ad9c-14dd-5bb4-8054-4d60c9184108",
@@ -12007,10 +13085,10 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/c2badbb3-34c5-5ba5-a578-613b17efe964",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/d00b5741-3efe-581a-8311-cbfe9a93875a"
       ],
-      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/viltrox_af_13_1_4_xf_af_13mm_f_1_4_lens_1642163729_1682924.jpg",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/viltrox_af_13_1_4_e_13mm_f_1_4_autofocus_lens_1675960020_1713856.jpg",
       "properties": {
         "focalLength": "13mm (35mm Equivalent: 20mm)",
-        "mount": "FUJIFILM X",
+        "mount": "Sony E",
         "format": "APS-C",
         "angleOfView": "94°",
         "minimumFocusDistance": "8.7\" / 22 cm",
@@ -12019,12 +13097,12 @@
         "focusType": "Autofocus",
         "imageStabilization": "No",
         "filterSize": "67 mm (Front)",
-        "dimensions": "9.2 x 5.6 x 5.5\"",
-        "weight": "2.1 lb"
+        "dimensions": "8.1 x 6.6 x 5.6\"",
+        "weight": "2.16 lb"
       },
       "mpn": "AF",
-      "price": 413.1,
-      "priceScrapedAt": "2026-04-24T14:45:18.372Z",
+      "price": 486,
+      "priceScrapedAt": "2026-04-30T07:55:02.372Z",
       "starCount": 4.5,
       "ratingCount": 38
     },
@@ -12069,16 +13147,19 @@
       "aps-c"
     ],
     "bh": {
-      "bhNumber": "VIAF2314FEEM",
-      "url": "https://www.bhphotovideo.com/c/product/1577730-REG/viltrox_af_23_1_4_fe_e_mount_af_23mm_f_1_4_xf.html",
-      "title": "Viltrox AF 23mm f/1.4 E Lens (Sony E, Black)",
+      "bhNumber": "VIAF2314Z",
+      "url": "https://www.bhphotovideo.com/c/product/1659394-REG/viltrox_af_23_1_4_z_23mm_f_1_4_autofocus_lens.html",
+      "title": "Viltrox AF 23mm f/1.4 Z Lens (Nikon Z, Black)",
       "official": true,
       "images": [
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/dc0dce05-fc61-5e78-ae80-dda1abb6e3cb",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f502fceb-ce81-5295-995a-b069aacb93e4",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/dc0dce05-fc61-5e78-ae80-dda1abb6e3cb",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/c087ad00-fa49-5780-8982-86a062377e7d",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ea09b87d-ddfc-5562-9575-daed901b254d",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/7c896972-07b0-5bc9-b038-eb39a9f19b36",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/fa1bd719-5ddb-54dc-8f1b-80716593cac1",
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ef241618-4d8b-5b8b-b370-0ae18770b84d",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/adc5cd6b-6413-5be8-8480-71520f68a7d5",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/ef241618-4d8b-5b8b-b370-0ae18770b84d",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/17118bfe-8439-5ab0-9f2f-6bb3d448c0d4",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/a6857242-2b20-59c0-9c32-cea47b9dbb7e",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/6b79d4ef-6228-5131-880c-8b5c48516acd",
@@ -12086,10 +13167,10 @@
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/15ad1e88-43b8-590e-aef3-bc6fd8305d20",
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/691fea1d-fb05-569c-868e-a62ef2d35540"
       ],
-      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/viltrox_af_23_1_4_fe_e_mount_af_23mm_f_1_4_xf_1594904738_1577730.jpg",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/viltrox_af_23_1_4_z_23mm_f_1_4_autofocus_lens_1676292418_1659394.jpg",
       "properties": {
         "focalLength": "23mm (35mm Equivalent: 35mm)",
-        "mount": "Sony E",
+        "mount": "Nikon Z",
         "format": "APS-C",
         "angleOfView": "63.4°",
         "minimumFocusDistance": "11.81\" / 30 cm",
@@ -12098,14 +13179,14 @@
         "focusType": "Autofocus",
         "imageStabilization": "No",
         "filterSize": "52 mm (Front)",
-        "dimensions": "4.7 x 3.8 x 3.7\"",
-        "weight": "1.095 lb"
+        "dimensions": "5.4 x 4.2 x 3.8\"",
+        "weight": "1.195 lb"
       },
       "mpn": "AF",
-      "price": 203.15,
-      "priceScrapedAt": "2026-04-24T14:45:46.379Z",
+      "price": 239,
+      "priceScrapedAt": "2026-04-30T07:55:55.256Z",
       "starCount": 4.5,
-      "ratingCount": 17
+      "ratingCount": 8
     },
     "adorama": {
       "sku": "VTRAF2314XFS",
@@ -12180,8 +13261,8 @@
         "weight": "1.185 lb"
       },
       "mpn": "AF",
-      "price": 203.15,
-      "priceScrapedAt": "2026-04-24T14:46:54.686Z",
+      "price": 239,
+      "priceScrapedAt": "2026-04-30T07:57:03.102Z",
       "starCount": 4.5,
       "ratingCount": 21
     },
@@ -12230,19 +13311,25 @@
       ]
     },
     "bh": {
-      "bhNumber": "VIAF5614E",
-      "url": "https://www.bhphotovideo.com/c/product/1607409-REG/viltrox_af_56_1_4_e_56mm_f_1_4_for_sony.html",
-      "title": "Viltrox AF 56mm f/1.4",
+      "bhNumber": "VIAF5614XF",
+      "url": "https://www.bhphotovideo.com/c/product/1592599-REG/viltrox_af_56_1_4_xf_af_56mm_f_1_4_xf.html",
+      "title": "Viltrox AF 56mm f/1.4 XF Lens for FUJIFILM X (Black)",
       "official": true,
       "images": [
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/826fa983-7a92-51e7-ad8d-7da4d5589b58",
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b1476238-1a81-5d70-93b5-dea6d71d609a",
-        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/cb4a274f-b391-52c2-a79c-ffa8c50692e9"
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/37efdbcc-ea08-5df9-8ca3-468cfc6d3cec",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/f7b68cfb-7253-5739-a7fd-dbe61322d002",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/9b74d1b8-a63c-5532-bfe9-9a44323cc166",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/af5b1bca-ef66-5694-a88c-2e577ec93cff",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/c9ecce5c-83fa-5709-962b-11a3e5c4cf0f",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/49de4654-8fa2-5543-b370-da16215369fc",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/b12133ec-b76e-59da-ba38-3bece93c1f56",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/780c3d11-84c7-51b4-be54-654ab9a89762",
+        "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/07339ea9-cee2-5d71-91bb-bee1be51dda1"
       ],
-      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/viltrox_af_56_1_4_e_56mm_f_1_4_for_sony_1607016927_1607409.jpg",
+      "productImage": "/cdn-cgi/image/fit=scale-down,width=500,quality=95/https://www.bhphotovideo.com/images/images500x500/viltrox_af_56_1_4_xf_af_56mm_f_1_4_xf_1676292418_1592599.jpg",
       "properties": {
         "focalLength": "56mm (35mm Equivalent: 85mm)",
-        "mount": "Sony E",
+        "mount": "FUJIFILM X",
         "format": "APS-C",
         "angleOfView": "28°",
         "minimumFocusDistance": "2' / 60 cm",
@@ -12252,13 +13339,13 @@
         "imageStabilization": "No",
         "filterSize": "52 mm (Front)",
         "dimensions": "4.7 x 3.8 x 3.8\"",
-        "weight": "1.24 lb"
+        "weight": "1.2 lb"
       },
       "mpn": "AF",
-      "price": 203.15,
-      "priceScrapedAt": "2026-04-24T14:47:21.872Z",
-      "starCount": 4.5,
-      "ratingCount": 5
+      "price": 239,
+      "priceScrapedAt": "2026-04-30T07:58:42.517Z",
+      "starCount": 5,
+      "ratingCount": 44
     },
     "system": "Sony",
     "category": [
@@ -12314,7 +13401,7 @@
     "bh": {
       "bhNumber": "VIAF2517E",
       "url": "https://www.bhphotovideo.com/c/product/1876138-REG/viltrox_af_25_1_7_e_af_25mm_f_1_7_e.html",
-      "title": "Viltrox AF 25mm f/1.7 Air",
+      "title": "Viltrox AF 25mm f/1.7 Air E Lens (Sony E, Black)",
       "official": true,
       "images": [
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/5e5d6985-5463-517c-ad59-9891ff75a70b",
@@ -12354,8 +13441,8 @@
         "weight": "0.86 lb"
       },
       "mpn": "AF",
-      "price": 149.6,
-      "priceScrapedAt": "2026-04-24T14:47:45.942Z",
+      "price": 176,
+      "priceScrapedAt": "2026-04-30T08:00:24.073Z",
       "starCount": 4.5,
       "ratingCount": 27
     },
@@ -12676,7 +13763,7 @@
     "bh": {
       "bhNumber": "ZE3218TE",
       "url": "https://www.bhphotovideo.com/c/product/970835-REG/zeiss_2030_678_touit_1_8_32_e_lens.html",
-      "title": "Zeiss Touit 32mm f/1.8",
+      "title": "ZEISS Touit 32mm f/1.8 Lens for Sony E",
       "official": true,
       "images": [
         "/cdn-cgi/image/fit=scale-down,width=200/https://photos-us.bazaarvoice.com/photo/2/cGhvdG86YmhwaG90b3ZpZGVv/c5540d76-6ec9-5d89-8bee-25142c5d8bdf",
@@ -12716,8 +13803,8 @@
         "weight": "1.39 lb"
       },
       "mpn": "2030-678",
-      "price": 549,
-      "priceScrapedAt": "2026-04-24T14:50:10.563Z",
+      "price": 720,
+      "priceScrapedAt": "2026-04-30T08:04:47.869Z",
       "starCount": 4.5,
       "ratingCount": 114
     },
