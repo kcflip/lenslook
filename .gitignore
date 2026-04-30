@@ -1,10 +1,25 @@
 .env
 .browser-profile/
+.browser-profile-adorama/
+.browser-profile-bh/
 node_modules/
 output/
 dist/
+dist-dashboard/
+backups/
 example.md
-learning.md
+
+# data & claude
+/.claude
 lenses.json
+bodies.json
+brands.json
 CLAUDE.md
+adorama-cookies.json
+
+# notes
+docs/
+TODO.md
 weightingPosts.md
+Sentiment.md
+learning.md
