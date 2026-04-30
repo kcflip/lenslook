@@ -10,8 +10,8 @@ backups/
 example.md
 
 # data & claude
-/.design_handoff_lens_detail
-/.claude
+.design_handoff_lens_detail/
+.claude/
 lenses.json
 bodies.json
 brands.json
