@@ -6,7 +6,7 @@
 
 import { readFileSync, writeFileSync } from "fs";
 import type { Lens } from "../shared/types.js";
-import { modelIsJustName } from "./scraper-shared.js";
+import { modelIsJustName } from "./scrapers/scraper-shared.js";
 
 const LENSES_FILE = "lenses.json";
 const dryRun = process.argv.includes("--dry-run");

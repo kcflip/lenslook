@@ -10,8 +10,8 @@ const RESULTS_FILE = "output/sonyResults.json";
 const MODEL = "claude-haiku-4-5-20251001";
 const MAX_TRANSCRIPT_CHARS = 20000;
 const TOP_LENSES_PER_BRAND = 15;
-const VIEW_COUNT_THRESHOLD = 10_000;
-const MAX_VIDEOS_PER_LENS = 6;
+const VIEW_COUNT_THRESHOLD = 5_000;
+const MAX_VIDEOS_PER_LENS = 10;
 const MIN_DURATION_SECONDS = 180; // filter out Shorts and sub-3-minute clips
 const YT_API_BASE = "https://youtube.googleapis.com/youtube/v3";
 
@@ -41,9 +41,11 @@ FIRST: Verify the transcript is primarily a review of the lens named in the user
 
 The transcript contains [M:SS] timestamp markers injected roughly every 15 seconds so you can locate quotes in the video.
 
-Only consider statements that express an opinion about the lens's optical or build quality: sharpness, bokeh, autofocus speed and accuracy, distortion, chromatic aberration, vignetting, build quality, size, weight, weather sealing, and value relative to optical performance.
+Quotes should be derived from the reviewer's own words in the transcript ONLY. Do not hallucinate quotes, they should be word for word. If that means less responses it's ok.
 
-Ignore: unboxing narration, price and availability commentary, sponsor segments, channel promotion, and comparisons where the reviewer is primarily discussing a different lens.
+Only consider statements that express an opinion about the lens's optical or build quality or price: sharpness, bokeh, autofocus speed and accuracy, distortion, chromatic aberration, vignetting, build quality, size, weight, weather sealing, and value relative to optical performance.
+
+Ignore: unboxing narration, availability commentary, sponsor segments, channel promotion, and comparisons where the reviewer is primarily discussing a different lens.
 
 Auto-generated transcripts have no punctuation — infer sentence boundaries from context. Capture nuanced opinions; do not flatten hedged statements like "it's not the sharpest wide open but stopped down it's excellent" into a simple positive or negative.
 
@@ -51,10 +53,10 @@ Return a JSON object with:
 - score: number from -1 (very negative) to 1 (very positive)
 - label: "positive", "negative", "neutral", or "mixed"
 - summary: 2-3 sentence summary of the reviewer's overall verdict on optical and build quality
-- positives: array of quote objects (max 6), each with:
-    - quote: verbatim words from the transcript, stripped of any [M:SS] markers, trimmed to the most expressive clause (under 100 characters)
+- positives: array of quote objects (max 6), ordered from most to least significant — lead with the reviewer's strongest, most conclusive praise, follow with supporting points. Each with:
+    - quote: verbatim words from the transcript, stripped of any [M:SS] markers, trimmed to the most expressive clause (under 100 characters). Prefer the reviewer's sharpest, most definitive statements over hedged or incidental ones.
     - timestampSeconds: integer seconds of the nearest preceding [M:SS] marker before this quote
-- negatives: same shape as positives (max 6)
+- negatives: same shape as positives (max 6), ordered from most to least significant — lead with the reviewer's most serious criticism
 - mentionCount: number of distinct opinion statements you identified (not total words)
 
 Return only valid JSON, no other text.`;
@@ -67,6 +69,7 @@ interface VideoSearchResult {
   channelTitle: string;
   publishedAt?: string;
   viewCount: number;
+  durationSeconds: number;
 }
 
 // Parse ISO 8601 duration (e.g. "PT3M30S", "PT1H5M") to total seconds.
@@ -132,17 +135,23 @@ async function searchVideos(query: string, apiKey: string): Promise<VideoSearchR
 }
 
 function buildSearchQuery(lens: Lens): string {
-  // e.g. "Sony 85mm f/1.4 GM review" — specific enough to surface dedicated reviews
-  return `${lens.brand} ${lens.focalLength} ${lens.maxAperture} review`;
+  // For third-party brands (Samyang, Sigma, Tamron…) append the system so we
+  // don't land on Nikon/Canon variants of the same focal length + aperture.
+  const systemTag = lens.brand.toLowerCase() !== lens.system.toLowerCase() ? ` ${lens.system}` : '';
+  return `${lens.brand} ${lens.focalLength} ${lens.maxAperture}${systemTag} review`;
 }
 
-// Require the title to contain the brand and at least one of the focal length numbers
-// so comparison/wrong-lens videos are filtered before we spend transcript quota on them.
+// Require the title to contain the brand, at least one focal length number,
+// and the aperture value — prevents grabbing a different f-stop variant of the
+// same focal length (e.g. Samyang 85mm f/2 when we want f/1.8).
 function titleMatchesLens(title: string, lens: Lens): boolean {
   const t = title.toLowerCase();
   if (!t.includes(lens.brand.toLowerCase())) return false;
   const focalNums = lens.focalLength.match(/\d+/g) ?? [];
-  return focalNums.some((n) => t.includes(n));
+  if (!focalNums.some((n) => t.includes(n))) return false;
+  const apertureNums = lens.maxAperture.match(/[\d.]+/g) ?? [];
+  if (apertureNums.length > 0 && !apertureNums.some((n) => t.includes(n))) return false;
+  return true;
 }
 
 // ── Transcript + Claude helpers ───────────────────────────────────────────────
@@ -216,20 +225,24 @@ async function main() {
     (lensData as Lens[]).map((l) => [l.id, l]),
   );
 
-  // Top N per brand by scoreSentiment. stats is already sorted descending by
-  // scoreSentiment, so grouping preserves that order — we just take the head
-  // of each brand's group.
+  // Sony: all lenses from the catalog (pulled directly so zero-mention lenses are included).
+  // Other brands: top N by scoreSentiment (stats is already sorted descending).
   const byBrand = new Map<string, string[]>();
+  for (const lens of lensData as Lens[]) {
+    if (lens.brand !== 'Sony') continue;
+    if (!byBrand.has('Sony')) byBrand.set('Sony', []);
+    byBrand.get('Sony')!.push(lens.id);
+  }
   for (const s of resultsData.stats) {
     const lens = lensById[s.lensId];
-    if (!lens) continue;
+    if (!lens || lens.brand === 'Sony') continue;
     if (!byBrand.has(lens.brand)) byBrand.set(lens.brand, []);
     const group = byBrand.get(lens.brand)!;
     if (group.length < TOP_LENSES_PER_BRAND) group.push(s.lensId);
   }
   const topLensIds = [...byBrand.values()].flat();
 
-  console.log(`Top ${TOP_LENSES_PER_BRAND} per brand by score sentiment (${topLensIds.length} lenses across ${byBrand.size} brands):`);
+  console.log(`Lens selection: all Sony lenses, others top ${TOP_LENSES_PER_BRAND} per brand (${topLensIds.length} lenses across ${byBrand.size} brands):`);
   for (const [brand, ids] of byBrand) {
     console.log(`  ${brand} (${ids.length}):`);
     ids.forEach((id, i) => {
@@ -246,6 +259,7 @@ async function main() {
     channelTitle?: string;
     publishedAt?: string;
     viewCount?: number;
+    durationSeconds?: number;
     reviewer?: string;
   }
   const videoMap = new Map<string, VideoEntry[]>();
@@ -284,6 +298,7 @@ async function main() {
             channelTitle: v.channelTitle,
             publishedAt: v.publishedAt,
             viewCount: v.viewCount,
+            durationSeconds: v.durationSeconds,
           });
           console.log(`     ✓ "${v.title.slice(0, 70)}" — ${v.channelTitle} (${(v.viewCount / 1000).toFixed(0)}k views)`);
         }
@@ -343,6 +358,7 @@ async function main() {
           channelTitle: video.channelTitle,
           publishedAt: video.publishedAt,
           viewCount: video.viewCount,
+          durationSeconds: video.durationSeconds,
           reviewer: video.reviewer,
           ...result,
         });

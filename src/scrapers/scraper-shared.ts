@@ -2,7 +2,7 @@ import { appendFileSync, mkdirSync } from "fs";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import type { Browser, BrowserContext, Locator, Page } from "playwright";
-import type { Lens, Body, RetailSubject } from "../shared/types.js";
+import type { Lens, Body, RetailSubject } from "../../shared/types.js";
 
 // Playwright-extra keeps a global plugin registry. Importing multiple scrapers
 // in the same process would re-register stealth without this flag.
@@ -23,6 +23,15 @@ export const COFFEE_BREAK_CHANCE = 0.04;
 export const COFFEE_BREAK_MS: readonly [number, number] = [90000, 180000];
 
 export const MAX_REVIEWS = 25;
+
+// Editorial sites (Phillip Reeve) don't need the extreme retail delay
+// distribution — 3–6s is enough to avoid hammering a personal blog.
+export const EDITORIAL_DELAY_MS: readonly [number, number] = [3000, 6000];
+
+export function editorialDelay(): Promise<void> {
+  const ms = pickMs(EDITORIAL_DELAY_MS);
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 export function pickMs(range: readonly [number, number]): number {
   return range[0] + Math.random() * (range[1] - range[0]);
@@ -107,6 +116,21 @@ export async function launchChromiumContext(
       ...(userAgent ? { userAgent } : {}),
       viewport,
       screen: viewport,
+      locale: "en-US",
+      timezoneId: "America/New_York",
+      // launchPersistentContext drops stealth-plugin args silently — add the
+      // critical ones explicitly. AutomationControlled suppresses navigator.webdriver;
+      // the rest reduce headless-specific fingerprint signals.
+      args: [
+        "--disable-blink-features=AutomationControlled",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-default-apps",
+        "--lang=en-US",
+      ],
+      extraHTTPHeaders: {
+        "Accept-Language": "en-US,en;q=0.9",
+      },
     });
     const page = await context.newPage();
     console.log("Browser ready — putting on my trench coat and sunglasses 🕶️\n");

@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { scrapeBhLens, launchBhContext, randomDelay } from "../bh-scrape.js";
+import { scrapeBhLens, launchBhContext, randomDelay } from "../scrapers/bh-scrape.js";
 import { recordPrice } from "../price-history.js";
 import { saveReviews } from "../reviews.js";
 import type { Lens } from "../../shared/types.js";

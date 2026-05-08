@@ -45,20 +45,6 @@ Three-line caller becomes one. New pipelines drop into the same shape. Centraliz
 
 ---
 
-## Reorganize `src/scrapers/` and `src/tests/`
-
-`src/scrapers/` exists as an empty directory; per-retailer scrapers (`amazon-scrape.ts`, `bh-scrape.ts`, `adorama-scrape.ts`, `phillipreeve-scrape.ts`) currently live at `src/` root next to pipeline code, debug scripts, and one-offs. Worth moving:
-
-- `src/scrapers/amazon.ts`, `src/scrapers/bh.ts`, `src/scrapers/adorama.ts`, `src/scrapers/phillipreeve.ts`
-- `src/scrapers/_shared.ts` ← move `src/scraper-shared.ts` (it's only retail-scraper helpers)
-- `src/scrapers/missing.ts` ← `src/adorama-scrape-missing.ts`
-- Keep `src/tests/` for the smoke-test scripts; rename per-retailer test files to match.
-- Update `package.json` script paths.
-
-Pipeline code (`scraper.ts`, `matcher.ts`, `index.ts`, `sentiment.ts`, etc.) stays at `src/` root.
-
----
-
 ## `Lens.discontinued` — finish or remove
 
 The `discontinued?: boolean` field exists on `Lens` in `shared/types.ts:163` but nothing reads it: the matcher matches discontinued lenses, retailer scrapers scrape them, and the dashboard shows them. Either:

@@ -7,8 +7,8 @@
 
 import "dotenv/config";
 import { readFileSync, existsSync } from "fs";
-import type { Lens } from "../shared/types.js";
-import type { ResultsData } from "../shared/types.js";
+import type { Lens } from "../../shared/types.js";
+import type { ResultsData } from "../../shared/types.js";
 import { runAdoramaRun } from "./adorama-scrape.js";
 
 const LENSES_FILE = "lenses.json";

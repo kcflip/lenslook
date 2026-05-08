@@ -27,23 +27,15 @@ import type {
   LensSpecs,
   TechnicalReview,
   TechnicalSource,
-} from "../shared/types.js";
-import { saveTechnicalReview } from "./technical-reviews.js";
+} from "../../shared/types.js";
+import { saveTechnicalReview } from "../technical-reviews.js";
+import { editorialDelay } from "./scraper-shared.js";
 
 const LENSES_FILE = "lenses.json";
 const SOURCE: TechnicalSource = "phillipreeve";
 
-// Editorial sites don't need the extreme retail-scraper delay distribution,
-// but a 3–6s random gap keeps us from hammering.
-const DELAY_MS: readonly [number, number] = [3000, 6000];
-
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
-
-function delay(): Promise<void> {
-  const ms = DELAY_MS[0] + Math.random() * (DELAY_MS[1] - DELAY_MS[0]);
-  return new Promise((r) => setTimeout(r, ms));
-}
 
 export interface ScrapeOptions {
   lensIds?: string[];     // limit to specific lenses
@@ -285,13 +277,15 @@ function extractVerdict(sections: { heading: string; text: string }[]): string |
 export async function scrapeLens(
   lens: Lens,
   allLenses: Lens[],
+  progress?: string,
 ): Promise<ScrapeResult> {
   const url = lens.reviews?.phillipreeve;
   if (!url) {
     return { lensId: lens.id, status: "skipped", reason: "no curated URL" };
   }
 
-  console.log(`[${lens.id}] GET ${url}`);
+  const prefix = progress ? `${progress} ` : "";
+  console.log(`${prefix}[${lens.id}] GET ${url}`);
   let html: string;
   try {
     const res = await fetch(url, {
@@ -321,6 +315,7 @@ export async function scrapeLens(
   const title = extractTitle(html);
   // 404s on this site render a normal HTML page with title "Page Not Found".
   if (!title || /not\s*found/i.test(title)) {
+    console.log(`  ⚠️ flagged — page title looks like a 404: "${title || "(empty)"}"`);
     const stub: TechnicalReview = {
       source: SOURCE,
       url,
@@ -334,6 +329,7 @@ export async function scrapeLens(
 
   const article = extractArticle(html);
   if (!article) {
+    console.log(`  ✗ error — no <article> element found`);
     return { lensId: lens.id, status: "error", reason: "no <article> element" };
   }
 
@@ -389,8 +385,11 @@ export async function scrapeAll(opts: ScrapeOptions = {}): Promise<ScrapeResult[
   const results: ScrapeResult[] = [];
   for (let i = 0; i < pool.length; i++) {
     const lens = pool[i];
-    if (i > 0) await delay();
-    const r = await scrapeLens(lens, lenses);
+    if (i > 0) await editorialDelay();
+    const progress = `[${i + 1}/${pool.length}]`;
+    const r = await scrapeLens(lens, lenses, progress);
+    if (r.status === "skipped") console.log(`${progress} ⏭  skipped — ${r.reason}`);
+    else if (r.status === "error") console.log(`${progress} ✗  error — ${r.reason}`);
     results.push(r);
   }
 

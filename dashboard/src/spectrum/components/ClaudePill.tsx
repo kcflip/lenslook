@@ -1,25 +1,34 @@
-import { CLAUDE_POS, CLAUDE_NEG } from '../utils/colors';
+import { FONT_DISPLAY } from '../tokens';
 
-interface Props {
-  value: number | null;
+interface ClaudePillProps {
+  score: number;
+  size?: 'sm' | 'lg';
 }
 
-export function ClaudePill({ value }: Props) {
-  if (value == null) {
-    return <span style={{ color: 'var(--dimmer)', fontFamily: 'var(--font-mono)', fontSize: 10 }}>—</span>;
-  }
-  const palette = value >= 0 ? CLAUDE_POS : CLAUDE_NEG;
-  const label = (value >= 0 ? '+' : '') + value.toFixed(2);
+export function ClaudePill({ score, size = 'sm' }: ClaudePillProps) {
+  const positive = score >= 0;
+  const border = positive ? 'oklch(50% 0.16 150)' : 'oklch(50% 0.17 28)';
+  const bg     = positive ? 'oklch(94% 0.05 150)' : 'oklch(94% 0.05 28)';
+  const color  = positive ? 'oklch(35% 0.16 150)' : 'oklch(35% 0.17 28)';
+  const fontSize = size === 'lg' ? 22 : 11;
+  const padding  = size === 'lg' ? '4px 12px' : '2px 8px';
+
   return (
     <span
-      className="spectrum-claude-pill"
       style={{
-        color: palette.text,
-        background: palette.bg,
-        borderColor: palette.border,
+        fontFamily: FONT_DISPLAY,
+        fontSize,
+        fontWeight: 700,
+        color,
+        background: bg,
+        border: `1px solid ${border}`,
+        borderRadius: 999,
+        padding,
+        letterSpacing: '-0.01em',
+        whiteSpace: 'nowrap',
       }}
     >
-      {label}
+      {score >= 0 ? '+' : ''}{score.toFixed(2)}
     </span>
   );
 }

@@ -1,7 +1,6 @@
 .env
-.browser-profile/
-.browser-profile-adorama/
-.browser-profile-bh/
+profiles/
+.browser-profile-*/
 node_modules/
 output/
 dist/

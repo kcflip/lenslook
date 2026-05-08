@@ -1,9 +1,9 @@
 import "dotenv/config";
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from "fs";
-import type { Lens, Body, RetailSubject, BHEntry, ReviewItem, BHProperty } from "../shared/types.js";
-import { recordPrice } from "./price-history.js";
-import { saveReviews, isEnglish } from "./reviews.js";
-import { launchChromiumContext, randomDelay, readingDelay, baseTitleMatches, baseBodyTitleMatches, looksLikeKit, checkMpn, logMpnMismatch, humanClick, MAX_REVIEWS } from "./scraper-shared.js";
+import type { Lens, Body, RetailSubject, BHEntry, ReviewItem, BHProperty } from "../../shared/types.js";
+import { recordPrice } from "../price-history.js";
+import { saveReviews, isEnglish } from "../reviews.js";
+import { launchChromiumContext, randomDelay, readingDelay, baseTitleMatches, baseBodyTitleMatches, looksLikeKit, checkMpn, logMpnMismatch, humanClick, humanScroll, MAX_REVIEWS } from "./scraper-shared.js";
 
 // TODO: add a sibling script (e.g. src/bh-specs.ts) that walks lenses.json,
 // visits each lens's B&H page via its existing `bhNumber`/`url`, and parses
@@ -112,186 +112,161 @@ async function scrapeRatingAndCount(
   }
 }
 
+// Scrape and push one pass of review containers into `reviews`.
+async function scrapeReviewPass(
+  reviewContainerList: import("playwright").Locator[],
+  page: import("playwright").Page,
+  productId: string,
+  productUrl: string,
+  reviews: ReviewItem[],
+  counters: { skippedUnverified: number; skippedEmpty: number; skippedNonEnglish: number },
+): Promise<void> {
+  const total = reviewContainerList.length;
+  for (let i = 0; i < total; i++) {
+    if (reviews.length >= MAX_REVIEWS) {
+      console.log(`  ⏹️ review limit of ${MAX_REVIEWS} reached`);
+      break;
+    }
+    const review = reviewContainerList[i];
+    const tag = `  [${i + 1}/${total}]`;
+
+    const isVerified = await review.locator(`xpath=.//span[@data-selenium='reviewsClientReviewVerifiedBuyerText']`).count();
+    if (isVerified !== 1) {
+      console.log(`${tag} 🚫 skipped — not verified`);
+      counters.skippedUnverified++;
+      continue;
+    }
+
+    const title = (await review.locator(`h4`).textContent().catch(() => "") ?? "").trim();
+    if (!isEnglish(title)) {
+      counters.skippedNonEnglish++;
+      console.log(`${tag} 🌍 skipped — non-English title: "${title.slice(0, 40)}"`);
+      continue;
+    }
+
+    const content = (await review.locator(`//div[@data-selenium='reviewsClientReviewContent']`).textContent().catch(() => "") ?? "").trim();
+    if (!content) {
+      counters.skippedEmpty++;
+      console.log(`${tag} 📭 skipped — empty content`);
+      continue;
+    }
+
+    const date = (await review.locator(`//span[@data-selenium='reviewsClientReviewDate']`).textContent().catch(() => "") ?? "").trim() || undefined;
+
+    let starCount = 0;
+    const stars = await review.locator(`//div[@data-selenium='ratingContainer']//*[@href='#StarIcon']`).all().catch(() => null);
+    const halfStar = await review.locator(`xpath=.//div[contains(@class, 'starContainer')]//*[contains(@href, '#StarHalfIcon')]`).all().catch(() => null);
+    if (stars) starCount += stars.length;
+    if (halfStar) starCount += 0.5;
+
+    const images = await review.locator(`//div[@data-selenium='reviewsClientReviewImages']//img`).all().catch(() => null) ?? [];
+    const reviewImagesUrl: string[] = [];
+    for (const image of images) {
+      const src = await image.getAttribute('src');
+      if (src) reviewImagesUrl.push(src);
+    }
+
+    const thumbsUpText = (await review.locator(`//div[@data-selenium='reviewsClientReviewHelpfulCounter']`).textContent().catch(() => "") ?? "").trim();
+    reviews.push({
+      sourceType: "bh",
+      productId,
+      text: content,
+      rating: starCount,
+      verifiedPurchase: true,
+      images: reviewImagesUrl,
+      date,
+      url: productUrl,
+      upvoteScore: thumbsUpText ? Number(thumbsUpText) : undefined,
+    });
+
+    const preview = content.length > 45 ? content.slice(0, 45) + "…" : content;
+    const bits = [
+      starCount > 0 ? `${starCount}★` : "no rating",
+      reviewImagesUrl.length > 0 ? `${reviewImagesUrl.length} image${reviewImagesUrl.length === 1 ? "" : "s"}` : null,
+    ].filter(Boolean).join(" · ");
+    console.log(`${tag} ✓ kept — ${bits} — "${preview}"`);
+  }
+}
+
 // Review section scraping
 async function scrapeReviews(page: import("playwright").Page, productId: string, productUrl: string): Promise<ReviewItem[]> {
   const reviews: ReviewItem[] = [];
+  const counters = { skippedUnverified: 0, skippedEmpty: 0, skippedNonEnglish: 0 };
 
   try {
-    // B&H tucks reviews behind a tab button. Click it to load the reviews
-    const reviewBtn = page.locator("xpath=.//a[contains(@class, 'itemBtn')][contains(@href, 'reviews')]").first();
-    if (!(await reviewBtn.count())) {
-      console.log(`  🔇 no review button — skipping reviews`);
-      return reviews;
-    }
-    await humanClick(page, reviewBtn);
-    await page.locator(`xpath=.//div[@data-selenium='reviewsReviewedByCustomers']`).waitFor({ state: "visible", timeout: 5000 });
+    // Navigate directly to the /reviews URL — same page the user sees in the
+    // browser, more reliable than clicking a tab and hoping scroll triggers load.
+    const reviewsUrl = productUrl.replace(/\?.*$/, "").replace(/\/$/, "") + "/reviews";
+    console.log(`  🔗 → ${reviewsUrl}`);
+    await page.goto(reviewsUrl, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2000 + Math.random() * 1000);
+
+    // Sort by most helpful if the dropdown is present.
     const reviewSortBy = page.locator(`xpath=.//option[contains(text(), 'Highest rated')]/parent::select`);
-    await reviewSortBy.selectOption('Most Helpful');
-    // Jitter the post-sort wait — a fixed 2.5s beat every time is a
-    // fingerprint. 2–4.5s random looks more like a human reading.
-    const sortWait = 2000 + Math.random() * 2500;
-    await page.waitForTimeout(sortWait);
-    // locate the review containers
-    let reviewContainers = page.locator(`xpath=.//div[@data-selenium='reviewsClientReview']`).all();
+    if (await reviewSortBy.count()) {
+      await reviewSortBy.selectOption('Most Helpful');
+      await page.waitForTimeout(2000 + Math.random() * 1500);
+      console.log(`  ↕️ sorted by Most Helpful`);
+    }
 
-    let skippedUnverified = 0;
-    let skippedEmpty = 0;
-    let skippedNonEnglish = 0;
+    const reviewLocator = page.locator(`xpath=.//div[@data-selenium='reviewsClientReview']`);
+    let knownCount = 0;
 
-    if ((await reviewContainers).length > 0) {
-      // iterate over top reviews
-      let counter = 0;
-      for (let review of await reviewContainers) {
-        // locate verified buyer
-        const isVerified = await review.locator(`xpath=.//span[@data-selenium='reviewsClientReviewVerifiedBuyerText']`).count();
-        if (isVerified != 1) {
-          console.log(`🚫 ${productId} review ${counter + 1} was not verified, moving along!`);
-          skippedUnverified++;
-          continue; // move on to next review
+    async function scrollAndCollect(maxRounds: number, stableThreshold: number, label: string) {
+      let stableRounds = 0;
+      for (let round = 0; round < maxRounds && stableRounds < stableThreshold && reviews.length < MAX_REVIEWS; round++) {
+        // Scroll the last loaded review into view to trigger the IntersectionObserver
+        // lazy-load sentinel. Scrolling the whole page with mouse.wheel overshoots
+        // into the footer/Q&A area and stops triggering new review loads.
+        const loaded = await reviewLocator.all();
+        if (loaded.length > 0) {
+          await loaded[loaded.length - 1].scrollIntoViewIfNeeded();
+        } else {
+          await humanScroll(page, 800);
         }
-
-        const title = await review.locator(`h4`).textContent().catch(() => "") ?? ""; // potential for title to be blank? probably not
-        // check for english
-        if (!isEnglish(title)) {
-          skippedNonEnglish++;
-          console.log(`🌍 ${productId} review ${counter + 1} skipped — non-English: "${title}"`);
-          continue;
+        await page.waitForTimeout(1500 + Math.random() * 1000);
+        const currentCount = await reviewLocator.count();
+        if (currentCount > knownCount) {
+          const all = await reviewLocator.all();
+          console.log(`  📋 ${currentCount} containers ${label} round ${round + 1} (+${currentCount - knownCount})`);
+          await scrapeReviewPass(all.slice(knownCount), page, productId, productUrl, reviews, counters);
+          knownCount = currentCount;
+          stableRounds = 0;
+        } else {
+          stableRounds++;
         }
-
-        //capture the review content
-        const content = (await review.locator(`//div[@data-selenium='reviewsClientReviewContent']`).textContent().catch(() => "") ?? "").trim();
-        if (!content) {
-          skippedEmpty++;
-          console.log(`📭 ${productId} review ${counter + 1} had empty content, adios!`);
-          continue;
-        }
-        const date = await review.locator(`//span[@data-selenium='reviewsClientReviewDate']`).textContent().catch(() => "") ?? "";
-
-        //capture the rating
-        let starCount = 0;
-        const rating = await review.locator(`//div[@data-selenium='ratingContainer']//*[@href='#StarIcon']`).all().catch(() => null);
-        const halfStarRating = await review.locator(`xpath=.//div[contains(@class, 'starContainer')]//*[contains(@href, '#StarHalfIcon')]`).all().catch(() => null);
-        if (rating) starCount += rating.length;
-        if (halfStarRating) starCount += 0.5;
-
-        // capture review specific images
-        const images = await review.locator(`//div[@data-selenium='reviewsClientReviewImages']//img`).all().catch(() => null) ?? [];
-        const reviewImagesUrl = [];
-        for (let image of images) {
-          const src = await image.getAttribute('src');
-          if (src) reviewImagesUrl.push(src);
-        }
-        //capture the thumbs up
-        const thumbsUpCount = await review.locator(`//div[@data-selenium='reviewsClientReviewHelpfulCounter']`).textContent().catch(() => "") ?? 0;
-        reviews.push({
-          sourceType: "bh",
-          productId,
-          text: content,
-          rating: starCount,
-          verifiedPurchase: true,
-          images: reviewImagesUrl,
-          date,
-          url: productUrl,
-          upvoteScore: Number(thumbsUpCount),
-        });
-
-        // log results
-        const preview = content.length > 45 ? content.slice(0, 45) + "…" : content;
-        const bits = [starCount != null ? `${starCount}★` : "no rating", reviewImagesUrl.length > 0 ? `${reviewImagesUrl.length} image${reviewImagesUrl.length === 1 ? "" : "s"}` : null].filter(Boolean).join(" · ");
-        console.log(`${productId} ✓ kept — ${bits} — "${preview}"`);
-
-        counter += 1;
-        if (counter >= MAX_REVIEWS) {
-          console.log(`⏹️ reached review limit of ${MAX_REVIEWS}, moving on...`);
-          break;
-        };
       }
     }
 
-    const loadMore = page.locator(`xpath=.//button[@data-selenium='reviewsLoadAll']`);
-    if (reviews.length < MAX_REVIEWS && await loadMore.count()) {
-      await humanClick(page, loadMore);
-      await page.waitForTimeout(sortWait);
-      // locate the review containers
-      let reviewContainers = page.locator(`xpath=.//div[@data-selenium='reviewsClientReview']`).all();
+    // Phase 1: scroll to expose lazy-loaded initial batch.
+    await scrollAndCollect(15, 3, "initial");
 
-      let skippedUnverified = 0;
-      let skippedEmpty = 0;
-      let skippedNonEnglish = 0;
-      let counter = reviews.length;
-
-      if ((await reviewContainers).length > 0) {
-        // iterate over top reviews
-        for (let review of await reviewContainers) {
-          // locate verified buyer
-          const isVerified = await review.locator(`xpath=.//span[@data-selenium='reviewsClientReviewVerifiedBuyerText']`).count();
-          if (isVerified != 1) {
-            console.log(`🚫 ${productId} review ${counter + 1} was not verified, moving along!`);
-            skippedUnverified++;
-            continue; // move on to next review
-          }
-
-          const title = await review.locator(`h4`).textContent().catch(() => "") ?? ""; // potential for title to be blank? probably not
-          // check for english
-          if (!isEnglish(title)) {
-            skippedNonEnglish++;
-            console.log(`🌍 ${productId} review ${counter + 1} skipped — non-English: "${title}"`);
-            continue;
-          }
-
-          //capture the review content
-          const content = (await review.locator(`//div[@data-selenium='reviewsClientReviewContent']`).textContent().catch(() => "") ?? "").trim();
-          if (!content) {
-            skippedEmpty++;
-            console.log(`📭 ${productId} review ${counter + 1} had empty content, adios!`);
-            continue;
-          }
-          const date = await review.locator(`//span[@data-selenium='reviewsClientReviewDate']`).textContent().catch(() => "") ?? "";
-
-          //capture the rating
-          let starCount = 0;
-          const rating = await review.locator(`//div[@data-selenium='ratingContainer']//*[@href='#StarIcon']`).all().catch(() => null);
-          const halfStarRating = await review.locator(`xpath=.//div[contains(@class, 'starContainer')]//*[contains(@href, '#StarHalfIcon')]`).all().catch(() => null);
-          if (rating) starCount += rating.length;
-          if (halfStarRating) starCount += 0.5;
-
-          // capture review specific images
-          const images = await review.locator(`//div[@data-selenium='reviewsClientReviewImages']//img`).all().catch(() => null) ?? [];
-          const reviewImagesUrl = [];
-          for (let image of images) {
-            const src = await image.getAttribute('src');
-            if (src) reviewImagesUrl.push(src);
-          }
-          //capture the thumbs up
-          const thumbsUpCount = await review.locator(`//div[@data-selenium='reviewsClientReviewHelpfulCounter']`).textContent().catch(() => "") ?? 0;
-          reviews.push({
-            sourceType: "bh",
-            productId,
-            text: content,
-            rating: starCount,
-            verifiedPurchase: true,
-            images: reviewImagesUrl,
-            date,
-            url: productUrl,
-            upvoteScore: Number(thumbsUpCount),
-          });
-
-          // log results
-          const preview = content.length > 45 ? content.slice(0, 45) + "…" : content;
-          const bits = [starCount != null ? `${starCount}★` : "no rating", reviewImagesUrl.length > 0 ? `${reviewImagesUrl.length} image${reviewImagesUrl.length === 1 ? "" : "s"}` : null].filter(Boolean).join(" · ");
-          console.log(`${productId} ✓ kept — ${bits} — "${preview}"`);
-
-          counter += 1;
-          if (counter >= MAX_REVIEWS) {
-            console.log(`⏹️ reached review limit of ${MAX_REVIEWS}, moving on...`);
-            break;
-          };
-        }
+    // Phase 2: click "load all" to fetch remaining reviews, then scroll through them.
+    const loadAll = page.locator(`xpath=.//button[@data-selenium='reviewsLoadAll']`);
+    if (reviews.length < MAX_REVIEWS && await loadAll.count()) {
+      console.log(`  🔽 clicking reviewsLoadAll…`);
+      await humanClick(page, loadAll);
+      // Poll until new cards appear (up to 12s).
+      const deadline = Date.now() + 12000;
+      while (Date.now() < deadline) {
+        await page.waitForTimeout(600);
+        if (await reviewLocator.count() > knownCount) break;
       }
+      await scrollAndCollect(20, 4, "post-loadAll");
     }
-    // TODO: fetch images from side gallery. not per review but at a higher level than this
+
+    if (knownCount === 0) {
+      console.log(`  ⚠️ no review containers found`);
+    }
+    await saveScreenshot(page, productId, "after-scroll-reviews");
   } catch (err) {
     console.log(`  💥 review scrape error: ${err instanceof Error ? err.message : err}`);
+  }
+
+  if (reviews.length === 0) {
+    console.log(`  ⚠️ no reviews captured`);
+  } else {
+    console.log(`  📊 → kept ${reviews.length}, skipped ${counters.skippedUnverified} unverified, ${counters.skippedEmpty} empty, ${counters.skippedNonEnglish} non-English`);
   }
   return reviews;
 }
@@ -423,10 +398,10 @@ async function scrapeBhProductPage(
   ]);
 
   const ratingBits = rating.starCount != null
-    ? `${rating.starCount}★ - ${rating.ratingCount != null ? ` (${rating.ratingCount})` : ""}`
+    ? `${rating.starCount}★${rating.ratingCount != null ? ` (${rating.ratingCount})` : ""}`
     : "no rating";
-  console.log(`  💰 BH # ${bhNumber} — price: ${price != null ? `$${price}` : "not found"} — ${official ? "✓ official" : "not official"} — ${ratingBits} — image: ${productImage ? "✓" : "not found"}\n`);
-  console.log(` 📖 checking reviews for ${subject.id}`);
+  console.log(`  💰 BH # ${bhNumber} — price: ${price != null ? `$${price}` : "not found"} — ${official ? "✓ official" : "not official"} — ${ratingBits} — image: ${productImage ? "✓" : "not found"}`);
+  console.log(`  📖 scraping reviews…`);
   const reviews = await scrapeReviews(page, subject.id, productUrl);
 
   // Capturing images — they live in the reviews sidebar, so do it after the
@@ -437,7 +412,7 @@ async function scrapeBhProductPage(
     const src = await image.getAttribute('src');
     if (src) bhEntryImages.push(src);
   }
-  console.log(` 🖼️  found ${bhEntryImages.length} images in review section for ${subject.id} \n`);
+  console.log(`  🖼️  found ${bhEntryImages.length} sidebar image${bhEntryImages.length === 1 ? "" : "s"} in review section`);
 
   const entry: BHEntry = {
     bhNumber,
@@ -606,7 +581,7 @@ export async function scrapeBhLens(
 export async function launchBhContext() {
   const handle = await launchChromiumContext({
     stealth: true,
-    profileDir: ".browser-profile-bh",
+    profileDir: "profiles/bh",
     headless: true,
   });
   return { context: handle.context, page: handle.page };
@@ -631,7 +606,7 @@ async function main(isBodies: boolean) {
       continue;
     }
 
-    rmSync(".browser-profile-bh", { recursive: true, force: true });
+    rmSync("profiles/bh", { recursive: true, force: true });
     const { context, page } = await launchBhContext();
     try {
       const result = await scrapeBhLens(page, subject, isBodies);
@@ -646,8 +621,8 @@ async function main(isBodies: boolean) {
         console.log(`  ✓ saved to ${sourceFile}`);
 
         if (result.reviews.length > 0) {
-          saveReviews(subject.id, "bh", result.reviews);
-          console.log(`  ✓ saved ${result.reviews.length} verified review${result.reviews.length === 1 ? "" : "s"} to reviews.json`);
+          const { added, skipped } = saveReviews(subject.id, "bh", result.reviews);
+          console.log(`  ✓ reviews: ${added} new, ${skipped} duplicate${skipped === 1 ? "" : "s"} skipped`);
         }
 
         succeeded++;

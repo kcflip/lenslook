@@ -10,11 +10,11 @@
 //   this page has been denied" → captcha wall; we detect and bail.
 import "dotenv/config";
 import { readFileSync, writeFileSync, existsSync } from "fs";
-import type { Lens, Body, RetailSubject, AdoramaEntry, ReviewItem } from "../shared/types.js";
-import { recordPrice } from "./price-history.js";
-import { saveReviews, isEnglish } from "./reviews.js";
+import type { Lens, Body, RetailSubject, AdoramaEntry, ReviewItem } from "../../shared/types.js";
+import { recordPrice } from "../price-history.js";
+import { saveReviews, isEnglish } from "../reviews.js";
 import { launchChromiumContext, randomDelay, baseTitleMatches, baseBodyTitleMatches, looksLikeKit, checkMpn, logMpnMismatch, humanScroll, MAX_REVIEWS } from "./scraper-shared.js";
-import { searchAndNavigate } from "./search.js";
+import { searchAndNavigate } from "../search.js";
 
 const LENSES_FILE = "lenses.json";
 // Drop your exported browser cookies here. Chrome DevTools: Application →
@@ -195,15 +195,21 @@ async function scrapeAdoramaProductPage(
       });
   }).catch((): (number | null)[] => []);
 
+  const rawReviews = ld.review ?? [];
+  console.log(`  📖 ${rawReviews.length} review${rawReviews.length === 1 ? "" : "s"} in JSON-LD`);
+  let skippedEmpty = 0;
+  let skippedNonEnglish = 0;
+
   const reviews: ReviewItem[] = [];
-  for (const [i, r] of (ld.review ?? []).entries()) {
+  for (const [i, r] of rawReviews.entries()) {
     if (reviews.length >= MAX_REVIEWS) {
-      console.log(`  ⏹️ reached review limit of ${MAX_REVIEWS}, moving on...`);
+      console.log(`  ⏹️ review limit of ${MAX_REVIEWS} reached`);
       break;
     }
     const text = (r.description ?? "").trim();
-    if (!text) continue;
+    if (!text) { skippedEmpty++; continue; }
     if (!isEnglish(text)) {
+      skippedNonEnglish++;
       console.log(`  🌍 skipped non-English review by ${r.author?.name ?? "anon"}`);
       continue;
     }
@@ -211,6 +217,7 @@ async function scrapeAdoramaProductPage(
       sourceType: "adorama",
       productId: subject.id,
       text,
+      author: r.author?.name || undefined,
       images: [],
       date: r.datePublished,
       url: productUrl,
@@ -220,7 +227,13 @@ async function scrapeAdoramaProductPage(
     reviews.push(review);
 
     const preview = text.length > 60 ? text.slice(0, 57) + "…" : text;
-    console.log(`  ✓ review — ${r.author?.name ?? "anon"}: "${preview}"`);
+    console.log(`  [${reviews.length}/${rawReviews.length}] ✓ ${r.author?.name ?? "anon"}: "${preview}"`);
+  }
+
+  if (reviews.length === 0) {
+    console.log(`  ⚠️ no reviews captured`);
+  } else {
+    console.log(`  📊 → kept ${reviews.length}, skipped ${skippedEmpty} empty, ${skippedNonEnglish} non-English`);
   }
 
   return { entry, reviews };
@@ -282,7 +295,7 @@ export async function scrapeAdoramaLens(
   // Final fallback — Adorama's own SPA search.
   const searchUrl = buildSearchUrl(subject);
   console.log(`  🔍 searching Adorama`);
-  console.log(`  → ${searchUrl}`);
+  console.log(`  🌐 → ${searchUrl}`);
   await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
   // Retail SPA needs a beat before it flips from skeleton to real content.
   // Known failure modes:
@@ -355,6 +368,7 @@ export async function scrapeAdoramaLens(
 
   if (!matchedHref) return null;
 
+  console.log(`  🎯 → navigating to product page…`);
   await page.goto(matchedHref, { waitUntil: "domcontentloaded", timeout: 30000 });
   await page.waitForTimeout(1500);
   return await scrapeAdoramaProductPage(page, subject, matchedTitle);
@@ -363,7 +377,7 @@ export async function scrapeAdoramaLens(
 export async function launchAdoramaContext() {
   const handle = await launchChromiumContext({
     stealth: true,
-    profileDir: ".browser-profile-adorama",
+    profileDir: "profiles/adorama",
     headless: true,
   });
   return { context: handle.context, page: handle.page };
@@ -544,8 +558,8 @@ export async function runAdoramaRun(subjects: RetailSubject[], sourceFile = LENS
           console.log(`  ✓ saved to ${sourceFile}`);
 
           if (result.reviews.length > 0) {
-            saveReviews(subject.id, "adorama", result.reviews);
-            console.log(`  ✓ saved ${result.reviews.length} review${result.reviews.length === 1 ? "" : "s"} to reviews.json`);
+            const { added, skipped } = saveReviews(subject.id, "adorama", result.reviews);
+            console.log(`  ✓ reviews: ${added} new, ${skipped} duplicate${skipped === 1 ? "" : "s"} skipped`);
           }
 
           succeeded++;

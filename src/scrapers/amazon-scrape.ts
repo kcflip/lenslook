@@ -1,9 +1,9 @@
 import "dotenv/config";
 import { readFileSync, writeFileSync } from "fs";
-import type { Lens, Body, RetailSubject, AsinEntry, ReviewItem } from "../shared/types.js";
-import { recordPrice } from "./price-history.js";
-import { saveReviews, isEnglish } from "./reviews.js";
-import { launchChromiumContext, randomDelay, baseTitleMatches, baseBodyTitleMatches, looksLikeKit, humanDblClick, MAX_REVIEWS } from "./scraper-shared.js";
+import type { Lens, Body, RetailSubject, AsinEntry, ReviewItem } from "../../shared/types.js";
+import { recordPrice } from "../price-history.js";
+import { saveReviews, isEnglish } from "../reviews.js";
+import { launchChromiumContext, randomDelay, baseTitleMatches, baseBodyTitleMatches, looksLikeKit, humanDblClick, humanScroll, readingDelay, MAX_REVIEWS } from "./scraper-shared.js";
 
 const LENSES_FILE = "lenses.json";
 
@@ -97,7 +97,7 @@ async function scrapeOfficial(page: import("playwright").Page): Promise<boolean>
     return await page
       .locator(".premium-logoByLine-brand-logo, #premium-logoByLine-brand-logo, [class*='premium-logoByLine-brand-logo']")
       .first()
-      .isVisible({ timeout: 2000 });
+      .count() > 0;
   } catch {
     return false;
   }
@@ -110,108 +110,139 @@ function fullSizeImageUrl(url: string): string {
   return url.replace(/\._[^.]+(\.\w+)$/, "$1");
 }
 
-// Scrape reviews in-place on the product page. Navigating to /product-reviews/
-// triggers a sign-in wall, so we scroll to the embedded reviews widget instead
-// (~8 top reviews per product — Amazon picks the sort). We filter to verified
-// purchases via the avp-badge element.
+
+interface ReviewCounters {
+  skippedUnverified: number;
+  skippedEmpty: number;
+  skippedNonEnglish: number;
+}
+
+// Extract verified review cards from the current page state into `reviews`.
+// Mutates both `reviews` and `counters`. Stops when MAX_REVIEWS is reached.
+async function scrapeReviewCards(
+  page: import("playwright").Page,
+  productId: string,
+  pageUrl: string,
+  reviews: ReviewItem[],
+  counters: ReviewCounters,
+): Promise<void> {
+  const cards = page.locator("[data-hook='review']");
+  const total = await cards.count().catch(() => 0);
+  if (total === 0) return;
+
+  console.log(`  📋 found ${total} review cards, filtering to verified…`);
+
+  for (let i = 0; i < total && reviews.length < MAX_REVIEWS; i++) {
+    const card = cards.nth(i);
+    const tag = `    [${i + 1}/${total}]`;
+    const verifiedHits = await card.locator("[data-hook='avp-badge']").count().catch(() => 0);
+    if (verifiedHits === 0) {
+      counters.skippedUnverified++;
+      console.log(`${tag} 🚫 skipped — no verified-purchase badge`);
+      continue;
+    }
+
+    const ratingText = await card.locator("[data-hook='review-star-rating'], [data-hook='cmps-review-star-rating']")
+      .first().getAttribute("class").catch(() => null);
+    const ratingMatch = ratingText?.match(/a-star-(\d+)/);
+    const rating = ratingMatch ? parseInt(ratingMatch[1], 10) : undefined;
+
+    let text = (await card.locator("[data-hook='review-collapsed']").first().innerText().catch(() => "") ?? "").trim();
+    if (!text) {
+      // Short reviews that don't need a "Read more" button have no
+      // review-collapsed hook — fall back to the rich content container.
+      text = (await card.locator("[data-hook='reviewRichContentContainer']").first().innerText().catch(() => "") ?? "").trim();
+    }
+    if (!text) {
+      counters.skippedEmpty++;
+      const screenshotPath = `output/screenshots/amazon-empty-review-${productId}-${i}.png`;
+      await page.screenshot({ path: screenshotPath, fullPage: false }).catch(() => {});
+      console.log(`${tag} 📭 skipped — empty review body (screenshot: ${screenshotPath})`);
+      continue;
+    }
+
+    if (!isEnglish(text)) {
+      counters.skippedNonEnglish++;
+      const preview = text.length > 50 ? text.slice(0, 47) + "…" : text;
+      console.log(`${tag} 🌍 skipped — non-English: "${preview}"`);
+      continue;
+    }
+
+    const date = (await card.locator("[data-hook='review-date']").first().textContent().catch(() => "") ?? "").trim() || undefined;
+    const author = (await card.locator("[data-hook='review-author'] .a-profile-name, .a-profile-name").first().textContent().catch(() => "") ?? "").trim() || undefined;
+
+    const rawImages = await card.locator("[data-hook='review-image-tile'] img, img.review-image-tile")
+      .evaluateAll(els => (els as HTMLImageElement[]).map(el => el.src).filter(Boolean))
+      .catch(() => [] as string[]);
+    const images = rawImages.map(fullSizeImageUrl);
+
+    const helpfulText = await card.locator("[data-hook='helpful-vote-statement']").first().textContent().catch(() => null);
+    const helpfulMatch = helpfulText?.match(/(\d+)/);
+    const upvoteScore = helpfulMatch ? parseInt(helpfulMatch[1], 10) : undefined;
+
+    reviews.push({
+      sourceType: "amazon",
+      productId,
+      text,
+      rating,
+      verifiedPurchase: true,
+      images,
+      date,
+      author,
+      url: pageUrl,
+      upvoteScore,
+    });
+
+    const preview = text.length > 60 ? text.slice(0, 57) + "…" : text;
+    const bits = [
+      rating != null ? `${rating}★` : "no rating",
+      images.length > 0 ? `${images.length} image${images.length === 1 ? "" : "s"}` : null,
+      upvoteScore != null ? `${upvoteScore} helpful` : null,
+    ].filter(Boolean).join(" · ");
+    console.log(`${tag} ✓ kept — ${bits} — ${author ?? "anon"}: "${preview}"`);
+  }
+}
+
+// Scrape reviews starting from the embedded widget on the product page, then
+// follow the "See all reviews" link to paginate through the full reviews page
+// until MAX_REVIEWS is reached. The reviews page may require an active session
+// but is attempted anyway; failures fall back gracefully to whatever was
+// captured from the embedded widget.
 async function scrapeReviews(page: import("playwright").Page, productId: string): Promise<ReviewItem[]> {
   const reviews: ReviewItem[] = [];
   const productUrl = page.url();
+  const counters: ReviewCounters = { skippedUnverified: 0, skippedEmpty: 0, skippedNonEnglish: 0 };
 
   try {
-    console.log(`  📜 → scrolling to reviews section`);
-    await page.evaluate(() => {
+    await readingDelay();
+
+    console.log(`  📜 → scrolling to embedded reviews widget`);
+    const reviewsTop = await page.evaluate((): number => {
       const el = document.querySelector(
         "[data-hook='reviews-medley-widget'], #reviews-medley-footer, [data-hook='top-customer-reviews-widget'], #cm-cr-dp-review-list, [data-hook='review']",
       );
-      if (el) el.scrollIntoView({ behavior: "instant", block: "start" });
+      return el ? (el as HTMLElement).getBoundingClientRect().top + window.scrollY : 0;
     });
+    if (reviewsTop > 0) {
+      // Jump most of the way instantly, then do a short human-scroll for the
+      // last 600px — avoids a 3-6s step-scroll over thousands of pixels while
+      // still arriving at the section without an instant teleport.
+      const jumpTo = Math.max(0, reviewsTop - 600);
+      if (jumpTo > 0) await page.evaluate((y: number) => window.scrollTo(0, y), jumpTo);
+      await humanScroll(page, Math.min(reviewsTop, 600));
+    }
     await page.waitForSelector("[data-hook='review']", { timeout: 10000 });
 
-    const cards = page.locator("[data-hook='review']");
-    const total = await cards.count().catch(() => 0);
-    if (total === 0) {
-      console.log(`  🤷 no review cards found`);
-      return reviews;
-    }
-
-    console.log(`  📋 found ${total} review cards, filtering to verified…`);
-
-    let skippedUnverified = 0;
-    let skippedEmpty = 0;
-    let skippedNonEnglish = 0;
-
-    for (let i = 0; i < total && reviews.length < MAX_REVIEWS; i++) {
-      const card = cards.nth(i);
-      const tag = `    [${i + 1}/${total}]`;
-
-      await card.scrollIntoViewIfNeeded().catch(() => {});
-      await page.locator("[data-hook='top-customer-reviews-widget']").waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
-      const verifiedHits = await card.locator("[data-hook='avp-badge']").count().catch(() => 0);
-      if (verifiedHits === 0) {
-        skippedUnverified++;
-        console.log(`${tag} 🚫 skipped — no verified-purchase badge`);
-        continue;
-      }
-
-      const ratingText = await card.locator("[data-hook='review-star-rating'], [data-hook='cmps-review-star-rating']")
-        .first().getAttribute("class").catch(() => null);
-      const ratingMatch = ratingText?.match(/a-star-(\d+)/);
-      const rating = ratingMatch ? parseInt(ratingMatch[1], 10) : undefined;
-
-      const text = (await card.locator("[data-hook='review-collapsed']").first().innerText().catch(() => "") ?? "").trim();
-      if (!text) {
-        skippedEmpty++;
-        const screenshotPath = `output/screenshots/amazon-empty-review-${productId}-${i}.png`;
-        await page.screenshot({ path: screenshotPath, fullPage: false }).catch(() => {});
-        console.log(`${tag} 📭 skipped — empty review body (screenshot: ${screenshotPath})`);
-        continue;
-      }
-
-      if (!isEnglish(text)) {
-        skippedNonEnglish++;
-        const preview = text.length > 50 ? text.slice(0, 47) + "…" : text;
-        console.log(`${tag} 🌍 skipped — non-English: "${preview}"`);
-        continue;
-      }
-
-      const date = (await card.locator("[data-hook='review-date']").first().textContent().catch(() => "") ?? "").trim() || undefined;
-
-      const rawImages = await card.locator("[data-hook='review-image-tile'] img, img.review-image-tile")
-        .evaluateAll(els => (els as HTMLImageElement[]).map(el => el.src).filter(Boolean))
-        .catch(() => [] as string[]);
-      const images = rawImages.map(fullSizeImageUrl);
-
-      const helpfulText = await card.locator("[data-hook='helpful-vote-statement']").first().textContent().catch(() => null);
-      const helpfulMatch = helpfulText?.match(/(\d+)/);
-      const upvoteScore = helpfulMatch ? parseInt(helpfulMatch[1], 10) : undefined;
-
-      reviews.push({
-        sourceType: "amazon",
-        productId,
-        text,
-        rating,
-        verifiedPurchase: true,
-        images,
-        date,
-        url: productUrl,
-        upvoteScore,
-      });
-
-      const preview = text.length > 60 ? text.slice(0, 57) + "…" : text;
-      const bits = [
-        rating != null ? `${rating}★` : "no rating",
-        images.length > 0 ? `${images.length} image${images.length === 1 ? "" : "s"}` : null,
-        upvoteScore != null ? `${upvoteScore} helpful` : null,
-      ].filter(Boolean).join(" · ");
-      console.log(`${tag} ✓ kept — ${bits} — "${preview}"`);
-    }
-
-    console.log(`  📊 → kept ${reviews.length}, skipped ${skippedUnverified} unverified, ${skippedEmpty} empty, ${skippedNonEnglish} non-English`);
+    await scrapeReviewCards(page, productId, productUrl, reviews, counters);
   } catch (err) {
     console.log(`  💥 review scrape error: ${err instanceof Error ? err.message : err}`);
   }
 
+  if (reviews.length === 0) {
+    console.log(`  ⚠️ no reviews captured`);
+  } else {
+    console.log(`  📊 → kept ${reviews.length}, skipped ${counters.skippedUnverified} unverified, ${counters.skippedEmpty} empty, ${counters.skippedNonEnglish} non-English`);
+  }
   return reviews;
 }
 
@@ -229,7 +260,7 @@ async function scrapeRating(page: import("playwright").Page): Promise<number | n
     }
     // Fallback — the visible rating text near the title bar
     const alt = page.locator("[data-hook='rating-out-of-text'], span.a-icon-alt").first();
-    if (await alt.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await alt.count() > 0) {
       const text = await alt.textContent();
       const m = text?.match(/([\d.]+)\s*out of/);
       if (m) {
@@ -284,28 +315,26 @@ async function scrapeProductImage(page: import("playwright").Page): Promise<stri
 }
 
 async function scrapePrice(page: import("playwright").Page): Promise<number | null> {
-  const selectors = [
+  // Page is already loaded — try all selectors in one pass, no per-selector wait.
+  const combined = [
     ".a-price .a-offscreen",
     "#priceblock_ourprice",
     "#priceblock_dealprice",
     ".priceToPay .a-offscreen",
     "#corePrice_desktop .a-offscreen",
     "#apex_desktop_newAccordionRow .a-offscreen",
-  ];
-
-  for (const sel of selectors) {
-    try {
-      const el = page.locator(sel).first();
-      if (await el.isVisible({ timeout: 2000 })) {
-        const text = await el.textContent();
-        if (text) {
-          const num = parseFloat(text.replace(/[^0-9.]/g, ""));
-          if (!isNaN(num) && num > 0) return num;
-        }
+  ].join(", ");
+  try {
+    const el = page.locator(combined).first();
+    if (await el.count() > 0) {
+      const text = await el.textContent();
+      if (text) {
+        const num = parseFloat(text.replace(/[^0-9.]/g, ""));
+        if (!isNaN(num) && num > 0) return num;
       }
-    } catch {
-      // selector not found, try next
     }
+  } catch {
+    // swallow
   }
   return null;
 }
@@ -370,6 +399,30 @@ async function detectWidgetStyle(page: import("playwright").Page): Promise<Widge
   }
 }
 
+// Module-level flag so warm-up only runs once per process, not once per lens.
+let sessionWarmedUp = false;
+
+// Visit amazon.com once to seed real session cookies into the persistent
+// profile. Without these, Amazon treats the browser as a fresh/unknown client
+// and redirects /product-reviews/ to sign-in. The persistent profile saves the
+// cookies so subsequent runs skip this entirely.
+async function warmUpAmazonSession(page: import("playwright").Page): Promise<void> {
+  if (sessionWarmedUp) return;
+  const cookies = await page.context().cookies(["https://www.amazon.com"]);
+  const hasSession = cookies.some((c) => c.name === "session-id");
+  if (hasSession) {
+    sessionWarmedUp = true;
+    return;
+  }
+  console.log("  🌐 no Amazon session — warming up (one-time)…");
+  await page.goto("https://www.amazon.com", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(2000 + Math.random() * 1500);
+  await page.mouse.wheel(0, 300 + Math.random() * 300);
+  await page.waitForTimeout(1000 + Math.random() * 1000);
+  console.log("  ✓ warm-up done");
+  sessionWarmedUp = true;
+}
+
 // Core per-subject scraper. Returns null when no matching product is found. No
 // side-effects — callers decide what to persist. Shared by `main()` below and
 // the smoke test in amazon-scrape-test.ts.
@@ -378,6 +431,8 @@ export async function scrapeAmazonLens(
   subject: RetailSubject,
   isBodies = false,
 ): Promise<AmazonScrapeResult | null> {
+  await warmUpAmazonSession(page);
+
   // Fast path — we already know the ASIN, so skip the fragile search/match
   // flow and navigate directly to the product page via `refreshAmazonAsin`.
   // If that fails (captcha, ASIN retired, page structure changed), fall
@@ -465,6 +520,8 @@ export async function refreshAmazonAsin(
   // Prefer the URL we captured during discovery — that's the exact URL Amazon
   // served us. Fall back to a constructed /dp/{asin} only for legacy entries
   // that predate URL storage (it'll get upgraded on this refresh).
+  await warmUpAmazonSession(page);
+
   const productUrl = existing.url ?? `https://www.amazon.com/dp/${existing.asin}`;
   console.log(`  🎯 → navigating direct to ${productUrl}`);
   await page.goto(productUrl, { waitUntil: "domcontentloaded" });
@@ -482,8 +539,15 @@ export async function refreshAmazonAsin(
 }
 
 export async function launchAmazonContext() {
-  const handle = await launchChromiumContext({ stealth: true, headless: true });
-  return { browser: handle.browser!, context: handle.context, page: handle.page };
+  // Headed mode: Amazon's bot detection passes a real headed Chrome but blocks
+  // headless Chromium on the /product-reviews/ pages, even with stealth. The
+  // persistent profile accumulates real cookies/state across runs.
+  const handle = await launchChromiumContext({
+    stealth: true,
+    profileDir: "profiles/amazon",
+    headless: true,
+  });
+  return { context: handle.context, page: handle.page };
 }
 
 export { randomDelay };
@@ -496,46 +560,51 @@ async function main(isBodies: boolean) {
   let succeeded = 0;
   let failed = 0;
 
-  for (let i = 0; i < subjects.length; i++) {
-    const subject = subjects[i];
-    console.log(`\n📸 [${i + 1}/${subjects.length}] ${subject.brand} ${subject.name}`);
+  // Reuse one context for all lenses — launching/tearing down Chrome per lens
+  // costs 2-4s each. If the page lands in a broken state (captcha, wrong URL),
+  // we navigate away with randomDelay between lenses which is enough recovery.
+  const { context, page } = await launchAmazonContext();
+  try {
+    for (let i = 0; i < subjects.length; i++) {
+      const subject = subjects[i];
+      console.log(`\n📸 [${i + 1}/${subjects.length}] ${subject.brand} ${subject.name}`);
 
-    if (subject.discontinued) {
-      console.log(`  ⏭ discontinued — skipping price/retailer scrape`);
-      failed++;
-      continue;
-    }
-
-    const { browser, page } = await launchAmazonContext();
-    try {
-      const result = await scrapeAmazonLens(page, subject, isBodies);
-      if (!result) {
-        console.log(`  🤷 no matches found in top results — skipping (${subject.amazon?.searchLink ?? "no search link"})`);
+      if (subject.discontinued) {
+        console.log(`  ⏭ discontinued — skipping price/retailer scrape`);
         failed++;
-      } else {
-        const subjectEntry = subjects.find((s) => s.id === subject.id)!;
-        subjectEntry.amazon = { searchLink: subject.amazon!.searchLink, asins: result.asins };
-        writeFileSync(sourceFile, JSON.stringify(subjects, null, 2));
-        for (const a of result.asins) {
-          if (a.price != null) recordPrice(subject.id, "amazon", a.price, a.priceScrapedAt!);
-        }
-        console.log(`  ✓ saved ${result.asins.length} ASIN${result.asins.length === 1 ? "" : "s"} to ${sourceFile}`);
-
-        if (result.reviews.length > 0) {
-          saveReviews(subject.id, "amazon", result.reviews);
-          console.log(`  ✓ saved ${result.reviews.length} verified review${result.reviews.length === 1 ? "" : "s"} to reviews.json`);
-        }
-
-        succeeded++;
+        continue;
       }
-    } catch (err) {
-      console.log(`  💥 error: ${err instanceof Error ? err.message : err}`);
-      failed++;
-    } finally {
-      await browser.close();
-    }
 
-    await randomDelay();
+      try {
+        const result = await scrapeAmazonLens(page, subject, isBodies);
+        if (!result) {
+          console.log(`  🤷 no matches found in top results — skipping (${subject.amazon?.searchLink ?? "no search link"})`);
+          failed++;
+        } else {
+          const subjectEntry = subjects.find((s) => s.id === subject.id)!;
+          subjectEntry.amazon = { searchLink: subject.amazon!.searchLink, asins: result.asins };
+          writeFileSync(sourceFile, JSON.stringify(subjects, null, 2));
+          for (const a of result.asins) {
+            if (a.price != null) recordPrice(subject.id, "amazon", a.price, a.priceScrapedAt!);
+          }
+          console.log(`  ✓ saved ${result.asins.length} ASIN${result.asins.length === 1 ? "" : "s"} to ${sourceFile}`);
+
+          if (result.reviews.length > 0) {
+            const { added, skipped } = saveReviews(subject.id, "amazon", result.reviews);
+            console.log(`  ✓ reviews: ${added} new, ${skipped} duplicate${skipped === 1 ? "" : "s"} skipped`);
+          }
+
+          succeeded++;
+        }
+      } catch (err) {
+        console.log(`  💥 error: ${err instanceof Error ? err.message : err}`);
+        failed++;
+      }
+
+      await randomDelay();
+    }
+  } finally {
+    await context.close();
   }
 
   console.log(`\n🏁 Done. ${succeeded} succeeded, ${failed} failed.`);

@@ -11,7 +11,7 @@
 import "dotenv/config";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import type { Lens } from "../../shared/types.js";
-import { scrapeLens } from "../phillipreeve-scrape.js";
+import { scrapeLens } from "../scrapers/phillipreeve-scrape.js";
 
 const OUT = "output/scrape-test-phillipreeve.json";
 

@@ -8,8 +8,8 @@ import { loadReviews } from "./reviews.js";
 const RESULTS_INPUT = "output/sonyResults.json";
 const OUTPUT = "output/claude-sentiment.json";
 const BATCH_SIZE = 6;
-const REVIEW_CAP = 20;
-const MODEL = "claude-haiku-4-5-20251001";
+const REVIEW_CAP_PER_RETAILER = 20;
+const MODEL = "claude-sonnet-4-6";
 
 type Mode = "lenses" | "bodies";
 const MODE: Mode = process.argv.includes("--bodies") ? "bodies" : "lenses";
@@ -21,6 +21,8 @@ const SELFTEXT_CAP  = MODE === "bodies" ? 4000 : 2000;
 interface LensReviews {
   lensId: string;
   lensName: string;
+  price: number | null;
+  category: string[];
   items: ReviewItem[];
 }
 
@@ -43,7 +45,33 @@ Critical constraints:
 
 Return a JSON object where each key is the product id and the value is the sentiment object. Return only valid JSON, no other text.`;
 
-const LENS_SYSTEM_PROMPT = `You are a camera lens sentiment analyst. You will receive batches of opinion data for specific camera lenses and must return structured sentiment analysis as JSON.
+const CROSS_LENS_SECTION = (catalog: { id: string; name: string }[]) => `
+
+Cross-lens detection: If a reddit_post or reddit_comment item expresses direct, specific sentiment about a different product from the catalog below, include that product as an additional result in your JSON output keyed by its catalog id, using the same schema. Only include results where the sentiment is explicit and evaluative — "the 50mm GM is noticeably sharper" qualifies; "I also own the 50mm" does not. Retailer reviews are product-specific and should not trigger cross-lens results.
+
+Product catalog: ${JSON.stringify(catalog)}`;
+
+const SONY_ECOSYSTEM_GLOSSARY = `Sony E-mount ecosystem terminology — use this to correctly interpret community language:
+- G Master (GM): Sony's flagship lens line — highest optical and build expectations; price typically $1,500+
+- G lens: Sony's mid-tier professional line — strong quality/portability balance, not flagship
+- OSS (Optical SteadyShot): in-lens optical stabilization — praised for video/handheld; considered redundant by some on bodies with strong IBIS
+- Focus breathing: focal length shift when racking focus — a negative, especially for video shooters
+- Fly-by-wire focus ring: electronically coupled, non-mechanical ring — often criticized for imprecise manual focus feel
+- Coma: off-axis point lights render as comet-like streaks wide open — significant negative for astrophotography; less relevant for other genres
+- Chromatic aberration (CA / fringing / purple fringing): color fringing at high-contrast edges — optical negative
+- EXIF / native AF support: for third-party lenses (Sigma, Tamron, Viltrox, Samyang, TTArtisan) — correct metadata reporting and phase-detect AF — a positive when present, a negative when absent
+- Internal zoom/focus: barrel length doesn't change — positive for ergonomics and weather sealing
+- STF (Smooth Trans Focus): Sony's apodization lens design for extremely smooth bokeh — niche specialty, not a general quality indicator
+- Bokeh: quality of out-of-focus rendering — especially important for portrait and standard primes`;
+
+const LENS_CONTEXT_GUIDANCE = `Each product object includes priceUSD (retail price in USD, omitted if unknown) and category (array of descriptors such as prime, zoom, ultra-wide, wide, standard, telephoto, super-telephoto, macro, superzoom, aps-c). Use these as interpretive context:
+- Interpret value judgments relative to the lens's price tier — "great value" means something different for a $300 third-party lens vs a $2,000 Sony G lens
+- Weight bokeh quality more heavily for portrait-oriented primes (standard or wide + prime)
+- Weight coma more heavily for ultra-wide primes (potential astrophotography use)
+- Weight size and weight mentions more heavily for telephoto and super-telephoto lenses
+- For APS-C lenses, evaluate reach and size/weight as primary attributes`;
+
+const LENS_SYSTEM_PROMPT_BASE = `You are a camera lens sentiment analyst. You will receive batches of opinion data for specific camera lenses and must return structured sentiment analysis as JSON.
 
 Each lens includes a mix of sources — Reddit posts ("reddit_post"), Reddit comments ("reddit_comment"), Amazon verified-purchase reviews ("amazon"), B&H verified-buyer reviews ("bh"), and Adorama verified-buyer reviews ("adorama"). Amazon, B&H, and Adorama items include a 1–5 star rating and represent customer experience with an actual purchased product. Reddit items carry community discussion signal but may lack purchase context.
 
@@ -51,9 +79,13 @@ Only consider items that express an opinion about the lens's optical or build qu
 
 Weight structured reviews (amazon, bh, adorama) somewhat more heavily than Reddit mentions when they agree or disagree with Reddit sentiment, since they reflect actual ownership.
 
+${SONY_ECOSYSTEM_GLOSSARY}
+
+${LENS_CONTEXT_GUIDANCE}
+
 ${SHARED_OUTPUT_SCHEMA}`;
 
-const BODY_SYSTEM_PROMPT = `You are a camera body sentiment analyst. You will receive batches of opinion data for specific camera bodies and must return structured sentiment analysis as JSON.
+const BODY_SYSTEM_PROMPT_BASE = `You are a camera body sentiment analyst. You will receive batches of opinion data for specific camera bodies and must return structured sentiment analysis as JSON.
 
 Each body includes a mix of sources — Reddit posts ("reddit_post"), Reddit comments ("reddit_comment"), Amazon verified-purchase reviews ("amazon"), B&H verified-buyer reviews ("bh"), and Adorama verified-buyer reviews ("adorama"). Amazon, B&H, and Adorama items include a 1–5 star rating and represent customer experience with an actual purchased product. Reddit items carry community discussion signal but may lack purchase context.
 
@@ -62,6 +94,11 @@ Only consider items that express an opinion about the body's performance, usabil
 Weight structured reviews (amazon, bh, adorama) somewhat more heavily than Reddit mentions when they agree or disagree with Reddit sentiment, since they reflect actual ownership.
 
 ${SHARED_OUTPUT_SCHEMA}`;
+
+function buildSystemPrompt(mode: Mode, catalog: { id: string; name: string }[]): string {
+  const base = mode === "bodies" ? BODY_SYSTEM_PROMPT_BASE : LENS_SYSTEM_PROMPT_BASE;
+  return base + CROSS_LENS_SECTION(catalog);
+}
 
 function redditItems(data: ResultsData, productById: Record<string, Lens | Body>): Map<string, ReviewItem[]> {
   const map = new Map<string, ReviewItem[]>();
@@ -119,6 +156,13 @@ function redditItems(data: ResultsData, productById: Record<string, Lens | Body>
   return map;
 }
 
+function resolvePrice(product: Lens | Body): number | null {
+  return product.bh?.price
+    ?? product.adorama?.price
+    ?? product.amazon?.asins?.find(a => a.price != null)?.price
+    ?? null;
+}
+
 function mergeSources(
   redditMap: Map<string, ReviewItem[]>,
   reviewsByLens: Record<string, ReviewItem[]>,
@@ -130,11 +174,22 @@ function mergeSources(
   for (const id of allIds) {
     if (!productById[id]) continue;
     const reddit = redditMap.get(id) ?? [];
-    const reviews = (reviewsByLens[id] ?? []).filter(r => r.sourceType === "amazon" || r.sourceType === "bh" || r.sourceType === "adorama").slice(0, REVIEW_CAP);
+    const allReviews = reviewsByLens[id] ?? [];
+    const reviews = [
+      ...allReviews.filter(r => r.sourceType === "amazon").slice(0, REVIEW_CAP_PER_RETAILER),
+      ...allReviews.filter(r => r.sourceType === "bh").slice(0, REVIEW_CAP_PER_RETAILER),
+      ...allReviews.filter(r => r.sourceType === "adorama").slice(0, REVIEW_CAP_PER_RETAILER),
+    ];
     const items = [...reviews, ...reddit];
     if (items.length === 0) continue;
     const product = productById[id];
-    out.push({ lensId: id, lensName: `${product.brand} ${product.model}`, items });
+    out.push({
+      lensId: id,
+      lensName: `${product.brand} ${product.model}`,
+      price: resolvePrice(product),
+      category: (product as Lens).category ?? [],
+      items,
+    });
   }
 
   return out;
@@ -160,11 +215,14 @@ async function analyzeBatch(
   client: Anthropic,
   batch: LensReviews[],
   systemPrompt: string,
+  validIds: Set<string>,
 ): Promise<Record<string, ClaudeSentimentResult>> {
   const kind = MODE === "bodies" ? "bodies" : "lenses";
   const payload = batch.map(l => ({
     productId: l.lensId,
     productName: l.lensName,
+    ...(l.price != null && { priceUSD: l.price }),
+    ...(l.category.length > 0 && { category: l.category }),
     items: l.items.map(r => ({
       source: r.sourceType,
       rating: r.rating,
@@ -195,10 +253,20 @@ async function analyzeBatch(
     throw new Error(`JSON parse failed for batch [${batch.map(l => l.lensId).join(", ")}]: ${(e as Error).message}\nRaw (first 500 chars): ${match[0].slice(0, 500)}`);
   }
 
+  const batchIds = new Set(batch.map(b => b.lensId));
   const itemsByLens = new Map(batch.map(b => [b.lensId, b.items]));
-  let droppedPos = 0, droppedNeg = 0;
+  // Cross-lens citations can come from any item in the batch, so verify against all of them.
+  const allBatchItems = batch.flatMap(b => b.items);
+
+  let droppedPos = 0, droppedNeg = 0, crossLensFound = 0;
   for (const [lensId, result] of Object.entries(parsed)) {
-    const items = itemsByLens.get(lensId) ?? [];
+    const isCrossLens = !batchIds.has(lensId);
+    if (isCrossLens && !validIds.has(lensId)) {
+      delete parsed[lensId];
+      continue;
+    }
+    if (isCrossLens) crossLensFound++;
+    const items = isCrossLens ? allBatchItems : (itemsByLens.get(lensId) ?? []);
     const verifiedPos = verifyCitations(result.positives ?? [], items);
     const verifiedNeg = verifyCitations(result.negatives ?? [], items);
     droppedPos += (result.positives?.length ?? 0) - verifiedPos.length;
@@ -208,6 +276,9 @@ async function analyzeBatch(
   }
   if (droppedPos || droppedNeg) {
     console.warn(`    (dropped ${droppedPos} positive + ${droppedNeg} negative unverifiable citations)`);
+  }
+  if (crossLensFound > 0) {
+    console.log(`    (+${crossLensFound} cross-lens result${crossLensFound > 1 ? "s" : ""})`);
   }
   return parsed;
 }
@@ -229,11 +300,13 @@ async function main() {
   }
 
   const productById: Record<string, Lens | Body> = Object.fromEntries(products.map(p => [p.id, p]));
+  const validIds = new Set(products.map(p => p.id));
+  const catalog = products.map(p => ({ id: p.id, name: `${p.brand} ${p.model}` }));
 
   const totalReviews = Object.values(reviewsByLens).reduce((n, items) => n + items.length, 0);
   console.log(`Mode: ${MODE} | Loaded ${data.posts.length} Reddit posts, ${totalReviews} retailer reviews`);
 
-  const systemPrompt = MODE === "bodies" ? BODY_SYSTEM_PROMPT : LENS_SYSTEM_PROMPT;
+  const systemPrompt = buildSystemPrompt(MODE, catalog);
   const lensEntries = mergeSources(redditItems(data, productById), reviewsByLens, productById);
   console.log(`${lensEntries.length} ${MODE} have opinion data — sending in batches of ${BATCH_SIZE}`);
 
@@ -246,7 +319,7 @@ async function main() {
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     process.stdout.write(`  Batch ${i + 1}/${batches.length} (${batch.map((l) => l.lensId).join(", ")})... `);
-    const batchResults = await analyzeBatch(client, batch, systemPrompt);
+    const batchResults = await analyzeBatch(client, batch, systemPrompt, validIds);
     Object.assign(results, batchResults);
     console.log("done");
   }

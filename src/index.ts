@@ -9,7 +9,14 @@ import type { Body, RedditPost as Post, Post as MatchedPost, LensStat, Sentiment
 const LISTING_SUBREDDITS = ["sonyalpha"];
 // Broad subs where most posts are off-topic — narrow via /search.json?q=
 // to posts that mention one of our tracked brands.
-const SEARCH_SUBREDDITS = ["photography", "astrophotography", "macro"];
+const SEARCH_SUBREDDITS = ["photography", "astrophotography", "macro", "videography", "birding", "wildlifephotography"];
+// Category queries run against the listing subs (e.g. sonyalpha) via search,
+// supplementing the full listing fetch to catch discussion threads that don't
+// rank in the top listings but are highly relevant.
+const LISTING_SUB_QUERIES = [
+  "macro lens", "zoom lens", "prime lens", "wide angle lens",
+  "portrait lens", "best lens", "best macro", "lens recommendation",
+];
 const SUBREDDITS = [...LISTING_SUBREDDITS, ...SEARCH_SUBREDDITS];
 const RUNS: { sort: string; timeframe: string }[] = [
   { sort: "top",           timeframe: "all"   },
@@ -102,17 +109,24 @@ async function main(mode: "both" | "lenses" | "bodies" = "both") {
     ? JSON.parse(readFileSync("bodies.json", "utf8"))
     : [];
   const bodyPool: CompiledProduct[] = compileBodies(bodies);
-  if (bodies.length > 0) {
-    console.log(`  Body pool      : ${bodies.length} bodies compiled (${bodyPool.reduce((n, b) => n + b.patterns.length, 0)} patterns)`);
-  }
 
   const searchQueries = buildSearchQueries();
   type QueryRun = { query: string | null; sort: string; timeframe: string };
+  const listingSubSearchRuns: QueryRun[] = LISTING_SUB_QUERIES.flatMap((query) =>
+    RUNS.filter((r) => SEARCH_SORTS.has(r.sort) && r.sort === "top" && (r.timeframe === "all" || r.timeframe === "year"))
+      .map((r) => ({ query, sort: r.sort, timeframe: r.timeframe })),
+  );
+
   const plan: { sub: string; fetchMode: "listing" | "search"; runs: QueryRun[] }[] = [
     ...LISTING_SUBREDDITS.map((sub) => ({
       sub,
       fetchMode: "listing" as const,
       runs: RUNS.map((r) => ({ query: null, sort: r.sort, timeframe: r.timeframe })),
+    })),
+    ...LISTING_SUBREDDITS.map((sub) => ({
+      sub,
+      fetchMode: "search" as const,
+      runs: listingSubSearchRuns,
     })),
     ...SEARCH_SUBREDDITS.map((sub) => ({
       sub,
@@ -133,16 +147,20 @@ async function main(mode: "both" | "lenses" | "bodies" = "both") {
     " ██║     ██╔══╝  ██║╚██╗██║╚════██║██║     ██║   ██║██║   ██║██╔═██╗ ",
     " ███████╗███████╗██║ ╚████║███████║███████╗╚██████╔╝╚██████╔╝██║  ██╗",
     " ╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝",
-    "           Reddit Lens Popularity Scraper",
+    "           Reddit Lens Scraper",
     "",
   ].join("\n");
   console.log(banner);
   console.log(`${"=".repeat(70)}`);
+  console.log(`  Mode           : ${mode}`);
   console.log(`  Listing subs   : ${LISTING_SUBREDDITS.join(", ")}`);
   console.log(`  Search subs    : ${SEARCH_SUBREDDITS.join(", ")}`);
   console.log(`  Search queries : ${searchQueries.map((q) => `"${q.query}"×${q.runs.length}`).join(", ")}`);
   console.log(`  Limit          : ${LIMIT} posts per run`);
   console.log(`  Total runs     : ${totalRuns}`);
+  if (bodies.length > 0) {
+    console.log(`  Body pool      : ${bodies.length} bodies (${bodyPool.reduce((n, b) => n + b.patterns.length, 0)} patterns)`);
+  }
   console.log(`${"=".repeat(70)}\n`);
 
   for (const { sub, fetchMode, runs } of plan) {
@@ -315,7 +333,7 @@ async function main(mode: "both" | "lenses" | "bodies" = "both") {
       }
     }
     if ((i + 1) % 25 === 0) {
-      console.log(`  ${progress} checked ${i + 1} posts (${newFromComments} new, ${enrichedExisting} enriched)`);
+      console.log(`  ${progress} checked ${i + 1}/${commentCandidates.length} posts — ${newFromComments} new from comments, ${enrichedExisting} enriched`);
     }
   }
 
@@ -413,6 +431,16 @@ function writeOutput(allMatched: MatchedPost[], partial = false) {
     console.log(`  ${s.lensId.padEnd(42)} ${String(s.postCount).padStart(3)} posts   weight: ${s.scoreSentiment}`);
   }
   console.log(`${"=".repeat(50)}\n`);
+
+  if (bodyStats.length > 0) {
+    console.log(`${"=".repeat(50)}`);
+    console.log("  🏆 Top 15 bodies by total weight");
+    console.log(`${"=".repeat(50)}`);
+    for (const s of bodyStats.slice(0, 15)) {
+      console.log(`  ${s.lensId.padEnd(42)} ${String(s.postCount).padStart(3)} posts   weight: ${s.scoreSentiment}`);
+    }
+    console.log(`${"=".repeat(50)}\n`);
+  }
 }
 
 const mode = process.argv.includes("--lenses") ? "lenses"

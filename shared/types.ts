@@ -344,6 +344,7 @@ export interface VideoSentiment {
   channelTitle?: string;
   publishedAt?: string;
   viewCount?: number;
+  durationSeconds?: number;
   reviewer?: string;
   score: number;
   label: SentimentLabel;
@@ -369,6 +370,7 @@ export interface ReviewItem {
   verifiedPurchase?: boolean;
   images: string[];
   date?: string;
+  author?: string;
   url?: string;
   upvoteScore?: number;
 }
@@ -448,7 +450,9 @@ export interface DashboardData {
   claudeSentiment: Record<string, ClaudeSentimentResult>;
   youtubeSentiment: Record<string, YouTubeSentimentResult>;
   reviews: ReviewsData;
+  technicalReviews: TechnicalReviewsData;
   lensById: Record<string, Lens>;
   bodies: Body[];
   bodyById: Record<string, Body>;
+  priceHistory: PriceHistoryData;
 }

@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
-import { type Post } from "./scraper.js";
-import { matchProductsWithPositions, compileBodies, ALL_LENSES, type CompiledProduct } from "./matcher.js";
-import { calcWeight } from "../shared/weight.js";
-import type { Body } from "../shared/types.js";
+import { type Post } from "../scraper.js";
+import { matchProductsWithPositions, compileBodies, ALL_LENSES, type CompiledProduct } from "../matcher.js";
+import { calcWeight } from "../../shared/weight.js";
+import type { Body } from "../../shared/types.js";
 
 const USER_AGENT = "lenslook/1.0 by kyle.flippo@gmail.com";
 

@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { scrapeAdoramaLens, launchAdoramaContext, randomDelay } from "../adorama-scrape.js";
+import { scrapeAdoramaLens, launchAdoramaContext, randomDelay } from "../scrapers/adorama-scrape.js";
 import type { Lens } from "../../shared/types.js";
 
 const LENSES_FILE = "lenses.json";

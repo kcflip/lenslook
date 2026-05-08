@@ -8,6 +8,8 @@ import type {
   ClaudeSentimentResult,
   YouTubeSentimentResult,
   ReviewsData,
+  TechnicalReviewsData,
+  PriceHistoryData,
 } from '../types';
 
 // Hide a lens when it has zero Reddit mentions AND no retail URL on file.
@@ -60,6 +62,28 @@ async function fetchReviews(url: string): Promise<ReviewsData> {
   }
 }
 
+// technical-reviews.json is a flat `{ [lensId]: { [source]: TechnicalReview } }`.
+async function fetchTechnicalReviews(url: string): Promise<TechnicalReviewsData> {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return {};
+    return (await r.json()) as TechnicalReviewsData;
+  } catch {
+    return {};
+  }
+}
+
+// price-history.json is a flat `{ [lensId]: LensPriceHistory }`.
+async function fetchPriceHistory(url: string): Promise<PriceHistoryData> {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return {};
+    return (await r.json()) as PriceHistoryData;
+  } catch {
+    return {};
+  }
+}
+
 export function useDashboardData(system: string = 'Sony') {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,8 +99,10 @@ export function useDashboardData(system: string = 'Sony') {
       fetchLensesMap<YouTubeSentimentResult>('/output/youtube-sentiment.json'),
       fetchReviews('/output/reviews.json'),
       fetchJson<Body[]>('/bodies.json').catch(() => [] as Body[]),
+      fetchTechnicalReviews('/output/technical-reviews.json'),
+      fetchPriceHistory('/output/price-history.json'),
     ])
-      .then(([results, allLenses, sentiment, claudeSentiment, youtubeSentiment, reviews, allBodies]) => {
+      .then(([results, allLenses, sentiment, claudeSentiment, youtubeSentiment, reviews, allBodies, technicalReviews, priceHistory]) => {
         const systemLenses = allLenses.filter((l) => l.system === system);
         const statsById = new Map(results.stats.map((s) => [s.lensId, s]));
         const keep = new Set(
@@ -109,9 +135,11 @@ export function useDashboardData(system: string = 'Sony') {
           claudeSentiment,
           youtubeSentiment,
           reviews,
+          technicalReviews,
           lensById,
           bodies,
           bodyById,
+          priceHistory,
         });
       })
       .catch(err => setError((err as Error).message));
